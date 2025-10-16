@@ -34,11 +34,11 @@ const Sidebar = ({ user }: SidebarProps) => (
   <aside className="hidden w-72 flex-col border-r border-white/10 bg-[#0a0a0a]/95 px-5 py-6 backdrop-blur lg:flex">
     <Link href="/dashboard" className="flex items-center gap-3 pb-8">
       <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-        <Image src="/driftworks-logo.svg" alt="Driftworks" width={48} height={48} className="object-cover" />
+        <Image src="/driftworks.png" alt="Driftworks" width={48} height={48} className="object-cover" />
       </div>
       <div>
         <p className="text-sm uppercase tracking-[0.4em] text-white/40">Driftworks</p>
-        <p className="text-lg font-semibold leading-5 text-white">Invoice System</p>
+        <p className="text-lg font-semibold leading-5 text-white">Operations Hub</p>
       </div>
     </Link>
 
@@ -54,12 +54,8 @@ const Sidebar = ({ user }: SidebarProps) => (
           {getInitials(user?.fullName, user?.email)}
         </div>
         <div>
-          <p className="text-sm font-medium text-white">
-            {user?.fullName ?? "Unknown user"}
-          </p>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-            {user?.role ?? "Team"}
-          </p>
+          <p className="text-sm font-medium text-white">{user?.fullName ?? "Unknown user"}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/40">{user?.role ?? "Team"}</p>
         </div>
       </div>
       <LogoutButton />

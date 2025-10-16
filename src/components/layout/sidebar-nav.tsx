@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import {
-  BarChart3,
-  FileText,
-  LayoutDashboard,
-  Settings,
-  Users,
-} from "lucide-react";
+import { FileText, Package, Settings2, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -22,30 +16,24 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    href: "/dashboard",
-    label: "Overview",
-    icon: LayoutDashboard,
-  },
-  {
     href: "/invoices",
     label: "Invoices",
     icon: FileText,
   },
   {
-    href: "/clients",
-    label: "Clients",
+    href: "/users",
+    label: "Users",
     icon: Users,
   },
   {
-    href: "/reports",
-    label: "Reports",
-    icon: BarChart3,
-    badge: "Soon",
+    href: "/products",
+    label: "Products",
+    icon: Package,
   },
   {
-    href: "/settings",
-    label: "Settings",
-    icon: Settings,
+    href: "/management",
+    label: "Management",
+    icon: Settings2,
   },
 ];
 
@@ -55,7 +43,8 @@ const SidebarNav = () => {
   return (
     <nav className="flex flex-1 flex-col gap-2">
       {NAV_ITEMS.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
 
         return (
@@ -71,15 +60,14 @@ const SidebarNav = () => {
             )}
           >
             <span className="flex items-center gap-2">
-              <Icon className={cn("h-4 w-4", active ? "text-brand-accent" : "text-white/50")}
+              <Icon
+                className={cn(
+                  "h-4 w-4",
+                  active ? "text-brand-accent" : "text-white/50",
+                )}
               />
               {item.label}
             </span>
-            {item.badge ? (
-              <span className="rounded-full bg-white/10 px-2 py-[2px] text-[10px] uppercase tracking-wider text-white/60">
-                {item.badge}
-              </span>
-            ) : null}
           </Link>
         );
       })}
