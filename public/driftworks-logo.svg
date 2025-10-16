@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title">
+  <title>Driftworks logo</title>
+  <defs>
+    <linearGradient id="glow" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="100%" stop-color="#d6d6d6" stop-opacity="0.85" />
+    </linearGradient>
+  </defs>
+  <circle cx="240" cy="240" r="236" fill="#050505" stroke="#ffffff" stroke-width="8" />
+  <circle cx="240" cy="240" r="196" fill="#0f0f0f" stroke="#ffffff" stroke-width="6" />
+  <g transform="translate(0,-28)">
+    <path d="M324 166c26 0 46 18 46 40 0 10-4 20-12 27h-68c-8-7-12-17-12-27 0-22 20-40 46-40z" fill="#ffffff" opacity="0.85" />
+    <path d="M340 166c12 16 20 38 18 64h-12c4-22-1-46-12-64z" fill="#ffffff" opacity="0.6" />
+    <path d="M152 156c-22 0-38 12-46 30l44 18-56 44h64c14 14 34 22 56 22h92c22 0 40-12 48-32l16-42c-12-24-34-40-60-40z" fill="#ffffff" />
+    <path d="M162 198h146c16 0 30 8 38 20l-10 26c-6 14-20 22-36 22H196c-16 0-30-8-38-22l-12-26c6-14 20-20 36-20z" fill="#050505" />
+    <path d="M174 254c0 16-14 30-30 30s-30-14-30-30 14-30 30-30 30 14 30 30z" fill="#050505" />
+    <circle cx="144" cy="254" r="22" fill="#ffffff" />
+    <path d="M346 254c0 16-14 30-30 30s-30-14-30-30 14-30 30-30 30 14 30 30z" fill="#050505" />
+    <circle cx="316" cy="254" r="22" fill="#ffffff" />
+    <rect x="190" y="180" width="108" height="18" rx="8" fill="#ffffff" />
+  </g>
+  <g transform="translate(0,18)">
+    <path d="M120 300h240l-12 48c-2 8-10 14-18 14H150c-8 0-16-6-18-14z" fill="#ffffff" />
+    <path d="M120 300l-20 40c-4 8 2 18 12 18h256c10 0 16-10 12-18l-20-40z" fill="#050505" />
+    <text x="240" y="345" text-anchor="middle" font-family="'Orbitron', 'Helvetica Neue', Arial, sans-serif" font-size="54" font-weight="700" fill="url(#glow)" letter-spacing="8">
+      DRIFTWORKS
+    </text>
+  </g>
+</svg>
