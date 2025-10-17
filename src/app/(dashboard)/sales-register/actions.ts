@@ -79,7 +79,10 @@ export const completeSale = async (
       .eq("id", discountId)
       .maybeSingle();
 
-    if (!discountRecord) {
+    const discountRow =
+      discountRecord as Database["public"]["Tables"]["discounts"]["Row"] | null;
+
+    if (!discountRow) {
       return {
         status: "error",
         message: "Selected discount could not be found",
@@ -87,7 +90,7 @@ export const completeSale = async (
     }
 
     discountAmount = roundCurrency(
-      subtotal * (discountRecord.percentage ?? 0),
+      subtotal * (discountRow.percentage ?? 0),
     );
   }
 
