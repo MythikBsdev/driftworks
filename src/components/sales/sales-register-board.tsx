@@ -152,7 +152,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
                 <span className="text-sm font-semibold text-white">
                   {item.name}
                 </span>
-                <span className="text-xs uppercase tracking-[0.3em] text-white/40">
+                <span className="muted-label">
                   {item.category}
                 </span>
                 <span className="text-sm text-white/70">
@@ -290,5 +290,6 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 };
 
 export default SalesRegisterBoard;
+
 
 

@@ -55,7 +55,7 @@ const Sidebar = ({ user }: SidebarProps) => (
         </div>
         <div>
           <p className="text-sm font-medium text-white">{user?.fullName ?? "Unknown user"}</p>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">{user?.role ?? "Team"}</p>
+          <p className="muted-label">{user?.role ?? "Team"}</p>
         </div>
       </div>
       <LogoutButton />
@@ -64,3 +64,4 @@ const Sidebar = ({ user }: SidebarProps) => (
 );
 
 export default Sidebar;
+

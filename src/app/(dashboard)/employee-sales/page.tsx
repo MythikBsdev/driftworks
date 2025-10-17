@@ -35,7 +35,7 @@ const EmployeeSalesPage = async () => {
       <form action={addSale} className="mt-6 space-y-4">
         <div className="space-y-2">
           <label
-            className="text-xs uppercase tracking-[0.3em] text-white/40"
+            className="muted-label"
             htmlFor="invoiceNumber"
           >
             Invoice Number
@@ -50,7 +50,7 @@ const EmployeeSalesPage = async () => {
         </div>
         <div className="space-y-2">
           <label
-            className="text-xs uppercase tracking-[0.3em] text-white/40"
+            className="muted-label"
             htmlFor="amount"
           >
             Amount (£)
@@ -68,7 +68,7 @@ const EmployeeSalesPage = async () => {
         </div>
         <div className="space-y-2">
           <label
-            className="text-xs uppercase tracking-[0.3em] text-white/40"
+            className="muted-label"
             htmlFor="employeeId"
           >
             Employee
@@ -95,7 +95,7 @@ const EmployeeSalesPage = async () => {
         </div>
         <div className="space-y-2">
           <label
-            className="text-xs uppercase tracking-[0.3em] text-white/40"
+            className="muted-label"
             htmlFor="notes"
           >
             Notes (optional)
@@ -120,5 +120,6 @@ const EmployeeSalesPage = async () => {
 };
 
 export default EmployeeSalesPage;
+
 
 

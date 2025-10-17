@@ -72,7 +72,7 @@ const CreateUserForm = () => {
     <form id="create-user-form" action={formAction} className="space-y-4">
       <div className="space-y-2">
         <label
-          className="text-xs uppercase tracking-[0.3em] text-white/40"
+          className="muted-label"
           htmlFor="username"
         >
           Username
@@ -88,7 +88,7 @@ const CreateUserForm = () => {
 
       <div className="space-y-2">
         <label
-          className="text-xs uppercase tracking-[0.3em] text-white/40"
+          className="muted-label"
           htmlFor="password"
         >
           Password
@@ -122,7 +122,7 @@ const CreateUserForm = () => {
 
       <div className="space-y-2">
         <label
-          className="text-xs uppercase tracking-[0.3em] text-white/40"
+          className="muted-label"
           htmlFor="role"
         >
           Role
@@ -158,4 +158,5 @@ const CreateUserForm = () => {
 };
 
 export default CreateUserForm;
+
 

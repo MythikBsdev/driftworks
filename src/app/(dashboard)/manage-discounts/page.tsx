@@ -42,7 +42,7 @@ const ManageDiscountsPage = async () => {
         <form action={create} className="mt-6 space-y-4">
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="name"
             >
               Discount Name
@@ -57,7 +57,7 @@ const ManageDiscountsPage = async () => {
           </div>
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="percentage"
             >
               Percentage (0.00 - 1.00)
@@ -90,7 +90,7 @@ const ManageDiscountsPage = async () => {
         </p>
         <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
           <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-white/40">
+            <thead className="bg-white/5 muted-label">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Percentage</th>
@@ -147,6 +147,7 @@ const ManageDiscountsPage = async () => {
 };
 
 export default ManageDiscountsPage;
+
 
 
 

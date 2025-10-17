@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   color-scheme: dark;
@@ -60,7 +60,7 @@ a:hover {
   }
 
   .muted-label {
-    @apply text-xs uppercase tracking-[0.3em] text-white/40;
+    @apply muted-label;
   }
 
   .btn-primary {
@@ -107,4 +107,5 @@ a:hover {
     @apply border-white/10;
   }
 }
+
 

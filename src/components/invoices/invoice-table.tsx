@@ -35,7 +35,7 @@ const InvoiceTable = ({ invoices }: { invoices: InvoiceRow[] }) => {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#101010]/90 shadow-[0_25px_60px_-45px_rgba(255,22,22,0.6)]">
-      <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-white/40">
+      <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-4 border-b border-white/10 px-6 py-4 muted-label">
         <span>Invoice</span>
         <span>Client</span>
         <span>Due date</span>

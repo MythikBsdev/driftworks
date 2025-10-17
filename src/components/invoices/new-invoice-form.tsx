@@ -200,7 +200,7 @@ const NewInvoiceForm = ({ clients, suggestedInvoiceNumber, currency = "USD" }: N
           {items.map((item, index) => (
             <div key={item.id} className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-[2fr_1fr_1fr_auto]">
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-[0.3em] text-white/40">Description</label>
+                <label className="muted-label">Description</label>
                 <input
                   value={item.description}
                   onChange={(event) => updateItem(item.id, { description: event.target.value })}
@@ -210,7 +210,7 @@ const NewInvoiceForm = ({ clients, suggestedInvoiceNumber, currency = "USD" }: N
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-[0.3em] text-white/40">Qty</label>
+                <label className="muted-label">Qty</label>
                 <input
                   type="number"
                   min={1}
@@ -221,7 +221,7 @@ const NewInvoiceForm = ({ clients, suggestedInvoiceNumber, currency = "USD" }: N
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-[0.3em] text-white/40">Unit price</label>
+                <label className="muted-label">Unit price</label>
                 <input
                   type="number"
                   min={0}

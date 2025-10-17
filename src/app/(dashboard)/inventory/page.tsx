@@ -48,7 +48,7 @@ const InventoryPage = async () => {
         <form action={createItem} className="mt-6 space-y-4">
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="name"
             >
               Item Name
@@ -63,7 +63,7 @@ const InventoryPage = async () => {
           </div>
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="category"
             >
               Category
@@ -87,7 +87,7 @@ const InventoryPage = async () => {
           </div>
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="description"
             >
               Description (Optional)
@@ -102,7 +102,7 @@ const InventoryPage = async () => {
           </div>
           <div className="space-y-2">
             <label
-              className="text-xs uppercase tracking-[0.3em] text-white/40"
+              className="muted-label"
               htmlFor="price"
             >
               Item Price (£)
@@ -134,7 +134,7 @@ const InventoryPage = async () => {
         </p>
         <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
           <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-white/40">
+            <thead className="bg-white/5 muted-label">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Category</th>
@@ -189,6 +189,7 @@ const InventoryPage = async () => {
 };
 
 export default InventoryPage;
+
 
 
 
