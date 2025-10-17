@@ -13,6 +13,10 @@ const itemSchema = z.object({
   price: z.coerce.number().nonnegative("Price must be zero or greater"),
 });
 
+const updateSchema = itemSchema.extend({
+  itemId: z.string().uuid("Invalid inventory item"),
+});
+
 export type InventoryFormState =
   | { status: "idle" }
   | { status: "success" }
@@ -83,4 +87,56 @@ export const deleteInventoryItem = async (formData: FormData) => {
 
   revalidatePath("/inventory");
   revalidatePath("/sales-register");
+};
+
+export const updateInventoryItem = async (
+  _prev: InventoryFormState,
+  formData: FormData,
+): Promise<InventoryFormState> => {
+  const session = await getSession();
+  if (!session) {
+    return { status: "error", message: "You must be signed in" };
+  }
+
+  const parsed = updateSchema.safeParse({
+    itemId: formData.get("itemId"),
+    name: formData.get("name"),
+    category: formData.get("category"),
+    description: formData.get("description"),
+    price: formData.get("price"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid inventory item",
+    };
+  }
+
+  const supabase = createSupabaseServerActionClient();
+  const { itemId, ...payload } = parsed.data;
+
+  let query = supabase
+    .from("inventory_items")
+    .update({
+      name: payload.name,
+      category: payload.category,
+      description: payload.description || null,
+      price: payload.price,
+    } as never)
+    .eq("id", itemId);
+
+  if (session.user.role !== "owner") {
+    query = query.eq("owner_id", session.user.id);
+  }
+
+  const { error } = await query;
+  if (error) {
+    return { status: "error", message: error.message };
+  }
+
+  revalidatePath("/inventory");
+  revalidatePath("/sales-register");
+
+  return { status: "success" };
 };
