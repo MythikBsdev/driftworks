@@ -53,7 +53,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         .eq("owner_id", session.user.id),
       supabase
         .from("sales_orders")
-        .select("id, invoice_number, subtotal, discount, total, created_at")
+        .select("id, owner_id, invoice_number, subtotal, discount, total, created_at")
         .eq("owner_id", session.user.id)
         .order("created_at", { ascending: false })
         .limit(50),
@@ -148,7 +148,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           subtotal: entry.subtotal ?? 0,
           discount: entry.discount ?? 0,
           total: entry.total ?? 0,
-          soldBy: "—",
+          soldBy: entry.owner_id
+            ? userNameLookup.get(entry.owner_id) ?? "-"
+            : "-",
         };
       }
 
