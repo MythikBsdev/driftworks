@@ -3,6 +3,7 @@
 import SalesRegisterBoard from "@/components/sales/sales-register-board";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const SalesRegisterPage = async () => {
   const session = await getSession();
@@ -18,7 +19,10 @@ const SalesRegisterPage = async () => {
     .eq("owner_id", session.user.id)
     .order("name", { ascending: true });
 
-  return <SalesRegisterBoard items={items ?? []} />;
+  const inventoryItems =
+    (items ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+
+  return <SalesRegisterBoard items={inventoryItems} />;
 };
 
 export default SalesRegisterPage;

@@ -1,14 +1,11 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 
-import {
-  createInventoryItem,
-  deleteInventoryItem,
-  type InventoryFormState,
-} from "./actions";
+import { createInventoryItem, deleteInventoryItem } from "./actions";
 
 const categories = ["Normal", "Employee", "LEO"];
 
@@ -26,14 +23,14 @@ const InventoryPage = async () => {
     .eq("owner_id", session.user.id)
     .order("updated_at", { ascending: false });
 
+  const inventoryItems =
+    (inventory ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+
   const formatter = currencyFormatter("GBP");
 
-  const createItem = async (
-    prevState: InventoryFormState,
-    formData: FormData,
-  ) => {
+  const createItem = async (formData: FormData) => {
     "use server";
-    return createInventoryItem(prevState, formData);
+    await createInventoryItem({ status: "idle" }, formData);
   };
 
   const removeItem = async (formData: FormData) => {
@@ -108,7 +105,7 @@ const InventoryPage = async () => {
               className="text-xs uppercase tracking-[0.3em] text-white/40"
               htmlFor="price"
             >
-              Item Price (�)
+              Item Price (£)
             </label>
             <input
               id="price"
@@ -147,8 +144,8 @@ const InventoryPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {inventory?.length ? (
-                inventory.map((item) => (
+              {inventoryItems.length ? (
+                inventoryItems.map((item) => (
                   <tr key={item.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-white">{item.name}</td>
                     <td className="px-4 py-3 text-white/60">{item.category}</td>
@@ -192,4 +189,6 @@ const InventoryPage = async () => {
 };
 
 export default InventoryPage;
+
+
 

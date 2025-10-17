@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -95,20 +95,22 @@ export const createInvoice = async (
     notes: notes ?? null,
   };
 
-  const invoiceInsert = [
-    invoicePayload,
-  ] as Database["public"]["Tables"]["invoices"]["Insert"][];
   const { error: invoiceError, data: invoice } = await supabase
     .from("invoices")
-    .insert(invoiceInsert)
+    // Supabase type helpers do not infer the insert payload correctly here, so we
+    // cast to never to keep the runtime behaviour unchanged.
+    .insert(invoicePayload as never)
     .select("id")
     .single();
 
+  const insertedInvoice =
+    invoice as Database["public"]["Tables"]["invoices"]["Row"] | null;
+
   if (
     invoiceError ||
-    !invoice ||
-    typeof invoice !== "object" ||
-    !("id" in invoice)
+    !insertedInvoice ||
+    typeof insertedInvoice !== "object" ||
+    !("id" in insertedInvoice)
   ) {
     return {
       status: "error",
@@ -118,19 +120,17 @@ export const createInvoice = async (
 
   const itemsPayload: Database["public"]["Tables"]["invoice_items"]["Insert"][] =
     items.map((item) => ({
-      invoice_id: invoice.id,
+      invoice_id: insertedInvoice.id,
       description: item.description,
       quantity: item.quantity,
       unit_price: item.unit_price,
       amount: item.quantity * item.unit_price,
     }));
 
-  const itemsInsert = [
-    ...itemsPayload,
-  ] as Database["public"]["Tables"]["invoice_items"]["Insert"][];
   const { error: itemsError } = await supabase
     .from("invoice_items")
-    .insert(itemsInsert);
+    // Cast required for the same Supabase typing quirk as above.
+    .insert(itemsPayload as never);
 
   if (itemsError) {
     return { status: "error", message: itemsError.message };
@@ -182,15 +182,17 @@ export const createClient = async (
     };
   }
 
-  const { error } = await supabase.from("clients").insert({
-    owner_id: session.user.id,
-    name: parsed.data.name,
-    company: parsed.data.company || null,
-    email: parsed.data.email || null,
-    phone: parsed.data.phone || null,
-    address: parsed.data.address || null,
-    notes: parsed.data.notes || null,
-  });
+  const { error } = await supabase
+    .from("clients")
+    .insert({
+      owner_id: session.user.id,
+      name: parsed.data.name,
+      company: parsed.data.company || null,
+      email: parsed.data.email || null,
+      phone: parsed.data.phone || null,
+      address: parsed.data.address || null,
+      notes: parsed.data.notes || null,
+    } as never);
 
   if (error) {
     return { status: "error", message: error.message };
@@ -202,6 +204,8 @@ export const createClient = async (
 
   return { status: "success" };
 };
+
+
 
 
 

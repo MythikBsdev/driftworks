@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { signOut } from "@/app/(dashboard)/actions";
@@ -75,3 +75,4 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 };
 
 export default DashboardLayout;
+

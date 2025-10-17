@@ -1,12 +1,9 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
-import {
-  createCommission,
-  deleteCommission,
-  type CommissionFormState,
-} from "./actions";
+import { createCommission, deleteCommission } from "./actions";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const ROLE_OPTIONS = [
   { value: "owner", label: "Owner" },
@@ -34,9 +31,12 @@ const ManageCommissionsPage = async () => {
     .eq("owner_id", session.user.id)
     .order("updated_at", { ascending: false });
 
-  const create = async (prev: CommissionFormState, formData: FormData) => {
+  const commissionRows =
+    (commissions ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
+
+  const create = async (formData: FormData) => {
     "use server";
-    return createCommission(prev, formData);
+    await createCommission({ status: "idle" }, formData);
   };
 
   const remove = async (formData: FormData) => {
@@ -119,8 +119,8 @@ const ManageCommissionsPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {commissions?.length ? (
-                commissions.map((commission) => (
+              {commissionRows.length ? (
+                commissionRows.map((commission) => (
                   <tr key={commission.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-white">
                       {formatRole(commission.role)}
@@ -169,4 +169,6 @@ const ManageCommissionsPage = async () => {
 };
 
 export default ManageCommissionsPage;
+
+
 

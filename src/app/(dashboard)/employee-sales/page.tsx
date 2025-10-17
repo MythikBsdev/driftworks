@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
-import { addEmployeeSale, type EmployeeSaleFormState } from "./actions";
+import { addEmployeeSale } from "./actions";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const EmployeeSalesPage = async () => {
   const session = await getSession();
@@ -17,9 +18,12 @@ const EmployeeSalesPage = async () => {
     .select("id, username, full_name")
     .order("username", { ascending: true });
 
-  const addSale = async (prev: EmployeeSaleFormState, formData: FormData) => {
+  const employeeRecords =
+    (employees ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
+
+  const addSale = async (formData: FormData) => {
     "use server";
-    return addEmployeeSale(prev, formData);
+    await addEmployeeSale({ status: "idle" }, formData);
   };
 
   return (
@@ -49,7 +53,7 @@ const EmployeeSalesPage = async () => {
             className="text-xs uppercase tracking-[0.3em] text-white/40"
             htmlFor="amount"
           >
-            Amount (�)
+            Amount (£)
           </label>
           <input
             id="amount"
@@ -78,7 +82,7 @@ const EmployeeSalesPage = async () => {
             <option value="" disabled>
               Select an employee
             </option>
-            {(employees ?? []).map((employee) => (
+            {employeeRecords.map((employee) => (
               <option
                 key={employee.id}
                 value={employee.id}
@@ -116,4 +120,5 @@ const EmployeeSalesPage = async () => {
 };
 
 export default EmployeeSalesPage;
+
 

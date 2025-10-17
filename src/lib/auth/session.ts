@@ -1,6 +1,7 @@
 ﻿import { cookies } from "next/headers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const SESSION_COOKIE = "dw_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -24,14 +25,18 @@ export const createSession = async (user: SessionUser) => {
   ).toISOString();
 
   const supabase = createSupabaseServerClient();
-  await supabase.from("user_sessions").insert({
-    token,
-    user_id: user.id,
-    expires_at: expiresAt,
-  });
+  await supabase
+    .from("user_sessions")
+    .insert(
+      {
+        token,
+        user_id: user.id,
+        expires_at: expiresAt,
+      } as never,
+    );
 
-  const cookieStore = cookies();
-  cookieStore.set({
+  const cookieStore = await cookies();
+    cookieStore.set({
     name: SESSION_COOKIE,
     value: token,
     httpOnly: true,
@@ -43,7 +48,7 @@ export const createSession = async (user: SessionUser) => {
 };
 
 export const getSession = async (): Promise<Session | null> => {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) {
     return null;
@@ -56,12 +61,15 @@ export const getSession = async (): Promise<Session | null> => {
     .eq("token", token)
     .maybeSingle();
 
-  if (!session) {
+  const sessionRecord =
+    session as Database["public"]["Tables"]["user_sessions"]["Row"] | null;
+
+  if (!sessionRecord) {
     cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 
-  if (new Date(session.expires_at) < new Date()) {
+  if (new Date(sessionRecord.expires_at) < new Date()) {
     await supabase.from("user_sessions").delete().eq("token", token);
     cookieStore.delete(SESSION_COOKIE);
     return null;
@@ -70,10 +78,13 @@ export const getSession = async (): Promise<Session | null> => {
   const { data: user } = await supabase
     .from("app_users")
     .select("id, username, full_name, role")
-    .eq("id", session.user_id)
+    .eq("id", sessionRecord.user_id)
     .maybeSingle();
 
-  if (!user) {
+  const userRecord =
+    user as Database["public"]["Tables"]["app_users"]["Row"] | null;
+
+  if (!userRecord) {
     await supabase.from("user_sessions").delete().eq("token", token);
     cookieStore.delete(SESSION_COOKIE);
     return null;
@@ -81,12 +92,12 @@ export const getSession = async (): Promise<Session | null> => {
 
   return {
     token,
-    user,
+    user: userRecord,
   };
 };
 
 export const destroySession = async () => {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
 
   if (token) {
@@ -94,5 +105,11 @@ export const destroySession = async () => {
     await supabase.from("user_sessions").delete().eq("token", token);
   }
 
-  cookieStore.delete(SESSION_COOKIE);
+      cookieStore.delete(SESSION_COOKIE);
 };
+
+
+
+
+
+

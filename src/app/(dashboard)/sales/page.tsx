@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
+ï»¿import { redirect } from "next/navigation";
 import { Download, RotateCcw } from "lucide-react";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -58,10 +59,14 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         .limit(50),
     ]);
 
-  const users = usersResult.data ?? [];
-  const employeeSales = employeeSalesResult.data ?? [];
-  const commissionRates = commissionRatesResult.data ?? [];
-  const salesOrders = salesOrdersResult.data ?? [];
+  const users =
+    (usersResult.data ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
+  const employeeSales =
+    (employeeSalesResult.data ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
+  const commissionRates =
+    (commissionRatesResult.data ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
+  const salesOrders =
+    (salesOrdersResult.data ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
 
   const employeeTotals = new Map<string, number>();
   employeeSales.forEach((entry) => {
@@ -135,7 +140,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           subtotal: entry.subtotal ?? 0,
           discount: entry.discount ?? 0,
           total: entry.total ?? 0,
-          soldBy: "—",
+          soldBy: "â€”",
         };
       }
 
@@ -146,7 +151,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         subtotal: entry.amount ?? 0,
         discount: 0,
         total: entry.amount ?? 0,
-        soldBy: userNameLookup.get(entry.employee_id) ?? "—",
+        soldBy: userNameLookup.get(entry.employee_id) ?? "â€”",
       };
     })
     .sort(
@@ -297,7 +302,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
               {logRows.length ? (
                 logRows.map((row) => (
                   <tr key={`${row.id}`} className="border-t border-white/5">
-                    <td className="px-4 py-3 text-white">{row.invoice ?? "—"}</td>
+                    <td className="px-4 py-3 text-white">{row.invoice ?? "â€”"}</td>
                     <td className="px-4 py-3 text-white/60">{row.id}</td>
                     <td className="px-4 py-3 text-white/60">
                       {row.createdAt
@@ -308,7 +313,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
-                        : "—"}
+                        : "â€”"}
                     </td>
                     <td className="px-4 py-3 text-white/60">{row.soldBy}</td>
                     <td className="px-4 py-3 text-white/60">
@@ -320,7 +325,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                     <td className="px-4 py-3 font-medium text-white">
                       {formatter.format(row.total)}
                     </td>
-                    <td className="px-4 py-3 text-white/60">—</td>
+                    <td className="px-4 py-3 text-white/60">â€”</td>
                   </tr>
                 ))
               ) : (
@@ -342,3 +347,4 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 };
 
 export default SalesPage;
+

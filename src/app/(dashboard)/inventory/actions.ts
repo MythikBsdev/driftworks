@@ -42,13 +42,16 @@ export const createInventoryItem = async (
   }
 
   const supabase = createSupabaseServerActionClient();
-  const { error } = await supabase.from("inventory_items").insert({
-    owner_id: session.user.id,
-    name: parsed.data.name,
-    category: parsed.data.category,
-    description: parsed.data.description || null,
-    price: parsed.data.price,
-  });
+  const { error } = await supabase.from("inventory_items").insert(
+    // Cast keeps Supabase from collapsing the payload type to never.
+    {
+      owner_id: session.user.id,
+      name: parsed.data.name,
+      category: parsed.data.category,
+      description: parsed.data.description || null,
+      price: parsed.data.price,
+    } as never,
+  );
 
   if (error) {
     return { status: "error", message: error.message };

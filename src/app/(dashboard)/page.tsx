@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { subDays } from "date-fns";
 import { AlertTriangle, BarChart2, CalendarClock, CircleDollarSign } from "lucide-react";
@@ -7,7 +7,7 @@ import StatCard from "@/components/dashboard/stat-card";
 import InvoiceStatusBadge from "@/components/invoices/status-badge";
 import InvoiceTable, { type InvoiceRow } from "@/components/invoices/invoice-table";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { InvoiceStatus } from "@/lib/supabase/types";
+import type { Database, InvoiceStatus } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
 
 const DashboardPage = async () => {
@@ -36,9 +36,13 @@ const DashboardPage = async () => {
     .order("created_at", { ascending: false })
     .limit(6);
 
-  const invoices = invoiceRows ?? [];
-  const clients = clientRows ?? [];
-  const defaultCurrency = invoices[0]?.currency ?? "USD";
+  type DashboardInvoice = Database["public"]["Tables"]["invoices"]["Row"] & {
+    client?: { name: string | null; company: string | null } | null;
+  };
+
+  const invoices = (invoiceRows ?? []) as DashboardInvoice[];
+  const clients = (clientRows ?? []) as Database["public"]["Tables"]["clients"]["Row"][];
+  const defaultCurrency = invoices[0]?.currency ?? "GBP";
   const formatter = currencyFormatter(defaultCurrency);
 
   const paidInvoices = invoices.filter((invoice) => invoice.status === "paid");

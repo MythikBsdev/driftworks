@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
@@ -244,4 +244,5 @@ const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
 };
 
 export default SalesRegisterBoard;
+
 

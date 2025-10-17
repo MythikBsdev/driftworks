@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -69,12 +69,17 @@ export const createUserAccount = async (
 
   const password_hash = await hashPassword(parsed.data.password);
 
-  const { error } = await supabase.from("app_users").insert({
-    username: parsed.data.username,
-    password_hash,
-    full_name: parsed.data.fullName || null,
-    role: parsed.data.role,
-  });
+  const { error } = await supabase
+    .from("app_users")
+    .insert(
+      // Cast keeps Supabase from collapsing the payload type.
+      {
+        username: parsed.data.username,
+        password_hash,
+        full_name: parsed.data.fullName || null,
+        role: parsed.data.role,
+      } as never,
+    );
 
   if (error) {
     return { status: "error", message: error.message };
@@ -84,4 +89,5 @@ export const createUserAccount = async (
 
   return { status: "success" };
 };
+
 

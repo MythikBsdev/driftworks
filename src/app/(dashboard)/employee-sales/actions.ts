@@ -42,13 +42,16 @@ export const addEmployeeSale = async (
   }
 
   const supabase = createSupabaseServerActionClient();
-  const { error } = await supabase.from("employee_sales").insert({
-    owner_id: session.user.id,
-    employee_id: parsed.data.employeeId,
-    invoice_number: parsed.data.invoiceNumber,
-    amount: parsed.data.amount,
-    notes: parsed.data.notes || null,
-  });
+  const { error } = await supabase.from("employee_sales").insert(
+    // Supabase type inference fails for this insert payload; cast to preserve runtime behaviour.
+    {
+      owner_id: session.user.id,
+      employee_id: parsed.data.employeeId,
+      invoice_number: parsed.data.invoiceNumber,
+      amount: parsed.data.amount,
+      notes: parsed.data.notes || null,
+    } as never,
+  );
 
   if (error) {
     return { status: "error", message: error.message };

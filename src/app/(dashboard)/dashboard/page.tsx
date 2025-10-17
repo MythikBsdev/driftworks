@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowUpRight, Coins, PackageCheck, UsersRound } from "lucide-react";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
 
 const DashboardPage = async () => {
@@ -40,10 +41,14 @@ const DashboardPage = async () => {
         .order("created_at", { ascending: true }),
     ]);
 
-  const sales = salesResult.data ?? [];
-  const inventory = inventoryResult.data ?? [];
-  const discounts = discountsResult.data ?? [];
-  const team = usersResult.data ?? [];
+  const sales =
+    (salesResult.data ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
+  const inventory =
+    (inventoryResult.data ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+  const discounts =
+    (discountsResult.data ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
+  const team =
+    (usersResult.data ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
   const totalRevenue = sum(sales.map((sale) => sale.total ?? 0));
   const formatter = currencyFormatter("GBP");
@@ -189,4 +194,5 @@ const DashboardPage = async () => {
 };
 
 export default DashboardPage;
+
 

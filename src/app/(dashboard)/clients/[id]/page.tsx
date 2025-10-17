@@ -4,7 +4,7 @@ import { ArrowLeft, Calendar, DollarSign, Mail, MapPin, Phone } from "lucide-rea
 
 import InvoiceStatusBadge from "@/components/invoices/status-badge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { InvoiceStatus } from "@/lib/supabase/types";
+import type { Database, InvoiceStatus } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 
 const ClientDetailPage = async ({ params }: { params: { id: string } }) => {
@@ -32,11 +32,15 @@ const ClientDetailPage = async ({ params }: { params: { id: string } }) => {
       .order("created_at", { ascending: false }),
   ]);
 
-  if (!client) {
+  const clientRecord =
+    client as Database["public"]["Tables"]["clients"]["Row"] | null;
+
+  if (!clientRecord) {
     notFound();
   }
 
-  const clientInvoices = invoices ?? [];
+  const clientInvoices =
+    (invoices ?? []) as Database["public"]["Tables"]["invoices"]["Row"][];
   const defaultCurrency = clientInvoices[0]?.currency ?? "USD";
   const formatter = currencyFormatter(defaultCurrency);
   const outstanding = clientInvoices
@@ -53,35 +57,36 @@ const ClientDetailPage = async ({ params }: { params: { id: string } }) => {
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-8">
           <p className="text-xs uppercase tracking-[0.35em] text-white/40">Client</p>
-          <h1 className="text-3xl font-semibold text-white">{client.name}</h1>
-          <p className="mt-2 text-sm text-white/50">{client.company ?? "Independent"}</p>
+          <h1 className="text-3xl font-semibold text-white">{clientRecord.name}</h1>
+          <p className="mt-2 text-sm text-white/50">{clientRecord.company ?? "Independent"}</p>
           <div className="mt-6 grid gap-3 text-sm text-white/70">
-            {client.email ? (
+            {clientRecord.email ? (
               <span className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                {client.email}
+                {clientRecord.email}
               </span>
             ) : null}
-            {client.phone ? (
+            {clientRecord.phone ? (
               <span className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                {client.phone}
+                {clientRecord.phone}
               </span>
             ) : null}
-            {client.address ? (
+            {clientRecord.address ? (
               <span className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                {client.address}
+                {clientRecord.address}
               </span>
             ) : null}
             <span className="flex items-center gap-2 text-white/60">
-              <Calendar className="h-4 w-4" /> Joined {new Date(client.created_at ?? Date.now()).toLocaleDateString()}
+              <Calendar className="h-4 w-4" />{" "}
+              Joined {new Date(clientRecord.created_at ?? Date.now()).toLocaleDateString()}
             </span>
           </div>
-          {client.notes ? (
+          {clientRecord.notes ? (
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
               <h2 className="text-xs uppercase tracking-[0.35em] text-white/50">Notes</h2>
-              <p className="mt-2 whitespace-pre-line">{client.notes}</p>
+              <p className="mt-2 whitespace-pre-line">{clientRecord.notes}</p>
             </div>
           ) : null}
         </div>

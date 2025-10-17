@@ -10,7 +10,7 @@ import type { Database } from "@/lib/supabase/types";
 
 type AppUserRow = Database["public"]["Tables"]["app_users"]["Row"];
 
-type LoginFormState = {
+export type LoginFormState = {
   error?: string;
   message?: string;
 };
@@ -24,7 +24,7 @@ const loginSchema = z.object({
 export const login = async (
   _prev: LoginFormState | undefined,
   formData: FormData,
-) => {
+): Promise<LoginFormState> => {
   const supabase = createSupabaseServerActionClient();
 
   const parsed = loginSchema.safeParse({
@@ -79,3 +79,4 @@ export const login = async (
 
   redirect(destination);
 };
+

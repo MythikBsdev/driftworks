@@ -1,12 +1,9 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
-import {
-  createDiscount,
-  deleteDiscount,
-  type DiscountFormState,
-} from "./actions";
+import { createDiscount, deleteDiscount } from "./actions";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const ManageDiscountsPage = async () => {
   const session = await getSession();
@@ -22,9 +19,12 @@ const ManageDiscountsPage = async () => {
     .eq("owner_id", session.user.id)
     .order("updated_at", { ascending: false });
 
-  const create = async (prev: DiscountFormState, formData: FormData) => {
+  const discountRows =
+    (discounts ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
+
+  const create = async (formData: FormData) => {
     "use server";
-    return createDiscount(prev, formData);
+    await createDiscount({ status: "idle" }, formData);
   };
 
   const remove = async (formData: FormData) => {
@@ -99,8 +99,8 @@ const ManageDiscountsPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {discounts?.length ? (
-                discounts.map((discount) => (
+              {discountRows.length ? (
+                discountRows.map((discount) => (
                   <tr key={discount.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-white">{discount.name}</td>
                     <td className="px-4 py-3 text-white/70">
@@ -147,6 +147,8 @@ const ManageDiscountsPage = async () => {
 };
 
 export default ManageDiscountsPage;
+
+
 
 
 

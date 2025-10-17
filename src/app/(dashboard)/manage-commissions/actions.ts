@@ -38,11 +38,16 @@ export const createCommission = async (
   }
 
   const supabase = createSupabaseServerActionClient();
-  const { error } = await supabase.from("commission_rates").insert({
-    owner_id: session.user.id,
-    role: parsed.data.role,
-    rate: parsed.data.rate,
-  });
+  const { error } = await supabase
+    .from("commission_rates")
+    .insert(
+      // Cast keeps Supabase from collapsing the payload type.
+      {
+        owner_id: session.user.id,
+        role: parsed.data.role,
+        rate: parsed.data.rate,
+      } as never,
+    );
 
   if (error) {
     return { status: "error", message: error.message };
@@ -73,3 +78,4 @@ export const deleteCommission = async (formData: FormData) => {
 
   revalidatePath("/manage-commissions");
 };
+

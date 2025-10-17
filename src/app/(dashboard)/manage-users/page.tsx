@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { KeyRound, Pencil, Trash2 } from "lucide-react";
 
 import CreateUserForm from "@/components/users/create-user-form";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
@@ -28,6 +29,9 @@ const ManageUsersPage = async () => {
     .from("app_users")
     .select("id, username, full_name, role, created_at")
     .order("username", { ascending: true });
+
+  const userRows =
+    (users ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
   const canManage = session.user.role === "owner";
 
@@ -62,8 +66,8 @@ const ManageUsersPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {users?.length ? (
-                users.map((user) => (
+              {userRows.length ? (
+                userRows.map((user) => (
                   <tr key={user.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-white">
                       {user.full_name ?? user.username}
@@ -120,3 +124,4 @@ const ManageUsersPage = async () => {
 };
 
 export default ManageUsersPage;
+
