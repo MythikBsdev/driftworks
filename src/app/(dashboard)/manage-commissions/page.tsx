@@ -47,7 +47,7 @@ const ManageCommissionsPage = async () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/90 p-6 shadow-[0_20px_60px_-45px_rgba(255,22,22,0.6)]">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">
           Add New Commission Rate
         </h2>
@@ -65,8 +65,8 @@ const ManageCommissionsPage = async () => {
             <select
               id="role"
               name="role"
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-            >
+            className="select-dark w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+          >
               {ROLE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value} className="bg-[#101010]">
                   {option.label}
@@ -90,28 +90,28 @@ const ManageCommissionsPage = async () => {
               max="1"
               required
               placeholder="e.g., 0.05 for 5%"
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-            />
+              className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+          />
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500"
+            className="btn-primary w-full justify-center"
           >
             Add Commission
           </button>
         </form>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">
           Current Commission Rates
         </h2>
         <p className="text-sm text-white/60">
           View, edit, or delete commission rates per role.
         </p>
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
-          <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 muted-label">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-black/60">
+          <table className="w-full text-sm text-white/75">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium text-left">Role</th>
                 <th className="px-4 py-3 font-medium text-left">Rate</th>
