@@ -21,8 +21,11 @@ export const createCommission = async (
   formData: FormData,
 ): Promise<CommissionFormState> => {
   const session = await getSession();
-  if (!session) {
-    return { status: "error", message: "You must be signed in" };
+  if (!session || session.user.role !== "owner") {
+    return {
+      status: "error",
+      message: "Only owners can create commission rates",
+    };
   }
 
   const parsed = commissionSchema.safeParse({
@@ -60,7 +63,7 @@ export const createCommission = async (
 
 export const deleteCommission = async (formData: FormData) => {
   const session = await getSession();
-  if (!session) {
+  if (!session || session.user.role !== "owner") {
     return;
   }
 
