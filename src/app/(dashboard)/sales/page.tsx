@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
+import { resetAllSales } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
