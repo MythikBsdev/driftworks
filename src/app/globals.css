@@ -12,9 +12,9 @@
 body {
   min-height: 100vh;
   background:
-    radial-gradient(120% 120% at 82% 5%, rgba(255, 38, 38, 0.32), transparent 55%),
-    radial-gradient(160% 140% at 5% 95%, rgba(255, 255, 255, 0.06), transparent 60%),
-    linear-gradient(160deg, #010101, #050505 45%, #0b0b0f 85%);
+    radial-gradient(160% 140% at 8% 15%, rgba(255, 255, 255, 0.05), transparent 65%),
+    radial-gradient(120% 160% at 92% 85%, rgba(255, 255, 255, 0.04), transparent 70%),
+    linear-gradient(165deg, #030303, #050506 45%, #0b0b0f 90%);
   color: #f8f9fb;
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background-attachment: fixed;
@@ -48,11 +48,11 @@ a:hover {
 
 @layer components {
   .glass-panel {
-    @apply rounded-3xl border border-white/[0.08] bg-white/[0.08] backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/[0.03];
+    @apply rounded-3xl border border-white/[0.06] bg-black/70 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-brand-primary/10;
   }
 
   .glass-card {
-    @apply rounded-3xl border border-white/[0.08] bg-white/[0.08] p-6 sm:p-8 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/[0.03];
+    @apply rounded-3xl border border-white/[0.06] bg-black/70 p-6 sm:p-8 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-brand-primary/10;
   }
 
   .panel-subtitle {
@@ -82,7 +82,7 @@ a:hover {
   }
 
   .tab-pill {
-    @apply rounded-xl px-4 py-2 text-sm font-medium transition;
+    @apply rounded-xl px-4 py-2 text-sm font-medium transition bg-transparent border border-transparent;
   }
 }
 

@@ -60,7 +60,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_65%_at_90%_10%,rgba(255,60,60,0.3),transparent),radial-gradient(80%_80%_at_10%_90%,rgba(255,255,255,0.08),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_85%_5%,rgba(255,255,255,0.05),transparent),radial-gradient(75%_75%_at_10%_90%,rgba(255,255,255,0.04),transparent)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-12 pt-10 sm:px-10">
         <header className="glass-panel px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
