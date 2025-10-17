@@ -101,15 +101,15 @@ const ManageUsersPage = async () => {
                         {canManage ? (
                           <form action={updateUserRole} className="flex items-center gap-2">
                             <input type="hidden" name="userId" value={user.id} />
-                            <select
-                              name="role"
-                              defaultValue={user.role}
-                              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-                            >
-                              {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                  {label}
-                                </option>
+                        <select
+                          name="role"
+                          defaultValue={user.role}
+                          className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40 dark:bg-black"
+                        >
+                          {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
                               ))}
                             </select>
                             <button type="submit" className="btn-ghost px-3 py-2 text-xs">
