@@ -1,5 +1,7 @@
-﻿import { redirect } from "next/navigation";
+﻿import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Download, RotateCcw } from "lucide-react";
+
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -22,6 +24,7 @@ type SalesPageProps = {
   searchParams?: {
     summary?: string;
     log?: string;
+    user?: string;
   };
 };
 
@@ -39,6 +42,10 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   const summaryQuery = searchParams?.summary?.toLowerCase().trim() ?? "";
   const logQuery = searchParams?.log?.toLowerCase().trim() ?? "";
+  const selectedUser =
+    typeof searchParams?.user === "string" && searchParams.user.length > 0
+      ? searchParams.user
+      : undefined;
 
   const supabase = createSupabaseServerClient();
 
@@ -143,37 +150,44 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
   );
 
   const logRows = [...salesOrders, ...employeeSales]
-    .map((entry) => {
+    .flatMap((entry) => {
       if ("subtotal" in entry) {
-        return {
+        if (selectedUser && entry.owner_id !== selectedUser) {
+          return [];
+        }
+        const ownerName =
+          users.find((user) => user.id === entry.owner_id)?.full_name ??
+          users.find((user) => user.id === entry.owner_id)?.username ??
+          "-";
+        return [
+          {
+            id: entry.id,
+            invoice: entry.invoice_number,
+            createdAt: entry.created_at,
+            subtotal: entry.subtotal ?? 0,
+            discount: entry.discount ?? 0,
+            total: entry.total ?? 0,
+            soldBy: ownerName,
+          },
+        ];
+      }
+
+      if (selectedUser && entry.employee_id !== selectedUser) {
+        return [];
+      }
+
+      return [
+        {
           id: entry.id,
           invoice: entry.invoice_number,
           createdAt: entry.created_at,
-          subtotal: entry.subtotal ?? 0,
-          discount: entry.discount ?? 0,
-          total: entry.total ?? 0,
-          soldBy: entry.owner_id
-            ? userNameLookup.get(entry.owner_id) ?? "-"
-            : "-",
-        };
-      }
-
-      return {
-        id: entry.id,
-        invoice: entry.invoice_number,
-        createdAt: entry.created_at,
-        subtotal: entry.amount ?? 0,
-        discount: 0,
-        total: entry.amount ?? 0,
-        soldBy: userNameLookup.get(entry.employee_id) ?? "—",
-      };
+          subtotal: entry.amount ?? 0,
+          discount: 0,
+          total: entry.amount ?? 0,
+          soldBy: userNameLookup.get(entry.employee_id) ?? "-",
+        },
+      ];
     })
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt ?? 0).getTime() -
-        new Date(a.createdAt ?? 0).getTime(),
-    )
-    .slice(0, 50)
     .filter((row) => {
       if (!logQuery) {
         return true;
@@ -183,10 +197,33 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         row.id?.toLowerCase().includes(logQuery) ||
         row.soldBy?.toLowerCase().includes(logQuery)
       );
-    });
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime(),
+    )
+    .slice(0, 50);
 
   const summaryValue = searchParams?.summary ?? "";
   const logValue = searchParams?.log ?? "";
+
+  const createSearchParams = () => {
+    const params = new URLSearchParams();
+    if (summaryValue) {
+      params.set("summary", summaryValue.toString());
+    }
+    if (logValue) {
+      params.set("log", logValue.toString());
+    }
+    return params;
+  };
+
+  const clearFilterQuery = createSearchParams().toString();
+  const clearFilterHref = clearFilterQuery ? `?${clearFilterQuery}` : ".";
+  const selectedUserName = selectedUser
+    ? userNameLookup.get(selectedUser) ?? "Selected user"
+    : null;
 
   return (
     <div className="space-y-8">
@@ -198,19 +235,27 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
               Total sales amount and calculated commission per user since their last summary reset.
             </p>
           </div>
-          <a
-            href={csvDataUri}
-            download="sales-summary.csv"
-            className="btn-ghost"
-          >
-            <Download className="h-4 w-4" />
-            Export CSV
-          </a>
+          <div className="flex items-center gap-2">
+            <a href={csvDataUri} download="sales-summary.csv" className="btn-ghost">
+              <Download className="h-4 w-4" />
+              Export CSV
+            </a>
+            {session.user.role === "owner" ? (
+              <form action={resetAllSales}>
+                <button type="submit" className="btn-ghost text-red-300 hover:text-red-100">
+                  Reset All
+                </button>
+              </form>
+            ) : null}
+          </div>
         </div>
 
         <div className="mt-6">
           <form className="max-w-sm" method="get">
             <input type="hidden" name="log" value={logValue} />
+            {selectedUser ? (
+              <input type="hidden" name="user" value={selectedUser} />
+            ) : null}
             <input
               type="search"
               name="summary"
@@ -234,28 +279,49 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
             </thead>
             <tbody>
               {summaryRows.length ? (
-                summaryRows.map((row) => (
-                  <tr key={row.id} className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white">{row.displayName}</td>
-                    <td className="px-4 py-3 text-white/60">{formatRole(row.role)}</td>
-                    <td className="px-4 py-3 font-medium text-white">
-                      {formatter.format(row.totalSales)}
-                    </td>
-                    <td className="px-4 py-3 text-white/60">
-                      {formatter.format(row.commissionTotal)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        disabled
-                        className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        Reset
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                summaryRows.map((row) => {
+                  const params = createSearchParams();
+                  const isSelected = selectedUser === row.id;
+
+                  if (!isSelected) {
+                    params.set("user", row.id);
+                  }
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`border-t border-white/10 ${isSelected ? "bg-white/10" : ""}`}
+                    >
+                      <td className="px-4 py-3 text-white">
+                        <Link
+                          href={`?${params.toString()}`}
+                          className={`transition hover:text-brand-accent ${
+                            isSelected ? "text-brand-accent" : ""
+                          }`}
+                        >
+                          {row.displayName}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-white/60">{formatRole(row.role)}</td>
+                      <td className="px-4 py-3 font-medium text-white">
+                        {formatter.format(row.totalSales)}
+                      </td>
+                      <td className="px-4 py-3 text-white/60">
+                        {formatter.format(row.commissionTotal)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          Reset
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -283,11 +349,16 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           <div>
             <h2 className="text-xl font-semibold text-white">Detailed Sales Log</h2>
             <p className="text-sm text-white/60">
-              A log of the last 50 completed transactions.
+              {selectedUserName
+                ? `Showing transactions completed by ${selectedUserName}.`
+                : "A log of the last 50 completed transactions."}
             </p>
           </div>
           <form className="max-w-sm" method="get">
             <input type="hidden" name="summary" value={summaryValue} />
+            {selectedUser ? (
+              <input type="hidden" name="user" value={selectedUser} />
+            ) : null}
             <input
               type="search"
               name="log"
@@ -297,6 +368,23 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
             />
           </form>
         </div>
+
+        {selectedUser ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white">
+            <span>
+              Filtering by{" "}
+              <span className="font-semibold text-white">
+                {selectedUserName ?? "selected user"}
+              </span>
+            </span>
+            <Link
+              href={clearFilterHref}
+              className="text-brand-accent transition hover:underline"
+            >
+              Clear filter
+            </Link>
+          </div>
+        ) : null}
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           <table className="w-full text-sm text-white/80">
@@ -361,6 +449,18 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 };
 
 export default SalesPage;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
