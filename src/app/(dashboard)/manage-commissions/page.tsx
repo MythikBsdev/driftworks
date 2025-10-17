@@ -26,16 +26,10 @@ const ManageCommissionsPage = async () => {
   }
 
   const supabase = createSupabaseServerClient();
-  let commissionQuery = supabase
+  const { data: commissions } = await supabase
     .from("commission_rates")
     .select("id, owner_id, role, rate, updated_at")
     .order("updated_at", { ascending: false });
-
-  if (session.user.role === "owner") {
-    commissionQuery = commissionQuery.eq("owner_id", session.user.id);
-  }
-
-  const { data: commissions } = await commissionQuery;
 
   const commissionRows =
     (commissions ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
