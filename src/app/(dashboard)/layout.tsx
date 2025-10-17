@@ -65,9 +65,9 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
         <header className="glass-panel px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
-              <span className="muted-label">Control Center</span>
+              <span className="muted-label">Control Centre</span>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Welcome back, {displayName}
+                Welcome back, {displayName}!
               </h1>
               <p className="text-sm text-white/60">
                 You&apos;re signed in as <span className="font-medium text-white">{roleLabel}</span>. Monitor sales,
