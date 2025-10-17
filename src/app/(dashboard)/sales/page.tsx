@@ -7,7 +7,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
-import { resetAllSales } from "./actions";
+import { resetAllSales, resetUserSales } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
@@ -311,14 +311,27 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                         {formatter.format(row.commissionTotal)}
                       </td>
                       <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          disabled
-                          className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
-                        >
-                          <RotateCcw className="h-3.5 w-3.5" />
-                          Reset
-                        </button>
+                        {session.user.role === "owner" ? (
+                          <form action={resetUserSales} method="post">
+                            <input type="hidden" name="userId" value={row.id} />
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:border-white/30 hover:text-white"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              Reset
+                            </button>
+                          </form>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            Reset
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

@@ -6,6 +6,10 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { currencyFormatter } from "@/lib/utils";
+
+const DISCORD_WEBHOOK_URL =
+  "https://discord.com/api/webhooks/1428734420302430320/5AJdimFgdTwW8LLwEV9hvIPiKDwdlGKYGwGA67xOKDSQBbPy9IAuVxjIzzH5vqlpw69i";
 
 const cartItemSchema = z.object({
   itemId: z.string().uuid(),
@@ -143,6 +147,37 @@ export const completeSale = async (
 
   if (itemsError) {
     return { status: "error", message: itemsError.message };
+  }
+
+  const formatter = currencyFormatter("GBP");
+  const saleIdDisplay = orderRecord.id.slice(0, 8).toUpperCase();
+  const soldBy = session.user.full_name ?? session.user.username;
+
+  try {
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: "DriftWorks sales Website",
+        embeds: [
+          {
+            title: "🛒 New Sale Completed!",
+            color: 5763719,
+            fields: [
+              { name: "Invoice ID", value: invoiceNumber, inline: true },
+              { name: "Sale ID", value: saleIdDisplay, inline: true },
+              { name: "Amount", value: formatter.format(total), inline: true },
+              { name: "Sold By", value: soldBy, inline: false },
+            ],
+            footer: { text: "Driftworks Sales System" },
+            timestamp: new Date().toISOString(),
+          },
+        ],
+        allowed_mentions: { parse: [] },
+      }),
+    });
+  } catch (error) {
+    console.error("Failed to dispatch Discord webhook", error);
   }
 
   revalidatePath("/sales");
