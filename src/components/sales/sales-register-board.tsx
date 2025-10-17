@@ -16,8 +16,15 @@ type InventoryItem = {
   price: number;
 };
 
+type Discount = {
+  id: string;
+  name: string;
+  percentage: number;
+};
+
 type SalesRegisterBoardProps = {
   items: InventoryItem[];
+  discounts: Discount[];
 };
 
 const initialState: CompleteSaleState = { status: "idle" };
@@ -38,9 +45,12 @@ const CompleteSaleButton = () => {
 
 const FILTERS = ["Normal", "Employee", "LEO", "All"];
 
-const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
+const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
   const [filter, setFilter] = useState<string>("All");
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(
+    null,
+  );
   const [cart, setCart] = useState<
     Array<{ itemId: string; name: string; price: number; quantity: number }>
   >([]);
@@ -51,6 +61,7 @@ const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
     if (state.status === "success") {
       setCart([]);
       setInvoiceNumber("");
+      setSelectedDiscountId(null);
     }
   }, [state.status]);
 
@@ -68,6 +79,13 @@ const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
+  const selectedDiscount = selectedDiscountId
+    ? discounts.find((discount) => discount.id === selectedDiscountId) ?? null
+    : null;
+  const discountAmount = selectedDiscount
+    ? subtotal * (selectedDiscount.percentage ?? 0)
+    : 0;
+  const total = Math.max(subtotal - discountAmount, 0);
 
   const addToCart = (item: InventoryItem) => {
     setCart((current) => {
@@ -166,6 +184,32 @@ const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
         </div>
 
         <input type="hidden" name="items" value={JSON.stringify(cart)} />
+        <div className="space-y-2">
+          <label
+            className="text-xs uppercase tracking-[0.3em] text-white/40"
+            htmlFor="discountId"
+          >
+            Discount
+          </label>
+          <select
+            id="discountId"
+            name="discountId"
+            value={selectedDiscountId ?? ""}
+            onChange={(event) =>
+              setSelectedDiscountId(
+                event.target.value ? event.target.value : null,
+              )
+            }
+            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+          >
+            <option value="">No discount</option>
+            {discounts.map((discount) => (
+              <option key={discount.id} value={discount.id}>
+                {discount.name} ({(discount.percentage * 100).toFixed(0)}%)
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
           <table className="w-full text-left text-sm text-white/70">
@@ -220,9 +264,13 @@ const SalesRegisterBoard = ({ items }: SalesRegisterBoardProps) => {
             <span>Subtotal</span>
             <span>{formatter.format(subtotal)}</span>
           </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span>Discount</span>
+            <span>-{formatter.format(discountAmount)}</span>
+          </div>
           <div className="mt-2 flex items-center justify-between text-lg font-semibold text-white">
             <span>Total</span>
-            <span>{formatter.format(subtotal)}</span>
+            <span>{formatter.format(total)}</span>
           </div>
         </div>
 

@@ -17,6 +17,7 @@ const cartItemSchema = z.object({
 const saleSchema = z.object({
   invoiceNumber: z.string().min(1, "Invoice number is required"),
   items: z.array(cartItemSchema).min(1, "Add at least one item"),
+  discountId: z.string().uuid().nullable(),
 });
 
 export type CompleteSaleState =
@@ -42,6 +43,14 @@ export const completeSale = async (
         return [];
       }
     })(),
+    discountId: (() => {
+      const raw = formData.get("discountId");
+      if (!raw) {
+        return null;
+      }
+      const value = raw.toString().trim();
+      return value.length ? value : null;
+    })(),
   });
 
   if (!parsed.success) {
@@ -51,14 +60,39 @@ export const completeSale = async (
     };
   }
 
-  const { invoiceNumber, items } = parsed.data;
-  const subtotal = items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
+  const { invoiceNumber, items, discountId } = parsed.data;
+  const roundCurrency = (amount: number) =>
+    Math.round((amount + Number.EPSILON) * 100) / 100;
+
+  const subtotal = roundCurrency(
+    items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );
-  const total = subtotal;
 
   const supabase = createSupabaseServerActionClient();
+
+  let discountAmount = 0;
+  if (discountId) {
+    const { data: discountRecord } = await supabase
+      .from("discounts")
+      .select("percentage")
+      .eq("owner_id", session.user.id)
+      .eq("id", discountId)
+      .maybeSingle();
+
+    if (!discountRecord) {
+      return {
+        status: "error",
+        message: "Selected discount could not be found",
+      };
+    }
+
+    discountAmount = roundCurrency(
+      subtotal * (discountRecord.percentage ?? 0),
+    );
+  }
+
+  const total = roundCurrency(Math.max(subtotal - discountAmount, 0));
+
   const { data: existing } = await supabase
     .from("sales_orders")
     .select("id")
@@ -76,7 +110,7 @@ export const completeSale = async (
         owner_id: session.user.id,
         invoice_number: invoiceNumber,
         subtotal,
-        discount: 0,
+        discount: discountAmount,
         total,
         status: "completed",
       } as never,

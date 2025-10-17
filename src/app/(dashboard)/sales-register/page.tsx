@@ -13,16 +13,25 @@ const SalesRegisterPage = async () => {
   }
 
   const supabase = createSupabaseServerClient();
-  const { data: items } = await supabase
-    .from("inventory_items")
-    .select("id, name, category, price")
-    .eq("owner_id", session.user.id)
-    .order("name", { ascending: true });
+  const [{ data: items }, { data: discountRows }] = await Promise.all([
+    supabase
+      .from("inventory_items")
+      .select("id, name, category, price")
+      .eq("owner_id", session.user.id)
+      .order("name", { ascending: true }),
+    supabase
+      .from("discounts")
+      .select("id, name, percentage")
+      .eq("owner_id", session.user.id)
+      .order("name", { ascending: true }),
+  ]);
 
   const inventoryItems =
     (items ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+  const discounts =
+    (discountRows ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
 
-  return <SalesRegisterBoard items={inventoryItems} />;
+  return <SalesRegisterBoard items={inventoryItems} discounts={discounts} />;
 };
 
 export default SalesRegisterPage;
