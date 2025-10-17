@@ -12,9 +12,9 @@
 body {
   min-height: 100vh;
   background:
-    radial-gradient(120% 120% at 82% 5%, rgba(255, 22, 22, 0.22), transparent 55%),
-    radial-gradient(120% 140% at 0% 100%, rgba(107, 114, 255, 0.18), transparent 60%),
-    #050607;
+    radial-gradient(120% 120% at 82% 5%, rgba(255, 38, 38, 0.32), transparent 55%),
+    radial-gradient(160% 140% at 5% 95%, rgba(255, 255, 255, 0.06), transparent 60%),
+    linear-gradient(160deg, #010101, #050505 45%, #0b0b0f 85%);
   color: #f8f9fb;
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background-attachment: fixed;
@@ -105,6 +105,16 @@ a:hover {
 
   table tbody tr {
     @apply border-white/10;
+  }
+
+  .select-dark {
+    background-color: rgba(10, 10, 12, 0.96);
+    color: #f8f9fb;
+  }
+
+  .select-dark option {
+    background-color: #050505;
+    color: #f8f9fb;
   }
 }
 

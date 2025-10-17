@@ -198,7 +198,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
                 event.target.value ? event.target.value : null,
               )
             }
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+            className="select-dark w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
           >
             <option value="">No discount</option>
             {discounts.map((discount) => (

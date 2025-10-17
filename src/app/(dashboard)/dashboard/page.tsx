@@ -1,6 +1,6 @@
 ﻿import { redirect } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRight, Coins, PackageCheck, UsersRound } from "lucide-react";
+import { Coins, Percent, UsersRound } from "lucide-react";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,107 +16,143 @@ const DashboardPage = async () => {
 
   const supabase = createSupabaseServerClient();
 
-  const [salesResult, inventoryResult, discountsResult, usersResult] =
-    await Promise.all([
-      supabase
-        .from("sales_orders")
-        .select("id, total, created_at")
-        .eq("owner_id", session.user.id)
-        .order("created_at", { ascending: false })
-        .limit(6),
-      supabase
-        .from("inventory_items")
-        .select("id, name, category, price, updated_at")
-        .eq("owner_id", session.user.id)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("discounts")
-        .select("id, name, percentage, updated_at")
-        .eq("owner_id", session.user.id)
-        .order("updated_at", { ascending: false }),
-      supabase
-        .from("app_users")
-        .select("id, username, role, created_at")
-        .order("created_at", { ascending: true }),
-    ]);
+  const [
+    salesResult,
+    inventoryResult,
+    employeeSalesResult,
+    commissionRatesResult,
+    usersResult,
+  ] = await Promise.all([
+    supabase
+      .from("sales_orders")
+      .select("id, owner_id, invoice_number, total, created_at")
+      .eq("owner_id", session.user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("inventory_items")
+      .select("id, name, category, price, updated_at")
+      .eq("owner_id", session.user.id)
+      .order("updated_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("employee_sales")
+      .select("id, employee_id, amount, created_at")
+      .eq("owner_id", session.user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("commission_rates")
+      .select("role, rate")
+      .order("role", { ascending: true }),
+    supabase
+      .from("app_users")
+      .select("id, username, role, created_at")
+      .order("created_at", { ascending: true }),
+  ]);
 
   const sales =
     (salesResult.data ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
   const inventory =
     (inventoryResult.data ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
-  const discounts =
-    (discountsResult.data ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
+  const employeeSales =
+    (employeeSalesResult.data ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
+  const commissionRates =
+    (commissionRatesResult.data ??
+      []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
   const team =
     (usersResult.data ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
   const totalRevenue = sum(sales.map((sale) => sale.total ?? 0));
+  const commissionMap = new Map<string, number>();
+  commissionRates.forEach((rate) => {
+    if (!rate.role) {
+      return;
+    }
+    commissionMap.set(rate.role, rate.rate ?? 0);
+  });
+
+  const registerTotals = new Map<string, number>();
+  sales.forEach((sale) => {
+    if (!sale.owner_id) {
+      return;
+    }
+    const current = registerTotals.get(sale.owner_id) ?? 0;
+    registerTotals.set(sale.owner_id, current + (sale.total ?? 0));
+  });
+
+  const employeeTotals = new Map<string, number>();
+  employeeSales.forEach((entry) => {
+    if (!entry.employee_id) {
+      return;
+    }
+    const current = employeeTotals.get(entry.employee_id) ?? 0;
+    employeeTotals.set(entry.employee_id, current + (entry.amount ?? 0));
+  });
+
+  const totalCommission = team.reduce((acc, member) => {
+    const commissionRate = commissionMap.get(member.role) ?? 0;
+    if (commissionRate === 0) {
+      return acc;
+    }
+    const totalSalesForMember =
+      (registerTotals.get(member.id) ?? 0) + (employeeTotals.get(member.id) ?? 0);
+    if (totalSalesForMember === 0) {
+      return acc;
+    }
+    return acc + totalSalesForMember * commissionRate;
+  }, 0);
+
+  const latestSales = sales.slice(0, 6);
   const formatter = currencyFormatter("GBP");
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="glass-card relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent opacity-70" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/18 via-transparent to-transparent opacity-70" />
           <div className="relative flex h-full flex-col gap-3">
             <span className="muted-label">Revenue</span>
             <div className="flex items-start justify-between gap-4">
               <p className="text-3xl font-semibold tracking-tight text-white">
                 {formatter.format(totalRevenue)}
               </p>
-              <span className="rounded-2xl bg-brand-primary/20 p-2">
+              <span className="rounded-2xl bg-white/10 p-2">
                 <Coins className="h-7 w-7 text-brand-primary" />
               </span>
             </div>
             <p className="text-sm text-white/60">
-              {sales.length
-                ? `Last sale ${formatDistanceToNow(new Date(sales[0]!.created_at), { addSuffix: true })}`
+              {latestSales.length
+                ? `Last sale ${formatDistanceToNow(new Date(latestSales[0]!.created_at), {
+                    addSuffix: true,
+                  })}`
                 : "No sales yet"}
             </p>
           </div>
         </div>
         <div className="glass-card relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-transparent opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-primary/30 via-transparent to-transparent opacity-80" />
           <div className="relative flex h-full flex-col gap-3">
-            <span className="muted-label">Inventory</span>
+            <span className="muted-label">Commission</span>
             <div className="flex items-start justify-between gap-4">
               <p className="text-3xl font-semibold tracking-tight text-white">
-                {inventory.length}
+                {formatter.format(totalCommission)}
               </p>
-              <span className="rounded-2xl bg-emerald-500/15 p-2">
-                <PackageCheck className="h-7 w-7 text-emerald-300" />
+              <span className="rounded-2xl bg-brand-primary/20 p-2">
+                <Percent className="h-7 w-7 text-brand-primary" />
               </span>
             </div>
-            <p className="text-sm text-white/60">
-              Recent additions appear here.
-            </p>
+            <p className="text-sm text-white/60">Based on current roles.</p>
           </div>
         </div>
         <div className="glass-card relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-400/10 via-transparent to-transparent opacity-80" />
-          <div className="relative flex h-full flex-col gap-3">
-            <span className="muted-label">Discounts</span>
-            <div className="flex items-start justify-between gap-4">
-              <p className="text-3xl font-semibold tracking-tight text-white">
-                {discounts.length}
-              </p>
-              <span className="rounded-2xl bg-sky-500/15 p-2">
-                <ArrowUpRight className="h-7 w-7 text-sky-300" />
-              </span>
-            </div>
-            <p className="text-sm text-white/60">Active percentage deals.</p>
-          </div>
-        </div>
-        <div className="glass-card relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-500/15 via-transparent to-transparent opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/12 via-transparent to-transparent opacity-70" />
           <div className="relative flex h-full flex-col gap-3">
             <span className="muted-label">Team</span>
             <div className="flex items-start justify-between gap-4">
               <p className="text-3xl font-semibold tracking-tight text-white">
                 {team.length}
               </p>
-              <span className="rounded-2xl bg-purple-500/15 p-2">
-                <UsersRound className="h-7 w-7 text-purple-300" />
+              <span className="rounded-2xl bg-white/10 p-2">
+                <UsersRound className="h-7 w-7 text-white/80" />
               </span>
             </div>
             <p className="text-sm text-white/60">Admins included.</p>
@@ -131,8 +167,8 @@ const DashboardPage = async () => {
             <span className="muted-label">Recent 6</span>
           </div>
           <ul className="space-y-3 text-sm">
-            {sales.length ? (
-              sales.map((sale) => (
+            {latestSales.length ? (
+              latestSales.map((sale) => (
                 <li
                   key={sale.id}
                   className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
@@ -193,7 +229,7 @@ const DashboardPage = async () => {
               ))
             ) : (
               <li className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-12 text-center text-sm text-white/50">
-                Add your first catalog item from the Inventory tab.
+                Add your first catalog item from the Catalog tab.
               </li>
             )}
           </ul>

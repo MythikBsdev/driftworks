@@ -9,7 +9,7 @@ const TABS = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
-  { label: "Inventory", href: "/inventory" },
+  { label: "Catalog", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
   { label: "Manage Commissions", href: "/manage-commissions" },
@@ -60,7 +60,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_100%_0%,rgba(255,91,91,0.18),transparent),radial-gradient(40%_60%_at_0%_85%,rgba(99,102,241,0.18),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_65%_at_90%_10%,rgba(255,60,60,0.3),transparent),radial-gradient(80%_80%_at_10%_90%,rgba(255,255,255,0.08),transparent)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-12 pt-10 sm:px-10">
         <header className="glass-panel px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

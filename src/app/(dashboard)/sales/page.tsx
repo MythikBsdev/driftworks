@@ -242,7 +242,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
               Export CSV
             </a>
             {session.user.role === "owner" ? (
-              <form action={resetAllSales}>
+              <form action={resetAllSales} method="post">
                 <button type="submit" className="btn-ghost text-red-300 hover:text-red-100">
                   Reset All
                 </button>
