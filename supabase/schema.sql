@@ -142,36 +142,43 @@ begin
 end;
 $$;
 
+drop trigger if exists set_timestamp_app_users on public.app_users;
 create trigger set_timestamp_app_users
   before update on public.app_users
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_inventory on public.inventory_items;
 create trigger set_timestamp_inventory
   before update on public.inventory_items
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_discounts on public.discounts;
 create trigger set_timestamp_discounts
   before update on public.discounts
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_commissions on public.commission_rates;
 create trigger set_timestamp_commissions
   before update on public.commission_rates
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_sales_orders on public.sales_orders;
 create trigger set_timestamp_sales_orders
   before update on public.sales_orders
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_clients on public.clients;
 create trigger set_timestamp_clients
   before update on public.clients
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_invoices on public.invoices;
 create trigger set_timestamp_invoices
   before update on public.invoices
   for each row
