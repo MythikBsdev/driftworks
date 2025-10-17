@@ -124,7 +124,7 @@ const DashboardPage = async () => {
                 ? `Last sale ${formatDistanceToNow(new Date(latestSales[0]!.created_at), {
                     addSuffix: true,
                   })}`
-                : "No sales yet"}
+                : "No sales yet."}
             </p>
           </div>
         </div>
@@ -163,7 +163,7 @@ const DashboardPage = async () => {
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Latest sales</h2>
+            <h2 className="text-xl font-semibold text-white">Latest Sales</h2>
             <span className="muted-label">Recent 6</span>
           </div>
           <ul className="space-y-3 text-sm">
@@ -200,7 +200,7 @@ const DashboardPage = async () => {
         <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">
-              Recent inventory updates
+              Recent Catalogue Updates
             </h2>
             <span className="muted-label">Newest first</span>
           </div>
@@ -229,7 +229,7 @@ const DashboardPage = async () => {
               ))
             ) : (
               <li className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-12 text-center text-sm text-white/50">
-                Add your first catalog item from the Catalog tab.
+                Add your first catalogue item from the catalogue tab.
               </li>
             )}
           </ul>

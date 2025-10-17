@@ -9,7 +9,7 @@ const TABS = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
-  { label: "Catalog", href: "/inventory" },
+  { label: "catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
   { label: "Manage Commissions", href: "/manage-commissions" },
