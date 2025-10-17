@@ -60,7 +60,7 @@ a:hover {
   }
 
   .muted-label {
-    @apply muted-label;
+    @apply text-xs uppercase tracking-[0.3em] text-white/45;
   }
 
   .btn-primary {
