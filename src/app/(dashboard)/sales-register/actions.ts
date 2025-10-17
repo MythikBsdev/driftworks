@@ -78,7 +78,7 @@ export const completeSale = async (
   if (discountId) {
     const { data: discountRecord } = await supabase
       .from("discounts")
-      .select("percentage, owner_id")
+      .select("percentage")
       .eq("id", discountId)
       .maybeSingle();
 
@@ -86,16 +86,6 @@ export const completeSale = async (
       discountRecord as Database["public"]["Tables"]["discounts"]["Row"] | null;
 
     if (!discountRow) {
-      return {
-        status: "error",
-        message: "Selected discount could not be found",
-      };
-    }
-
-    const isOwnerDiscount =
-      discountRow.owner_id === session.user.id || session.user.role === "owner";
-
-    if (!isOwnerDiscount && session.user.role !== "manager") {
       return {
         status: "error",
         message: "Selected discount could not be found",
