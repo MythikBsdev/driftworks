@@ -1,15 +1,24 @@
 ﻿"use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { destroySession, getSession } from "@/lib/auth/session";
+import {
+  destroySession,
+  getSession,
+  SESSION_COOKIE,
+} from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database, InvoiceStatus } from "@/lib/supabase/types";
 
 export const signOut = async () => {
-  await destroySession();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value ?? null;
+
+  await destroySession(token);
+  cookieStore.delete(SESSION_COOKIE);
   redirect("/login");
 };
 

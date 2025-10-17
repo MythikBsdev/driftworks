@@ -1,9 +1,14 @@
 ﻿"use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createSession } from "@/lib/auth/session";
+import {
+  createSession,
+  SESSION_COOKIE,
+  SESSION_TTL_SECONDS,
+} from "@/lib/auth/session";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -65,11 +70,22 @@ export const login = async (
     return { error: "Invalid username or password" } satisfies LoginFormState;
   }
 
-  await createSession({
+  const { token } = await createSession({
     id: account.id,
     username: account.username,
     full_name: account.full_name,
     role: account.role,
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set({
+    name: SESSION_COOKIE,
+    value: token,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_SECONDS,
   });
 
   const destination =

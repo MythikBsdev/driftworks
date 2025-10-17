@@ -3,8 +3,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
-const SESSION_COOKIE = "dw_session";
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+export const SESSION_COOKIE = "dw_session";
+export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 export type SessionUser = {
   id: string;
@@ -35,16 +35,7 @@ export const createSession = async (user: SessionUser) => {
       } as never,
     );
 
-  const cookieStore = await cookies();
-    cookieStore.set({
-    name: SESSION_COOKIE,
-    value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_TTL_SECONDS,
-  });
+  return { token, expiresAt };
 };
 
 export const getSession = async (): Promise<Session | null> => {
@@ -65,13 +56,11 @@ export const getSession = async (): Promise<Session | null> => {
     session as Database["public"]["Tables"]["user_sessions"]["Row"] | null;
 
   if (!sessionRecord) {
-    cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 
   if (new Date(sessionRecord.expires_at) < new Date()) {
     await supabase.from("user_sessions").delete().eq("token", token);
-    cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 
@@ -86,7 +75,6 @@ export const getSession = async (): Promise<Session | null> => {
 
   if (!userRecord) {
     await supabase.from("user_sessions").delete().eq("token", token);
-    cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 
@@ -96,17 +84,15 @@ export const getSession = async (): Promise<Session | null> => {
   };
 };
 
-export const destroySession = async () => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (token) {
-    const supabase = createSupabaseServerClient();
-    await supabase.from("user_sessions").delete().eq("token", token);
+export const destroySession = async (token: string | null) => {
+  if (!token) {
+    return;
   }
 
-      cookieStore.delete(SESSION_COOKIE);
+  const supabase = createSupabaseServerClient();
+  await supabase.from("user_sessions").delete().eq("token", token);
 };
+
 
 
 
