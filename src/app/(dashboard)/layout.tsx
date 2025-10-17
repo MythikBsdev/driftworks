@@ -9,7 +9,7 @@ const TABS = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
-  { label: "catalogue", href: "/inventory" },
+  { label: "Catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
   { label: "Manage Commissions", href: "/manage-commissions" },
@@ -65,13 +65,13 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
         <header className="glass-panel px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
-              <span className="muted-label">Control Centre</span>
+              <span className="muted-label">Control Center</span>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 Welcome back, {displayName}
               </h1>
               <p className="text-sm text-white/60">
                 You&apos;re signed in as <span className="font-medium text-white">{roleLabel}</span>. Monitor sales,
-                manage your catalog, and keep the team moving.
+                manage your Catalogue, and keep the team moving.
               </p>
             </div>
             <form action={logout} className="flex items-center justify-end">
