@@ -12,11 +12,15 @@ const ManageDiscountsPage = async () => {
     redirect("/login");
   }
 
+  const allowedRoles = new Set(["owner", "manager"]);
+  if (!allowedRoles.has(session.user.role)) {
+    redirect("/dashboard");
+  }
+
   const supabase = createSupabaseServerClient();
   const { data: discounts } = await supabase
     .from("discounts")
     .select("id, name, percentage, updated_at")
-    .eq("owner_id", session.user.id)
     .order("updated_at", { ascending: false });
 
   const discountRows =
@@ -34,7 +38,7 @@ const ManageDiscountsPage = async () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/90 p-6 shadow-[0_20px_60px_-45px_rgba(255,22,22,0.6)]">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">Add New Discount</h2>
         <p className="mt-1 text-sm text-white/60">
           Define a new percentage-based discount.
@@ -76,21 +80,21 @@ const ManageDiscountsPage = async () => {
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500"
+            className="btn-primary w-full justify-center"
           >
             Add Discount
           </button>
         </form>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">Current Discounts</h2>
         <p className="text-sm text-white/60">
           View, edit, or delete existing discount percentages.
         </p>
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
-          <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 muted-label">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Percentage</th>
@@ -101,7 +105,7 @@ const ManageDiscountsPage = async () => {
             <tbody>
               {discountRows.length ? (
                 discountRows.map((discount) => (
-                  <tr key={discount.id} className="border-t border-white/5">
+                  <tr key={discount.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{discount.name}</td>
                     <td className="px-4 py-3 text-white/70">
                       {(discount.percentage * 100).toFixed(2)}%

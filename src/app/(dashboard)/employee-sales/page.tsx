@@ -27,7 +27,7 @@ const EmployeeSalesPage = async () => {
   };
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+    <section className="glass-card">
       <h2 className="text-xl font-semibold text-white">Add Employee Sale</h2>
       <p className="text-sm text-white/60">
         Manually add a sale record associated with an employee.
@@ -120,6 +120,7 @@ const EmployeeSalesPage = async () => {
 };
 
 export default EmployeeSalesPage;
+
 
 
 

@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { signOut } from "@/app/(dashboard)/actions";
@@ -15,6 +15,21 @@ const TABS = [
   { label: "Manage Commissions", href: "/manage-commissions" },
   { label: "Add Employee Sale", href: "/employee-sales" },
 ];
+
+const ROLE_TAB_MAP: Record<string, string[]> = {
+  owner: TABS.map((tab) => tab.href),
+  manager: [
+    "/dashboard",
+    "/sales-register",
+    "/sales",
+    "/inventory",
+    "/manage-discounts",
+  ],
+  shop_foreman: ["/dashboard", "/sales-register"],
+  master_tech: ["/dashboard", "/sales-register"],
+  mechanic: ["/dashboard", "/sales-register"],
+  apprentice: ["/dashboard", "/sales-register"],
+};
 
 const toTitleCase = (value: string | null | undefined) =>
   value
@@ -33,6 +48,10 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   const displayName = session.user.full_name ?? session.user.username;
   const roleLabel = toTitleCase(session.user.role);
+  const allowedRoutes =
+    ROLE_TAB_MAP[session.user.role] ?? ROLE_TAB_MAP.apprentice;
+  const visibleTabs = TABS.filter((tab) => allowedRoutes.includes(tab.href));
+  const tabsToRender = visibleTabs.length ? visibleTabs : TABS;
 
   const logout = async () => {
     "use server";
@@ -62,7 +81,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
             </form>
           </div>
           <div className="mt-6">
-            <DashboardTabs tabs={TABS} />
+            <DashboardTabs tabs={tabsToRender} />
           </div>
         </header>
 
@@ -79,3 +98,4 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 };
 
 export default DashboardLayout;
+

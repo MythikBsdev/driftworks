@@ -16,11 +16,15 @@ const InventoryPage = async () => {
     redirect("/login");
   }
 
+  const allowedRoles = new Set(["owner", "manager"]);
+  if (!allowedRoles.has(session.user.role)) {
+    redirect("/dashboard");
+  }
+
   const supabase = createSupabaseServerClient();
   const { data: inventory } = await supabase
     .from("inventory_items")
     .select("id, name, category, price, description, updated_at")
-    .eq("owner_id", session.user.id)
     .order("updated_at", { ascending: false });
 
   const inventoryItems =
@@ -127,14 +131,14 @@ const InventoryPage = async () => {
         </form>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">Current Inventory</h2>
         <p className="text-sm text-white/60">
           View, edit, or delete existing items.
         </p>
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 muted-label">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Category</th>
@@ -189,6 +193,8 @@ const InventoryPage = async () => {
 };
 
 export default InventoryPage;
+
+
 
 
 

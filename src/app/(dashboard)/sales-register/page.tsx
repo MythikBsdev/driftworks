@@ -17,11 +17,11 @@ const SalesRegisterPage = async () => {
     supabase
       .from("inventory_items")
       .select("id, name, category, price")
-        .order("price", { ascending: false }),
+      .order("price", { ascending: false }),
     supabase
       .from("discounts")
       .select("id, name, percentage")
-        .order("price", { ascending: false }),
+      .order("name", { ascending: true }),
   ]);
 
   const inventoryItems =

@@ -9,8 +9,9 @@ import { currencyFormatter } from "@/lib/utils";
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
   manager: "Manager",
+  shop_foreman: "Shop Foreman",
+  master_tech: "Master Tech",
   mechanic: "Mechanic",
-  sales: "Sales",
   apprentice: "Apprentice",
 };
 
@@ -31,6 +32,11 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     redirect("/login");
   }
 
+  const allowedRoles = new Set(["owner", "manager"]);
+  if (!allowedRoles.has(session.user.role)) {
+    redirect("/dashboard");
+  }
+
   const summaryQuery = searchParams?.summary?.toLowerCase().trim() ?? "";
   const logQuery = searchParams?.log?.toLowerCase().trim() ?? "";
 
@@ -45,11 +51,11 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       supabase
         .from("employee_sales")
         .select("id, employee_id, invoice_number, amount, created_at")
-         .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false }),
       supabase
         .from("commission_rates")
         .select("role, rate")
-        .eq("owner_id", session.user.id),
+        .order("role", { ascending: true }),
       supabase
         .from("sales_orders")
         .select("id, owner_id, invoice_number, subtotal, discount, total, created_at")

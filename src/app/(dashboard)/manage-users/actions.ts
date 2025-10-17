@@ -21,7 +21,16 @@ const createUserSchema = z.object({
     .max(120, "Name is too long")
     .optional()
     .or(z.literal("")),
-  role: z.enum(["owner", "manager", "mechanic", "sales", "apprentice"]).default("apprentice"),
+  role: z
+    .enum([
+      "owner",
+      "manager",
+      "shop_foreman",
+      "master_tech",
+      "mechanic",
+      "apprentice",
+    ])
+    .default("apprentice"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 

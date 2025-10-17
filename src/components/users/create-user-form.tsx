@@ -11,8 +11,9 @@ import {
 const ROLE_OPTIONS = [
   { value: "owner", label: "Owner" },
   { value: "manager", label: "Manager" },
+  { value: "shop_foreman", label: "Shop Foreman" },
+  { value: "master_tech", label: "Master Tech" },
   { value: "mechanic", label: "Mechanic" },
-  { value: "sales", label: "Sales" },
   { value: "apprentice", label: "Apprentice" },
 ];
 

@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { createCommission, deleteCommission } from "./actions";
 import { getSession } from "@/lib/auth/session";
@@ -8,8 +8,9 @@ import type { Database } from "@/lib/supabase/types";
 const ROLE_OPTIONS = [
   { value: "owner", label: "Owner" },
   { value: "manager", label: "Manager" },
+  { value: "shop_foreman", label: "Shop Foreman" },
+  { value: "master_tech", label: "Master Tech" },
   { value: "mechanic", label: "Mechanic" },
-  { value: "sales", label: "Sales" },
   { value: "apprentice", label: "Apprentice" },
 ];
 
@@ -169,6 +170,7 @@ const ManageCommissionsPage = async () => {
 };
 
 export default ManageCommissionsPage;
+
 
 
 
