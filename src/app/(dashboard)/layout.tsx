@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -74,7 +75,18 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
                 manage your Catalogue, and keep the team moving.
               </p>
             </div>
-            <form action={logout} className="flex items-center justify-end">
+            <form action={logout} className="flex items-center justify-end gap-3">
+              <span className="hidden text-sm text-white/60 sm:inline">Driftworks</span>
+              <div className="relative h-9 w-9 overflow-hidden rounded-full border border-white/10 bg-black/70">
+                <Image
+                  src="/driftworks.png"
+                  alt="Driftworks logo"
+                  fill
+                  className="object-cover"
+                  sizes="36px"
+                  priority
+                />
+              </div>
               <button type="submit" className="btn-ghost">
                 Logout
               </button>
@@ -98,4 +110,3 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 };
 
 export default DashboardLayout;
-
