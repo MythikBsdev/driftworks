@@ -68,7 +68,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
         </div>
       </main>
       <footer className="pb-8 text-center text-xs uppercase tracking-[0.4em] text-white/30">
-        Created by _mvy
+        Created by MythikBs
       </footer>
     </div>
   );

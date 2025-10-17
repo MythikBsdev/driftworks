@@ -74,6 +74,12 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     employeeTotals.set(entry.employee_id, current + (entry.amount ?? 0));
   });
 
+  const registerTotals = new Map<string, number>();
+  salesOrders.forEach((order) => {
+    const current = registerTotals.get(order.owner_id) ?? 0;
+    registerTotals.set(order.owner_id, current + (order.total ?? 0));
+  });
+
   const commissionMap = new Map<string, number>();
   commissionRates.forEach((rate) => {
     commissionMap.set(rate.role, rate.rate ?? 0);
@@ -83,7 +89,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   const summaryRows = users
     .map((user) => {
-      const totalSales = employeeTotals.get(user.id) ?? 0;
+      const totalSales =
+        (registerTotals.get(user.id) ?? 0) +
+        (employeeTotals.get(user.id) ?? 0);
       const commissionRate = commissionMap.get(user.role) ?? 0;
       const commissionTotal = totalSales * commissionRate;
       return {
