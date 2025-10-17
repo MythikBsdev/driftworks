@@ -94,7 +94,7 @@ const CreateUserForm = () => {
         >
           Password
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
           <input
             id="password"
             name="password"
@@ -102,19 +102,19 @@ const CreateUserForm = () => {
             value={generatedPassword}
             onChange={(event) => setGeneratedPassword(event.target.value)}
             required
-            className="flex-1 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+            className="flex-1 min-w-0 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
           />
           <button
             type="button"
             onClick={handleCopy}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white"
+            className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.25em] text-white/60 transition hover:text-white whitespace-nowrap"
           >
             Copy
           </button>
           <button
             type="button"
             onClick={handleRegenerate}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white"
+            className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.25em] text-white/60 transition hover:text-white whitespace-nowrap"
           >
             Refresh
           </button>
