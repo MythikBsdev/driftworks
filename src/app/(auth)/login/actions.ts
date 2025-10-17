@@ -1,1 +1,81 @@
-﻿"use server";import { redirect } from "next/navigation";import { z } from "zod";import { createSupabaseServerActionClient } from "@/lib/supabase/server";const loginSchema = z.object({  email: z    .string()    .min(1, "Email is required")    .email("Enter a valid email address"),  password: z    .string()    .min(1, "Password is required"),  redirectTo: z.string().optional(),});export type LoginFormState = {  error?: string;  message?: string;};export const login = async (_prev: LoginFormState | undefined, formData: FormData) => {  const supabase = await createSupabaseServerActionClient();  const parsed = loginSchema.safeParse({    email: formData.get("email")?.toString() ?? "",    password: formData.get("password")?.toString() ?? "",    redirectTo: formData.get("redirectTo")?.toString(),  });  if (!parsed.success) {    return {      error: parsed.error.issues[0]?.message ?? "Invalid credentials",    } satisfies LoginFormState;  }  const { redirectTo, ...credentials } = parsed.data;  const { error } = await supabase.auth.signInWithPassword(credentials);  if (error) {    return {      error: error.message,    } satisfies LoginFormState;  }  const destination = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/invoices";  redirect(destination);};
+﻿"use server";
+
+import { redirect } from "next/navigation";
+import { z } from "zod";
+
+import { createSession } from "@/lib/auth/session";
+import { verifyPassword } from "@/lib/auth/password";
+import { createSupabaseServerActionClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
+
+type AppUserRow = Database["public"]["Tables"]["app_users"]["Row"];
+
+type LoginFormState = {
+  error?: string;
+  message?: string;
+};
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+  redirectTo: z.string().optional(),
+});
+
+export const login = async (
+  _prev: LoginFormState | undefined,
+  formData: FormData,
+) => {
+  const supabase = createSupabaseServerActionClient();
+
+  const parsed = loginSchema.safeParse({
+    username: formData.get("username")?.toString().trim() ?? "",
+    password: formData.get("password")?.toString() ?? "",
+    redirectTo: formData.get("redirectTo")?.toString(),
+  });
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Invalid credentials",
+    } satisfies LoginFormState;
+  }
+
+  const credentials = parsed.data;
+
+  const { data } = await supabase
+    .from("app_users")
+    .select("id, username, full_name, role, password_hash")
+    .eq("username", credentials.username)
+    .maybeSingle();
+
+  const account = data as Pick<
+    AppUserRow,
+    "id" | "username" | "full_name" | "role" | "password_hash"
+  > | null;
+
+  if (!account) {
+    return { error: "Invalid username or password" } satisfies LoginFormState;
+  }
+
+  const valid = await verifyPassword(
+    credentials.password,
+    account.password_hash,
+  );
+
+  if (!valid) {
+    return { error: "Invalid username or password" } satisfies LoginFormState;
+  }
+
+  await createSession({
+    id: account.id,
+    username: account.username,
+    full_name: account.full_name,
+    role: account.role,
+  });
+
+  const destination =
+    credentials.redirectTo && credentials.redirectTo.startsWith("/")
+      ? credentials.redirectTo
+      : "/dashboard";
+
+  redirect(destination);
+};

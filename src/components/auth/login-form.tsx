@@ -1,19 +1,11 @@
 ﻿"use client";
-
 import { useFormState, useFormStatus } from "react-dom";
-
 import { login, type LoginFormState } from "@/app/(auth)/login/actions";
 import { cn } from "@/lib/utils";
-
 const initialState: LoginFormState = {};
-
-type LoginFormProps = {
-  redirectTo?: string;
-};
-
+type LoginFormProps = { redirectTo?: string };
 const SubmitButton = () => {
   const { pending } = useFormStatus();
-
   return (
     <button
       type="submit"
@@ -25,52 +17,67 @@ const SubmitButton = () => {
       )}
       disabled={pending}
     >
-      {pending ? "Signing In..." : "Login"}
+      {" "}
+      {pending ? "Signing In..." : "Login"}{" "}
     </button>
   );
 };
-
 const LoginForm = ({ redirectTo }: LoginFormProps) => {
-  const [state, formAction] = useFormState<LoginFormState, FormData>(login, initialState);
-
+  const [state, formAction] = useFormState<LoginFormState, FormData>(
+    login,
+    initialState,
+  );
   return (
     <form action={formAction} className="space-y-6">
-      {redirectTo ? <input type="hidden" name="redirectTo" value={redirectTo} /> : null}
+      {" "}
+      {redirectTo ? (
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+      ) : null}{" "}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-white/80" htmlFor="email">
-          Username or email
-        </label>
+        {" "}
+        <label
+          className="block text-sm font-medium text-white/80"
+          htmlFor="username"
+        >
+          {" "}
+          Username{" "}
+        </label>{" "}
         <input
-          id="email"
-          name="email"
-          type="email"
+          id="username"
+          name="username"
+          type="text"
           required
-          placeholder="brice@driftworks.com"
+          placeholder="username"
           className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white shadow-inner outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/60"
-        />
-      </div>
+        />{" "}
+      </div>{" "}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-white/80" htmlFor="password">
-          Password
-        </label>
+        {" "}
+        <label
+          className="block text-sm font-medium text-white/80"
+          htmlFor="password"
+        >
+          {" "}
+          Password{" "}
+        </label>{" "}
         <input
           id="password"
           name="password"
           type="password"
           required
-          placeholder="••••••••"
+          placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
           className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white shadow-inner outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/60"
-        />
-      </div>
+        />{" "}
+      </div>{" "}
       {state?.error ? (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          {state.error}
+          {" "}
+          {state.error}{" "}
         </p>
-      ) : null}
-      <SubmitButton />
+      ) : null}{" "}
+      <SubmitButton />{" "}
     </form>
   );
 };
-
 export { LoginForm };
 export default LoginForm;

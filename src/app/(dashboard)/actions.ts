@@ -4,14 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { destroySession, getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
-import type { InvoiceStatus } from "@/lib/supabase/types";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, InvoiceStatus } from "@/lib/supabase/types";
 
 export const signOut = async () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = (await createSupabaseServerActionClient()) as SupabaseClient<any>;
-  await supabase.auth.signOut();
+  await destroySession();
   redirect("/login");
 };
 
@@ -37,9 +35,16 @@ export type InvoiceFormState =
   | { status: "error"; message: string }
   | { status: "success" };
 
-export const createInvoice = async (_prev: InvoiceFormState, formData: FormData): Promise<InvoiceFormState> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = (await createSupabaseServerActionClient()) as SupabaseClient<any>;
+export const createInvoice = async (
+  _prev: InvoiceFormState,
+  formData: FormData,
+): Promise<InvoiceFormState> => {
+  const session = await getSession();
+  if (!session) {
+    return { status: "error", message: "You must be signed in" };
+  }
+
+  const supabase = createSupabaseServerActionClient();
   const parsed = invoiceSchema.safeParse({
     invoice_number: formData.get("invoice_number"),
     client_id: formData.get("client_id"),
@@ -69,22 +74,15 @@ export const createInvoice = async (_prev: InvoiceFormState, formData: FormData)
     items,
   } = parsed.data;
 
-  const subtotal = items.reduce((acc, item) => acc + item.quantity * item.unit_price, 0);
+  const subtotal = items.reduce(
+    (acc, item) => acc + item.quantity * item.unit_price,
+    0,
+  );
   const tax = subtotal * 0.15;
   const total = subtotal + tax;
 
-  const { data: userResult } = await supabase.auth.getUser();
-  const userId = userResult.user?.id;
-
-  if (!userId) {
-    return {
-      status: "error",
-      message: "You must be signed in",
-    };
-  }
-
-  const invoicePayload = {
-    owner_id: userId,
+  const invoicePayload: Database["public"]["Tables"]["invoices"]["Insert"] = {
+    owner_id: session.user.id,
     client_id,
     issue_date,
     due_date,
@@ -97,41 +95,48 @@ export const createInvoice = async (_prev: InvoiceFormState, formData: FormData)
     notes: notes ?? null,
   };
 
+  const invoiceInsert = [
+    invoicePayload,
+  ] as Database["public"]["Tables"]["invoices"]["Insert"][];
   const { error: invoiceError, data: invoice } = await supabase
     .from("invoices")
-    .insert(invoicePayload)
+    .insert(invoiceInsert)
     .select("id")
     .single();
 
-  if (invoiceError || !invoice || typeof invoice !== "object" || !("id" in invoice)) {
+  if (
+    invoiceError ||
+    !invoice ||
+    typeof invoice !== "object" ||
+    !("id" in invoice)
+  ) {
     return {
       status: "error",
       message: invoiceError?.message ?? "Unable to save invoice",
     };
   }
 
-  const invoiceId = (invoice as { id: string }).id;
-
-  const { error: itemsError } = await supabase
-    .from("invoice_items")
-    .insert(
+  const itemsPayload: Database["public"]["Tables"]["invoice_items"]["Insert"][] =
     items.map((item) => ({
-      invoice_id: invoiceId,
+      invoice_id: invoice.id,
       description: item.description,
       quantity: item.quantity,
       unit_price: item.unit_price,
       amount: item.quantity * item.unit_price,
-    })),
-  );
+    }));
+
+  const itemsInsert = [
+    ...itemsPayload,
+  ] as Database["public"]["Tables"]["invoice_items"]["Insert"][];
+  const { error: itemsError } = await supabase
+    .from("invoice_items")
+    .insert(itemsInsert);
 
   if (itemsError) {
-    return {
-      status: "error",
-      message: itemsError.message,
-    };
+    return { status: "error", message: itemsError.message };
   }
 
-  revalidatePath("/invoices");
+  revalidatePath("/sales");
   revalidatePath("/dashboard");
 
   return { status: "success" };
@@ -151,10 +156,16 @@ export type ClientFormState =
   | { status: "error"; message: string }
   | { status: "success" };
 
-export const createClient = async (_prev: ClientFormState, formData: FormData): Promise<ClientFormState> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = (await createSupabaseServerActionClient()) as SupabaseClient<any>;
+export const createClient = async (
+  _prev: ClientFormState,
+  formData: FormData,
+): Promise<ClientFormState> => {
+  const session = await getSession();
+  if (!session) {
+    return { status: "error", message: "You must be signed in" };
+  }
 
+  const supabase = createSupabaseServerActionClient();
   const parsed = clientSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -171,15 +182,8 @@ export const createClient = async (_prev: ClientFormState, formData: FormData): 
     };
   }
 
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
-
-  if (!userId) {
-    return { status: "error", message: "You must be signed in" };
-  }
-
   const { error } = await supabase.from("clients").insert({
-    owner_id: userId,
+    owner_id: session.user.id,
     name: parsed.data.name,
     company: parsed.data.company || null,
     email: parsed.data.email || null,
@@ -192,8 +196,13 @@ export const createClient = async (_prev: ClientFormState, formData: FormData): 
     return { status: "error", message: error.message };
   }
 
-  revalidatePath("/clients");
-  revalidatePath("/invoices");
+  revalidatePath("/sales-register");
+  revalidatePath("/sales");
+  revalidatePath("/dashboard");
 
   return { status: "success" };
 };
+
+
+
+
