@@ -40,39 +40,42 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white">
-      <header className="border-b border-white/5 bg-[#050505]/95 px-6 py-6 sm:px-10">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
-            <p className="text-sm text-white/60">
-              Welcome, {displayName} ({roleLabel})!
-            </p>
+    <div className="relative min-h-screen overflow-hidden text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_100%_0%,rgba(255,91,91,0.18),transparent),radial-gradient(40%_60%_at_0%_85%,rgba(99,102,241,0.18),transparent)]" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-12 pt-10 sm:px-10">
+        <header className="glass-panel px-6 py-6 sm:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <span className="muted-label">Control Centre</span>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                Welcome back, {displayName}
+              </h1>
+              <p className="text-sm text-white/60">
+                You&apos;re signed in as <span className="font-medium text-white">{roleLabel}</span>. Monitor sales,
+                manage your catalog, and keep the team moving.
+              </p>
+            </div>
+            <form action={logout} className="flex items-center justify-end">
+              <button type="submit" className="btn-ghost">
+                Logout
+              </button>
+            </form>
           </div>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded-xl bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(255,22,22,0.35)] transition hover:bg-red-500"
-            >
-              Logout
-            </button>
-          </form>
-        </div>
-        <div className="mt-6">
-          <DashboardTabs tabs={TABS} />
-        </div>
-      </header>
-      <main className="px-6 pb-16 pt-8 sm:px-10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <div className="mt-6">
+            <DashboardTabs tabs={TABS} />
+          </div>
+        </header>
+
+        <main className="mt-8 flex flex-1 flex-col gap-8">
           {children}
-        </div>
-      </main>
-      <footer className="pb-8 text-center text-xs uppercase tracking-[0.4em] text-white/30">
-        Created by MythikBs
-      </footer>
+        </main>
+
+        <footer className="mt-12 pb-6 text-center text-xs uppercase tracking-[0.4em] text-white/30">
+          Created by MythikBs
+        </footer>
+      </div>
     </div>
   );
 };
 
 export default DashboardLayout;
-

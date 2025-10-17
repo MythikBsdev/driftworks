@@ -56,67 +56,79 @@ const DashboardPage = async () => {
   return (
     <div className="space-y-8">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-white/10 bg-[#111]/90 p-5 shadow-[0_20px_50px_-35px_rgba(255,22,22,0.9)]">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">
-            Revenue
-          </p>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-3xl font-semibold text-white">
-              {formatter.format(totalRevenue)}
+        <div className="glass-card relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent opacity-70" />
+          <div className="relative flex h-full flex-col gap-3">
+            <span className="muted-label">Revenue</span>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-3xl font-semibold tracking-tight text-white">
+                {formatter.format(totalRevenue)}
+              </p>
+              <span className="rounded-2xl bg-brand-primary/20 p-2">
+                <Coins className="h-7 w-7 text-brand-primary" />
+              </span>
+            </div>
+            <p className="text-sm text-white/60">
+              {sales.length
+                ? `Last sale ${formatDistanceToNow(new Date(sales[0]!.created_at), { addSuffix: true })}`
+                : "No sales yet"}
             </p>
-            <Coins className="h-10 w-10 rounded-2xl bg-brand-primary/20 p-2 text-brand-primary" />
           </div>
-          <p className="mt-2 text-xs text-white/45">
-            {sales.length
-              ? `Last sale ${formatDistanceToNow(new Date(sales[0]!.created_at), { addSuffix: true })}`
-              : "No sales yet"}
-          </p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111]/90 p-5">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">
-            Inventory
-          </p>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-3xl font-semibold text-white">
-              {inventory.length}
+        <div className="glass-card relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-transparent opacity-80" />
+          <div className="relative flex h-full flex-col gap-3">
+            <span className="muted-label">Inventory</span>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-3xl font-semibold tracking-tight text-white">
+                {inventory.length}
+              </p>
+              <span className="rounded-2xl bg-emerald-500/15 p-2">
+                <PackageCheck className="h-7 w-7 text-emerald-300" />
+              </span>
+            </div>
+            <p className="text-sm text-white/60">
+              Recent additions appear here.
             </p>
-            <PackageCheck className="h-10 w-10 rounded-2xl bg-emerald-500/20 p-2 text-emerald-300" />
           </div>
-          <p className="mt-2 text-xs text-white/45">
-            Recent additions appear here.
-          </p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111]/90 p-5">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">
-            Discounts
-          </p>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-3xl font-semibold text-white">
-              {discounts.length}
-            </p>
-            <ArrowUpRight className="h-10 w-10 rounded-2xl bg-sky-500/20 p-2 text-sky-300" />
+        <div className="glass-card relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-400/10 via-transparent to-transparent opacity-80" />
+          <div className="relative flex h-full flex-col gap-3">
+            <span className="muted-label">Discounts</span>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-3xl font-semibold tracking-tight text-white">
+                {discounts.length}
+              </p>
+              <span className="rounded-2xl bg-sky-500/15 p-2">
+                <ArrowUpRight className="h-7 w-7 text-sky-300" />
+              </span>
+            </div>
+            <p className="text-sm text-white/60">Active percentage deals.</p>
           </div>
-          <p className="mt-2 text-xs text-white/45">Active percentage deals.</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111]/90 p-5">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">
-            Team
-          </p>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-3xl font-semibold text-white">{team.length}</p>
-            <UsersRound className="h-10 w-10 rounded-2xl bg-purple-500/20 p-2 text-purple-300" />
+        <div className="glass-card relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-500/15 via-transparent to-transparent opacity-80" />
+          <div className="relative flex h-full flex-col gap-3">
+            <span className="muted-label">Team</span>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-3xl font-semibold tracking-tight text-white">
+                {team.length}
+              </p>
+              <span className="rounded-2xl bg-purple-500/15 p-2">
+                <UsersRound className="h-7 w-7 text-purple-300" />
+              </span>
+            </div>
+            <p className="text-sm text-white/60">Admins included.</p>
           </div>
-          <p className="mt-2 text-xs text-white/45">Admins included.</p>
         </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4 rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+        <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">Latest sales</h2>
-            <span className="text-xs uppercase tracking-[0.35em] text-white/40">
-              Recent 6
-            </span>
+            <span className="muted-label">Recent 6</span>
           </div>
           <ul className="space-y-3 text-sm">
             {sales.length ? (
@@ -149,14 +161,12 @@ const DashboardPage = async () => {
           </ul>
         </div>
 
-        <div className="space-y-4 rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+        <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">
               Recent inventory updates
             </h2>
-            <span className="text-xs uppercase tracking-[0.35em] text-white/40">
-              Newest first
-            </span>
+            <span className="muted-label">Newest first</span>
           </div>
           <ul className="space-y-3 text-sm">
             {inventory.length ? (

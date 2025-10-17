@@ -14,7 +14,7 @@ const DashboardTabs = ({ tabs }: { tabs: Tab[] }) => {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-[#111]/80 px-2 py-1">
+    <nav className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1 backdrop-blur-xl">
       {tabs.map((tab) => {
         const active =
           pathname === tab.href || pathname.startsWith(`${tab.href}/`);
@@ -23,9 +23,9 @@ const DashboardTabs = ({ tabs }: { tabs: Tab[] }) => {
             key={tab.href}
             href={tab.href}
             className={cn(
-              "rounded-xl px-4 py-2 text-sm font-medium transition",
+              "tab-pill",
               active
-                ? "bg-white text-black shadow-[0_10px_25px_rgba(255,22,22,0.35)]"
+                ? "bg-white text-black shadow-[0_16px_35px_-18px_rgba(255,22,22,0.65)]"
                 : "text-white/70 hover:text-white hover:bg-white/10",
             )}
           >

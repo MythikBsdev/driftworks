@@ -186,7 +186,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6 shadow-[0_20px_60px_-45px_rgba(255,22,22,0.6)]">
+      <section className="glass-card space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-white">User Sales Summary</h2>
@@ -197,7 +197,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           <a
             href={csvDataUri}
             download="sales-summary.csv"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:text-white"
+            className="btn-ghost"
           >
             <Download className="h-4 w-4" />
             Export CSV
@@ -217,9 +217,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           </form>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
-          <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-white/40">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium text-left">User</th>
                 <th className="px-4 py-3 font-medium text-left">Role</th>
@@ -231,7 +231,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
             <tbody>
               {summaryRows.length ? (
                 summaryRows.map((row) => (
-                  <tr key={row.id} className="border-t border-white/5">
+                  <tr key={row.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{row.displayName}</td>
                     <td className="px-4 py-3 text-white/60">{formatRole(row.role)}</td>
                     <td className="px-4 py-3 font-medium text-white">
@@ -274,7 +274,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-6">
+      <section className="glass-card space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-white">Detailed Sales Log</h2>
@@ -294,9 +294,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           </form>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
-          <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-white/40">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium text-left">Invoice #</th>
                 <th className="px-4 py-3 font-medium text-left">Sale ID</th>
@@ -311,7 +311,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
             <tbody>
               {logRows.length ? (
                 logRows.map((row) => (
-                  <tr key={`${row.id}`} className="border-t border-white/5">
+                  <tr key={`${row.id}`} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{row.invoice ?? "—"}</td>
                     <td className="px-4 py-3 text-white/60">{row.id}</td>
                     <td className="px-4 py-3 text-white/60">
@@ -357,4 +357,6 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 };
 
 export default SalesPage;
+
+
 

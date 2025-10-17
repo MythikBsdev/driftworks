@@ -40,7 +40,7 @@ const InventoryPage = async () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/90 p-6 shadow-[0_20px_60px_-45px_rgba(255,22,22,0.6)]">
+      <section className="glass-card">
         <h2 className="text-xl font-semibold text-white">Add New Item</h2>
         <p className="mt-1 text-sm text-white/60">
           Add a new product or service to the sales register.
@@ -120,7 +120,7 @@ const InventoryPage = async () => {
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500"
+            className="btn-primary w-full justify-center"
           >
             Add Item
           </button>
@@ -146,7 +146,7 @@ const InventoryPage = async () => {
             <tbody>
               {inventoryItems.length ? (
                 inventoryItems.map((item) => (
-                  <tr key={item.id} className="border-t border-white/5">
+                  <tr key={item.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{item.name}</td>
                     <td className="px-4 py-3 text-white/60">{item.category}</td>
                     <td className="px-4 py-3 font-medium text-white">
@@ -189,6 +189,21 @@ const InventoryPage = async () => {
 };
 
 export default InventoryPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

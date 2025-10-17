@@ -1,14 +1,23 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 :root {
   color-scheme: dark;
+  --dw-surface: rgba(18, 18, 20, 0.65);
+  --dw-surface-strong: rgba(12, 12, 15, 0.85);
+  --dw-outline: rgba(255, 255, 255, 0.08);
+  --dw-outline-strong: rgba(255, 255, 255, 0.14);
+  --dw-text-muted: rgba(229, 231, 235, 0.65);
 }
 
 body {
   min-height: 100vh;
-  background: #050505;
-  color: #f5f5f5;
+  background:
+    radial-gradient(120% 120% at 82% 5%, rgba(255, 22, 22, 0.22), transparent 55%),
+    radial-gradient(120% 140% at 0% 100%, rgba(107, 114, 255, 0.18), transparent 60%),
+    #050607;
+  color: #f8f9fb;
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-attachment: fixed;
 }
 
 a {
@@ -36,3 +45,66 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #ff1616;
 }
+
+@layer components {
+  .glass-panel {
+    @apply rounded-3xl border border-white/[0.08] bg-white/[0.08] backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/[0.03];
+  }
+
+  .glass-card {
+    @apply rounded-3xl border border-white/[0.08] bg-white/[0.08] p-6 sm:p-8 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/[0.03];
+  }
+
+  .panel-subtitle {
+    @apply text-sm font-medium tracking-wide text-white/60;
+  }
+
+  .muted-label {
+    @apply text-xs uppercase tracking-[0.3em] text-white/40;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(255,22,22,0.35)] transition duration-200;
+    background: linear-gradient(135deg, rgba(255, 22, 22, 0.95), rgba(255, 77, 77, 0.85));
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(255, 77, 77, 0.95), rgba(255, 22, 22, 0.9));
+  }
+
+  .btn-primary:focus-visible {
+    outline: 2px solid rgba(255, 77, 77, 0.75);
+    outline-offset: 4px;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/20 hover:text-white;
+  }
+
+  .tab-pill {
+    @apply rounded-xl px-4 py-2 text-sm font-medium transition;
+  }
+}
+
+@layer base {
+  .bg-\[\#0f0f0f\]\/85,
+  .bg-\[\#101010\]\/90,
+  .bg-\[\#111\]\/90 {
+    background-color: rgba(20, 22, 28, 0.72) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(18px);
+  }
+
+  .border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  table thead {
+    @apply bg-white/10;
+  }
+
+  table tbody tr {
+    @apply border-white/10;
+  }
+}
+

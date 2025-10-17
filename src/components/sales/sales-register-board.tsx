@@ -36,7 +36,7 @@ const CompleteSaleButton = () => {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-70"
+      className="btn-primary w-full justify-center disabled:cursor-wait disabled:opacity-60"
     >
       {pending ? "Processing..." : "Complete Sale"}
     </button>
@@ -83,7 +83,9 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     ? discounts.find((discount) => discount.id === selectedDiscountId) ?? null
     : null;
   const discountAmount = selectedDiscount
-    ? subtotal * (selectedDiscount.percentage ?? 0)
+    ? Math.round(
+        (subtotal * (selectedDiscount.percentage ?? 0) + Number.EPSILON) * 100,
+      ) / 100
     : 0;
   const total = Math.max(subtotal - discountAmount, 0);
 
@@ -110,7 +112,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-      <div className="space-y-4 rounded-3xl border border-white/10 bg-[#0f0f0f]/90 p-6">
+      <div className="glass-card space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-white">Select Items</h2>
           <button
@@ -128,10 +130,10 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
               type="button"
               onClick={() => setFilter(option)}
               className={cn(
-                "rounded-full border border-white/10 px-3 py-1 text-xs transition",
+                "rounded-full border border-white/10 px-3 py-1 text-xs transition backdrop-blur",
                 filter === option
-                  ? "bg-red-600 text-white shadow-[0_10px_25px_rgba(255,22,22,0.35)]"
-                  : "text-white/60 hover:border-red-500/60 hover:text-white",
+                  ? "bg-white text-black shadow-[0_14px_35px_-18px_rgba(255,22,22,0.6)]"
+                  : "text-white/70 hover:text-white hover:bg-white/10",
               )}
             >
               {option}
@@ -145,7 +147,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
                 key={item.id}
                 type="button"
                 onClick={() => addToCart(item)}
-                className="flex flex-col items-start gap-1 rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-brand-primary/60 hover:bg-brand-primary/10"
+                className="flex flex-col items-start gap-1 rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-left transition hover:border-white/20 hover:bg-white/10"
               >
                 <span className="text-sm font-semibold text-white">
                   {item.name}
@@ -166,13 +168,12 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
         </div>
       </div>
 
-      <form
-        action={formAction}
-        className="space-y-4 rounded-3xl border border-white/10 bg-[#0f0f0f]/90 p-6"
-      >
+      <form action={formAction} className="glass-card space-y-5">
         <div>
           <h2 className="text-xl font-semibold text-white">Current Sale</h2>
-          <p className="text-xs text-white/50">Invoice Number</p>
+          <p className="text-sm text-white/60">
+            Generate an invoice number to track this sale.
+          </p>
           <input
             value={invoiceNumber}
             onChange={(event) => setInvoiceNumber(event.target.value)}
@@ -185,10 +186,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 
         <input type="hidden" name="items" value={JSON.stringify(cart)} />
         <div className="space-y-2">
-          <label
-            className="text-xs uppercase tracking-[0.3em] text-white/40"
-            htmlFor="discountId"
-          >
+          <label className="muted-label" htmlFor="discountId">
             Discount
           </label>
           <select
@@ -211,9 +209,9 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
           </select>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/90">
-          <table className="w-full text-left text-sm text-white/70">
-            <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-white/40">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-left text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium">Item</th>
                 <th className="px-4 py-3 font-medium">Qty</th>
