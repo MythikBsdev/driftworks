@@ -45,8 +45,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       supabase
         .from("employee_sales")
         .select("id, employee_id, invoice_number, amount, created_at")
-        .eq("owner_id", session.user.id)
-        .order("created_at", { ascending: false }),
+         .order("created_at", { ascending: false }),
       supabase
         .from("commission_rates")
         .select("role, rate")
@@ -54,8 +53,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       supabase
         .from("sales_orders")
         .select("id, owner_id, invoice_number, subtotal, discount, total, created_at")
-        .eq("owner_id", session.user.id)
-        .order("created_at", { ascending: false })
+         .order("created_at", { ascending: false })
         .limit(50),
     ]);
 
@@ -357,6 +355,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 };
 
 export default SalesPage;
+
 
 
 

@@ -17,13 +17,11 @@ const SalesRegisterPage = async () => {
     supabase
       .from("inventory_items")
       .select("id, name, category, price")
-      .eq("owner_id", session.user.id)
-      .order("name", { ascending: true }),
+       .order("name", { ascending: true }),
     supabase
       .from("discounts")
       .select("id, name, percentage")
-      .eq("owner_id", session.user.id)
-      .order("name", { ascending: true }),
+       .order("name", { ascending: true }),
   ]);
 
   const inventoryItems =
@@ -35,3 +33,4 @@ const SalesRegisterPage = async () => {
 };
 
 export default SalesRegisterPage;
+

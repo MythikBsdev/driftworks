@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
 import { KeyRound, Trash2 } from "lucide-react";
 
 import CreateUserForm from "@/components/users/create-user-form";
@@ -70,109 +69,108 @@ const ManageUsersPage = async () => {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {userRows.length ? (
-            userRows.map((user) => {
-              const isSelf = user.id === session.user.id;
-              return (
-                <article
-                  key={user.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1.5">
-                      <p className="text-lg font-semibold text-white">
-                        {user.full_name ?? user.username}
-                      </p>
-                      <p className="text-sm text-white/60">@{user.username}</p>
-                      <p className="muted-label">
-                        Joined{" "}
-                        {user.created_at
-                          ? formatDistanceToNow(new Date(user.created_at), {
-                              addSuffix: true,
-                            })
-                          : "unknown"}
-                      </p>
-                    </div>
-                    <div className="text-sm text-white/70">
-                      <span className="muted-label">Current Role</span>
-                      <p className="text-base font-medium text-white">
-                        {formatRole(user.role)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {canManage ? (
-                    <div className="mt-6 space-y-4">
-                      <form
-                        action={updateUserRole}
-                        className="flex flex-col gap-3 sm:flex-row sm:items-center"
-                      >
-                        <input type="hidden" name="userId" value={user.id} />
-                        <select
-                          name="role"
-                          defaultValue={user.role}
-                          className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-                        >
-                          {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="submit"
-                          className="btn-ghost w-full justify-center sm:w-auto"
-                        >
-                          Update Role
-                        </button>
-                      </form>
-
-                      <form
-                        action={resetUserPassword}
-                        className="flex flex-col gap-3 sm:flex-row sm:items-center"
-                      >
-                        <input type="hidden" name="userId" value={user.id} />
-                        <input
-                          type="password"
-                          name="password"
-                          minLength={8}
-                          required
-                          placeholder="New password"
-                          autoComplete="new-password"
-                          className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-                        />
-                        <button
-                          type="submit"
-                          className="btn-ghost w-full justify-center sm:w-auto"
-                        >
-                          <KeyRound className="h-4 w-4" />
-                          <span>Set Password</span>
-                        </button>
-                      </form>
-
-                      <form
-                        action={deleteUserAccount}
-                        className="flex justify-end"
-                      >
-                        <input type="hidden" name="userId" value={user.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={isSelf}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete User
-                        </button>
-                      </form>
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })
-          ) : (
-            <p className="text-sm text-white/60">No users defined yet.</p>
-          )}
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium">User</th>
+                <th className="px-4 py-3 text-left font-medium">Role</th>
+                <th className="px-4 py-3 text-center font-medium">Set Password</th>
+                <th className="px-4 py-3 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userRows.length ? (
+                userRows.map((user) => {
+                  const isSelf = user.id === session.user.id;
+                  const joined = user.created_at
+                    ? new Date(user.created_at).toLocaleDateString()
+                    : "Unknown";
+                  return (
+                    <tr key={user.id} className="border-t border-white/10">
+                      <td className="px-4 py-3">
+                        <div className="space-y-1">
+                          <p className="text-base font-semibold text-white">
+                            {user.full_name ?? user.username}
+                          </p>
+                          <p className="text-sm text-white/60">@{user.username}</p>
+                          <p className="muted-label">Joined {joined}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        {canManage ? (
+                          <form action={updateUserRole} className="flex items-center gap-2">
+                            <input type="hidden" name="userId" value={user.id} />
+                            <select
+                              name="role"
+                              defaultValue={user.role}
+                              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                            >
+                              {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                            <button type="submit" className="btn-ghost px-3 py-2 text-xs">
+                              Save
+                            </button>
+                          </form>
+                        ) : (
+                          <p className="text-sm text-white/70">{formatRole(user.role)}</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        {canManage ? (
+                          <form action={resetUserPassword} className="flex items-center gap-2 justify-center sm:justify-start">
+                            <input type="hidden" name="userId" value={user.id} />
+                            <input
+                              type="password"
+                              name="password"
+                              minLength={8}
+                              required
+                              placeholder="New password"
+                              autoComplete="new-password"
+                              className="w-48 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                            />
+                            <button type="submit" className="btn-ghost px-3 py-2 text-xs">
+                              <KeyRound className="h-4 w-4" />
+                              Set
+                            </button>
+                          </form>
+                        ) : (
+                          <span className="text-sm text-white/50">Owner access required</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right align-middle">
+                        {canManage ? (
+                          <form action={deleteUserAccount} className="inline-flex">
+                            <input type="hidden" name="userId" value={user.id} />
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={isSelf}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </button>
+                          </form>
+                        ) : (
+                          <span className="text-sm text-white/50">Owner access required</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td className="px-4 py-12 text-center text-sm text-white/60" colSpan={4}>
+                    No users defined yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
