@@ -7,7 +7,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
-import { resetAllSales, resetUserSales } from "./actions";
+import { deleteSale, resetAllSales, resetUserSales } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
@@ -124,7 +124,8 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         row.displayName.toLowerCase().includes(summaryQuery) ||
         row.username.toLowerCase().includes(summaryQuery)
       );
-    });
+    })
+    .sort((a, b) => b.totalSales - a.totalSales);
 
   const grandTotalSales = summaryRows.reduce((acc, row) => acc + row.totalSales, 0);
   const grandTotalCommission = summaryRows.reduce(
@@ -156,14 +157,16 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         if (selectedUser && entry.owner_id !== selectedUser) {
           return [];
         }
-        const ownerName =
-          users.find((user) => user.id === entry.owner_id)?.full_name ??
-          users.find((user) => user.id === entry.owner_id)?.username ??
-          "-";
+        const orderId = entry.id ?? "";
+        if (!orderId) {
+          return [];
+        }
+        const ownerName = userNameLookup.get(entry.owner_id) ?? "-";
         return [
           {
-            id: entry.id,
-            invoice: entry.invoice_number,
+            type: "register" as const,
+            id: orderId,
+            invoice: entry.invoice_number ?? "",
             createdAt: entry.created_at,
             subtotal: entry.subtotal ?? 0,
             discount: entry.discount ?? 0,
@@ -177,10 +180,16 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         return [];
       }
 
+      const employeeSaleId = entry.id ?? "";
+      if (!employeeSaleId) {
+        return [];
+      }
+
       return [
         {
-          id: entry.id,
-          invoice: entry.invoice_number,
+          type: "employee" as const,
+          id: employeeSaleId,
+          invoice: entry.invoice_number ?? "",
           createdAt: entry.created_at,
           subtotal: entry.amount ?? 0,
           discount: 0,
@@ -194,9 +203,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         return true;
       }
       return (
-        row.invoice?.toLowerCase().includes(logQuery) ||
-        row.id?.toLowerCase().includes(logQuery) ||
-        row.soldBy?.toLowerCase().includes(logQuery)
+        row.invoice.toLowerCase().includes(logQuery) ||
+        row.id.toLowerCase().includes(logQuery) ||
+        row.soldBy.toLowerCase().includes(logQuery)
       );
     })
     .sort(
@@ -411,7 +420,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                 <th className="px-4 py-3 font-medium text-left">Subtotal</th>
                 <th className="px-4 py-3 font-medium text-left">Discount</th>
                 <th className="px-4 py-3 font-medium text-left">Total</th>
-                <th className="px-4 py-3 font-medium text-left">Details</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -441,7 +450,19 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                     <td className="px-4 py-3 font-medium text-white">
                       {formatter.format(row.total)}
                     </td>
-                    <td className="px-4 py-3 text-white/60">—</td>
+                    <td className="px-4 py-3 text-right">
+                      <form action={deleteSale} className="inline-flex">
+                        <input type="hidden" name="saleId" value={row.id} />
+                        <input type="hidden" name="saleType" value={row.type} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-red-500 px-3 py-1 text-xs font-semibold text-red-400 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                          aria-label="Delete sale"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </td>
                   </tr>
                 ))
               ) : (

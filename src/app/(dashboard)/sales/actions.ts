@@ -136,3 +136,53 @@ export const resetUserSales = async (formData: FormData) => {
   revalidatePath("/sales-register");
   redirect("/sales");
 };
+
+export const deleteSale = async (formData: FormData) => {
+  const session = await getSession();
+  if (!session || !["owner", "manager"].includes(session.user.role)) {
+    return;
+  }
+
+  const saleId = formData.get("saleId");
+  const saleType = formData.get("saleType");
+
+  if (typeof saleId !== "string" || !saleId.length) {
+    return;
+  }
+
+  if (saleType !== "register" && saleType !== "employee") {
+    return;
+  }
+
+  const supabase = createSupabaseServerActionClient();
+
+  if (saleType === "register") {
+    const itemsDeleted = await deleteOrderItemsInChunks(supabase, [saleId]);
+    if (!itemsDeleted) {
+      return;
+    }
+
+    const { error: deleteOrderError } = await supabase
+      .from("sales_orders")
+      .delete()
+      .eq("id", saleId);
+
+    if (deleteOrderError) {
+      console.error("Failed to delete sales order", deleteOrderError);
+      return;
+    }
+  } else {
+    const { error: deleteEmployeeSaleError } = await supabase
+      .from("employee_sales")
+      .delete()
+      .eq("id", saleId);
+
+    if (deleteEmployeeSaleError) {
+      console.error("Failed to delete employee sale", deleteEmployeeSaleError);
+      return;
+    }
+  }
+
+  revalidatePath("/sales");
+  revalidatePath("/sales-register");
+};
