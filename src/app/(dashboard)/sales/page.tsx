@@ -29,6 +29,20 @@ type SalesPageProps = {
   };
 };
 
+type SalesLogRowBase = {
+  id: string;
+  invoice: string;
+  createdAt: string | null;
+  subtotal: number;
+  discount: number;
+  total: number;
+  soldBy: string;
+};
+
+type SalesLogRow =
+  | ({ type: "register" } & SalesLogRowBase)
+  | ({ type: "employee" } & SalesLogRowBase);
+
 const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const session = await getSession();
 
@@ -151,53 +165,53 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     users.map((user) => [user.id, user.full_name ?? user.username]),
   );
 
-  const logRows = [...salesOrders, ...employeeSales]
-    .flatMap((entry) => {
-      if ("subtotal" in entry) {
-        if (selectedUser && entry.owner_id !== selectedUser) {
-          return [];
-        }
-        const orderId = entry.id ?? "";
-        if (!orderId) {
-          return [];
-        }
-        const ownerName = userNameLookup.get(entry.owner_id) ?? "-";
-        return [
-          {
-            type: "register" as const,
-            id: orderId,
-            invoice: entry.invoice_number ?? "",
-            createdAt: entry.created_at,
-            subtotal: entry.subtotal ?? 0,
-            discount: entry.discount ?? 0,
-            total: entry.total ?? 0,
-            soldBy: ownerName,
-          },
-        ];
-      }
+  const rawLogRows: SalesLogRow[] = [];
 
-      if (selectedUser && entry.employee_id !== selectedUser) {
-        return [];
-      }
+  salesOrders.forEach((entry) => {
+    if (selectedUser && entry.owner_id !== selectedUser) {
+      return;
+    }
+    if (typeof entry.id !== "string" || !entry.id.length) {
+      return;
+    }
 
-      const employeeSaleId = entry.id ?? "";
-      if (!employeeSaleId) {
-        return [];
-      }
+    rawLogRows.push({
+      type: "register",
+      id: entry.id,
+      invoice: entry.invoice_number ?? "",
+      createdAt: entry.created_at ?? null,
+      subtotal: entry.subtotal ?? 0,
+      discount: entry.discount ?? 0,
+      total: entry.total ?? 0,
+      soldBy: entry.owner_id
+        ? userNameLookup.get(entry.owner_id) ?? "-"
+        : "-",
+    });
+  });
 
-      return [
-        {
-          type: "employee" as const,
-          id: employeeSaleId,
-          invoice: entry.invoice_number ?? "",
-          createdAt: entry.created_at,
-          subtotal: entry.amount ?? 0,
-          discount: 0,
-          total: entry.amount ?? 0,
-          soldBy: userNameLookup.get(entry.employee_id) ?? "-",
-        },
-      ];
-    })
+  employeeSales.forEach((entry) => {
+    if (selectedUser && entry.employee_id !== selectedUser) {
+      return;
+    }
+    if (typeof entry.id !== "string" || !entry.id.length) {
+      return;
+    }
+
+    rawLogRows.push({
+      type: "employee",
+      id: entry.id,
+      invoice: entry.invoice_number ?? "",
+      createdAt: entry.created_at ?? null,
+      subtotal: entry.amount ?? 0,
+      discount: 0,
+      total: entry.amount ?? 0,
+      soldBy: entry.employee_id
+        ? userNameLookup.get(entry.employee_id) ?? "-"
+        : "-",
+    });
+  });
+
+  const logRows = rawLogRows
     .filter((row) => {
       if (!logQuery) {
         return true;
