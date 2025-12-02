@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,9 @@ export async function GET(request: Request) {
     );
   }
 
-  const stampCount = loyaltyRow?.stamp_count ?? 0;
+  const loyaltyRecord =
+    loyaltyRow as Database["public"]["Tables"]["loyalty_accounts"]["Row"] | null;
+  const stampCount = loyaltyRecord?.stamp_count ?? 0;
   const ready = stampCount >= 9;
 
   return NextResponse.json({
