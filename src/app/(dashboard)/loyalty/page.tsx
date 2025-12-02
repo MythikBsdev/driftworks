@@ -317,3 +317,4 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
 };
 
 export default LoyaltyPage;
+
