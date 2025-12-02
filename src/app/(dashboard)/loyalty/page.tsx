@@ -8,10 +8,10 @@ import { currencyFormatter } from "@/lib/utils";
 
 const MAX_STAMPS = 9;
 const LOYALTY_ACTION_LABELS = {
-  none: "No loyalty action",
-  stamp: "Stamp added",
+  none: "No loyalty Action",
+  stamp: "Stamp Added",
   double: "Double Stamp Tuesday",
-  redeem: "Free sale redeemed",
+  redeem: "Free Sale Redeemed",
 } as const;
 
 type KnownLoyaltyAction = keyof typeof LOYALTY_ACTION_LABELS;
