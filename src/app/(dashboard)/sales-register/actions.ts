@@ -153,11 +153,11 @@ export const completeSale = async (
     if (!account) {
       const { data: createdAccount, error: createAccountError } = await supabase
         .from("loyalty_accounts")
-        .insert([
+        .insert<Database["public"]["Tables"]["loyalty_accounts"]["Insert"]>([
           {
             owner_id: session.user.id,
             cid,
-          } as Database["public"]["Tables"]["loyalty_accounts"]["Insert"],
+          },
         ])
         .select("id, stamp_count, total_stamps, total_redemptions")
         .single();
@@ -213,18 +213,16 @@ export const completeSale = async (
 
   const { data: inserted, error } = await supabase
     .from("sales_orders")
-    .insert(
-      {
-        owner_id: session.user.id,
-        cid,
-        invoice_number: invoiceNumber,
-        loyalty_action: loyaltyAction,
-        subtotal,
-        discount: discountAmount,
-        total,
-        status: "completed",
-      } as never,
-    )
+    .insert<Database["public"]["Tables"]["sales_orders"]["Insert"]>({
+      owner_id: session.user.id,
+      cid,
+      invoice_number: invoiceNumber,
+      loyalty_action: loyaltyAction,
+      subtotal,
+      discount: discountAmount,
+      total,
+      status: "completed",
+    })
     .select("id")
     .single();
 
@@ -237,7 +235,7 @@ export const completeSale = async (
 
   const { error: itemsError } = await supabase
     .from("sales_order_items")
-    .insert(
+    .insert<Database["public"]["Tables"]["sales_order_items"]["Insert"]>(
       items.map((item) => ({
         order_id: orderRecord.id,
         item_name: item.name,
@@ -245,7 +243,7 @@ export const completeSale = async (
         quantity: item.quantity,
         unit_price: item.price,
         total: item.price * item.quantity,
-      })) as never,
+      })),
     );
 
   if (itemsError) {
@@ -255,11 +253,11 @@ export const completeSale = async (
   if (loyaltyUpdate) {
     const { error: loyaltyUpdateError } = await supabase
       .from("loyalty_accounts")
-      .update({
+      .update<Database["public"]["Tables"]["loyalty_accounts"]["Update"]>({
         stamp_count: loyaltyUpdate.stamp_count,
         total_stamps: loyaltyUpdate.total_stamps,
         total_redemptions: loyaltyUpdate.total_redemptions,
-      } as Database["public"]["Tables"]["loyalty_accounts"]["Update"])
+      })
       .eq("id", loyaltyUpdate.id);
 
     if (loyaltyUpdateError) {
