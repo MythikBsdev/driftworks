@@ -12,13 +12,21 @@ if (!supabaseUrl || !supabaseServiceKey) {
   );
 }
 
-const createSupabaseClient = (): SupabaseClient<Database> =>
-  createClient<Database>(supabaseUrl ?? "", supabaseServiceKey ?? "", {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
+const createSupabaseClient = (): SupabaseClient<
+  Database,
+  "public",
+  Database["public"]
+> =>
+  createClient<Database, "public", Database["public"]>(
+    supabaseUrl ?? "",
+    supabaseServiceKey ?? "",
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
     },
-  });
+  );
 
 export const createSupabaseServerClient = () => createSupabaseClient();
 
