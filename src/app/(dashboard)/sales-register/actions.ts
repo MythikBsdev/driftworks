@@ -153,12 +153,14 @@ export const completeSale = async (
     if (!account) {
       const { data: createdAccount, error: createAccountError } = await supabase
         .from("loyalty_accounts")
-        .insert([
-          {
-            owner_id: session.user.id,
-            cid,
-          },
-        ])
+        .insert(
+          [
+            {
+              owner_id: session.user.id,
+              cid,
+            },
+          ] as never,
+        )
         .select("id, stamp_count, total_stamps, total_redemptions")
         .single();
 
@@ -213,16 +215,18 @@ export const completeSale = async (
 
   const { data: inserted, error } = await supabase
     .from("sales_orders")
-    .insert({
-      owner_id: session.user.id,
-      cid,
-      invoice_number: invoiceNumber,
-      loyalty_action: loyaltyAction,
-      subtotal,
-      discount: discountAmount,
-      total,
-      status: "completed",
-    })
+    .insert(
+      {
+        owner_id: session.user.id,
+        cid,
+        invoice_number: invoiceNumber,
+        loyalty_action: loyaltyAction,
+        subtotal,
+        discount: discountAmount,
+        total,
+        status: "completed",
+      } as never,
+    )
     .select("id")
     .single();
 
@@ -243,7 +247,7 @@ export const completeSale = async (
         quantity: item.quantity,
         unit_price: item.price,
         total: item.price * item.quantity,
-      })),
+      })) as never,
     );
 
   if (itemsError) {
@@ -253,11 +257,13 @@ export const completeSale = async (
   if (loyaltyUpdate) {
     const { error: loyaltyUpdateError } = await supabase
       .from("loyalty_accounts")
-      .update({
-        stamp_count: loyaltyUpdate.stamp_count,
-        total_stamps: loyaltyUpdate.total_stamps,
-        total_redemptions: loyaltyUpdate.total_redemptions,
-      })
+      .update(
+        {
+          stamp_count: loyaltyUpdate.stamp_count,
+          total_stamps: loyaltyUpdate.total_stamps,
+          total_redemptions: loyaltyUpdate.total_redemptions,
+        } as never,
+      )
       .eq("id", loyaltyUpdate.id);
 
     if (loyaltyUpdateError) {
