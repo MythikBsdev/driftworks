@@ -39,11 +39,11 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
     (loyaltyData ?? []) as Database["public"]["Tables"]["loyalty_accounts"]["Row"][];
 
   const searchValue =
-    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : -;
+    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : "";
   const selectedCid =
     typeof searchParams?.cid === "string" && searchParams.cid.trim().length
       ? searchParams.cid.trim().toUpperCase()
-      : -;
+      : "";
 
   const filteredAccounts = searchValue.length
     ? accounts.filter((account) => account.cid.toUpperCase().includes(searchValue))
@@ -306,7 +306,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
               </table>
             </div>
           ) : (
-            <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
+            <p className="rounded-2xl border border-white/10 bg-black/60 p-4 text-sm text-white/60">
               No sales have been logged for this CID yet.
             </p>
           )}
