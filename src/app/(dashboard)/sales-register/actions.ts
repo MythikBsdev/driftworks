@@ -18,7 +18,7 @@ const cartItemSchema = z.object({
   quantity: z.number().min(1),
 });
 
-const LOYALTY_ACTIONS = ["none", "stamp", "redeem"] as const;
+const LOYALTY_ACTIONS = ["none", "stamp", "double", "redeem"] as const;
 type LoyaltyAccount =
   Database["public"]["Tables"]["loyalty_accounts"]["Row"];
 type LoyaltyUpdatePayload = {
@@ -175,15 +175,7 @@ export const completeSale = async (
       account = createdAccount as LoyaltyAccount;
     }
 
-    if (loyaltyAction === "stamp") {
-      const nextStampCount = Math.min(account.stamp_count + 1, 9);
-      loyaltyUpdate = {
-        id: account.id,
-        stamp_count: nextStampCount,
-        total_stamps: account.total_stamps + 1,
-        total_redemptions: account.total_redemptions,
-      };
-    } else {
+    if (loyaltyAction === "redeem") {
       if (account.stamp_count < 9) {
         return {
           status: "error",
@@ -198,6 +190,15 @@ export const completeSale = async (
         total_redemptions: account.total_redemptions + 1,
       };
       discountAmount = subtotal;
+    } else {
+      const stampIncrement = loyaltyAction === "double" ? 2 : 1;
+      const nextStampCount = Math.min(account.stamp_count + stampIncrement, 9);
+      loyaltyUpdate = {
+        id: account.id,
+        stamp_count: nextStampCount,
+        total_stamps: account.total_stamps + stampIncrement,
+        total_redemptions: account.total_redemptions,
+      };
     }
   }
 

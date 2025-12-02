@@ -28,7 +28,7 @@ type SalesRegisterBoardProps = {
 };
 
 const initialState: CompleteSaleState = { status: "idle" };
-type LoyaltyAction = "none" | "stamp" | "redeem";
+type LoyaltyAction = "none" | "stamp" | "double" | "redeem";
 type LoyaltyStatus = {
   cid: string;
   stampCount: number;
@@ -53,6 +53,7 @@ const FILTERS = ["Normal", "Employee", "LEO", "All"];
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
   { value: "none", label: "No Loyalty Action" },
   { value: "stamp", label: "Add Loyalty Stamp" },
+  { value: "double", label: "Add Double Stamp Tuesday (2 stamps)" },
   { value: "redeem", label: "Redeem Free 10th Sale" },
 ];
 
@@ -311,7 +312,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
             </select>
             <p className="text-xs text-white/50">
               {cid.trim().length === 0
-                ? "Track 9 paid visits to unlock a free 10th sale for that CID."
+                ? "Track 9 paid visits to unlock a free 10th sale for that CID. Use Double Stamp Tuesday to apply two stamps during promos."
                 : loyaltyLoading
                   ? "Checking loyalty progress..."
                   : loyaltyMessage ?? "This CID does not have any loyalty stamps yet."}
@@ -425,5 +426,4 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 };
 
 export default SalesRegisterBoard;
-
 

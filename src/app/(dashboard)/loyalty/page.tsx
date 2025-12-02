@@ -7,6 +7,26 @@ import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 
 const MAX_STAMPS = 9;
+const LOYALTY_ACTION_LABELS = {
+  none: "No loyalty action",
+  stamp: "Stamp added",
+  double: "Double Stamp Tuesday",
+  redeem: "Free sale redeemed",
+} as const;
+
+type KnownLoyaltyAction = keyof typeof LOYALTY_ACTION_LABELS;
+
+const isKnownLoyaltyAction = (value: string): value is KnownLoyaltyAction =>
+  value in LOYALTY_ACTION_LABELS;
+
+const formatLoyaltyAction = (value?: string | null) => {
+  if (!value) {
+    return LOYALTY_ACTION_LABELS.none;
+  }
+  return isKnownLoyaltyAction(value)
+    ? LOYALTY_ACTION_LABELS[value]
+    : value;
+};
 
 type SalesOrderWithOwner = Database["public"]["Tables"]["sales_orders"]["Row"] & {
   owner_display?: string;
@@ -294,8 +314,8 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
                       <td className="px-4 py-3 text-white/70">
                         {sale.owner_display ?? "User"}
                       </td>
-                      <td className="px-4 py-3 text-white/60 capitalize">
-                        {sale.loyalty_action ?? "none"}
+                      <td className="px-4 py-3 text-white/60">
+                        {formatLoyaltyAction(sale.loyalty_action)}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-white">
                         {currencyFormatter("GBP").format(sale.total ?? 0)}
