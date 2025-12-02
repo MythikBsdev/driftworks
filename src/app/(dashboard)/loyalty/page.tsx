@@ -8,6 +8,10 @@ import { currencyFormatter } from "@/lib/utils";
 
 const MAX_STAMPS = 9;
 
+type SalesOrderWithOwner = Database["public"]["Tables"]["sales_orders"]["Row"] & {
+  owner_display?: string;
+};
+
 type LoyaltyPageProps = {
   searchParams?: {
     q?: string;
@@ -45,19 +49,45 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
     ? accounts.filter((account) => account.cid.toUpperCase().includes(searchValue))
     : accounts;
 
-  let relatedSales: Database["public"]["Tables"]["sales_orders"]["Row"][] = [];
+  let relatedSales: SalesOrderWithOwner[] = [];
   if (selectedCid.length) {
     const { data: salesData } = await supabase
       .from("sales_orders")
       .select(
-        "id, invoice_number, subtotal, discount, total, created_at, loyalty_action",
+        "id, invoice_number, subtotal, discount, total, created_at, loyalty_action, owner_id",
       )
       .eq("owner_id", session.user.id)
       .eq("cid", selectedCid)
       .order("created_at", { ascending: false });
 
-    relatedSales =
-      (salesData ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
+    relatedSales = (salesData ?? []) as SalesOrderWithOwner[];
+
+    const ownerIds = Array.from(
+      new Set(
+        relatedSales
+          .map((sale) => sale.owner_id)
+          .filter((value): value is string => typeof value === "string" && value.length),
+      ),
+    );
+
+    if (ownerIds.length) {
+      const { data: ownerData } = await supabase
+        .from("app_users")
+        .select("id, username, full_name")
+        .in("id", ownerIds);
+
+      const ownerRows =
+        (ownerData ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
+
+      const ownerMap = new Map(
+        ownerRows.map((user) => [user.id, user.full_name ?? user.username]),
+      );
+
+      relatedSales = relatedSales.map((sale) => ({
+        ...sale,
+        owner_display: sale.owner_id ? ownerMap.get(sale.owner_id) ?? "User" : "User",
+      }));
+    }
   }
 
   const readyForReward = accounts.filter(
@@ -224,7 +254,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
               </p>
             </div>
             <Link
-              href={searchValue.length ? `?q=${encodeURIComponent(searchValue)}` : "?."}
+              href={searchValue.length ? `?q=${encodeURIComponent(searchValue)}` : "."}
               className="text-sm text-brand-accent transition hover:underline"
             >
               Clear selection
@@ -237,6 +267,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
                   <tr>
                     <th className="px-4 py-3 font-medium">Invoice #</th>
                     <th className="px-4 py-3 font-medium">Date</th>
+                    <th className="px-4 py-3 font-medium">Created by</th>
                     <th className="px-4 py-3 font-medium">Action</th>
                     <th className="px-4 py-3 font-medium text-right">Total</th>
                   </tr>
@@ -255,6 +286,9 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
                               minute: "2-digit",
                             })
                           : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-white/70">
+                        {sale.owner_display ?? "User"}
                       </td>
                       <td className="px-4 py-3 text-white/60 capitalize">
                         {sale.loyalty_action ?? "none"}
