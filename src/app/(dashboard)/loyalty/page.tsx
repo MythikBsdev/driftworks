@@ -66,7 +66,10 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
       new Set(
         relatedSales
           .map((sale) => sale.owner_id)
-          .filter((value): value is string => typeof value === "string" && value.length),
+          .filter(
+            (value): value is string =>
+              typeof value === "string" && value.length > 0,
+          ),
       ),
     );
 
