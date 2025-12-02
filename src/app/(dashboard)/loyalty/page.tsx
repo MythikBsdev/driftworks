@@ -1,12 +1,21 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { currencyFormatter } from "@/lib/utils";
 
 const MAX_STAMPS = 9;
 
-const LoyaltyPage = async () => {
+type LoyaltyPageProps = {
+  searchParams?: {
+    q?: string;
+    cid?: string;
+  };
+};
+
+const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
   const session = await getSession();
 
   if (!session) {
@@ -14,7 +23,7 @@ const LoyaltyPage = async () => {
   }
 
   const supabase = createSupabaseServerClient();
-  const { data } = await supabase
+  const { data: loyaltyData } = await supabase
     .from("loyalty_accounts")
     .select(
       "id, cid, stamp_count, total_stamps, total_redemptions, created_at, updated_at",
@@ -23,7 +32,33 @@ const LoyaltyPage = async () => {
     .order("updated_at", { ascending: false });
 
   const accounts =
-    (data ?? []) as Database["public"]["Tables"]["loyalty_accounts"]["Row"][];
+    (loyaltyData ?? []) as Database["public"]["Tables"]["loyalty_accounts"]["Row"][];
+
+  const searchValue =
+    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : "";
+  const selectedCid =
+    typeof searchParams?.cid === "string" && searchParams.cid.trim().length
+      ? searchParams.cid.trim().toUpperCase()
+      : "";
+
+  const filteredAccounts = searchValue.length
+    ? accounts.filter((account) => account.cid.toUpperCase().includes(searchValue))
+    : accounts;
+
+  let relatedSales: Database["public"]["Tables"]["sales_orders"]["Row"][] = [];
+  if (selectedCid.length) {
+    const { data: salesData } = await supabase
+      .from("sales_orders")
+      .select(
+        "id, invoice_number, subtotal, discount, total, created_at, loyalty_action",
+      )
+      .eq("owner_id", session.user.id)
+      .eq("cid", selectedCid)
+      .order("created_at", { ascending: false });
+
+    relatedSales =
+      (salesData ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
+  }
 
   const readyForReward = accounts.filter(
     (account) => account.stamp_count >= MAX_STAMPS,
@@ -62,13 +97,23 @@ const LoyaltyPage = async () => {
       </section>
 
       <section className="glass-card space-y-6">
-        <div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-white">CID stamp balances</h2>
           <p className="text-sm text-white/60">
-            {accounts.length
+            {filteredAccounts.length
               ? `${totalTrackedStamps} total stamps logged · ${readyForReward} customers can redeem now`
               : "Add a CID while completing a sale to start tracking loyalty stamps."}
           </p>
+          <form className="w-full max-w-sm" method="get">
+            {selectedCid ? <input type="hidden" name="cid" value={selectedCid} /> : null}
+            <input
+              type="search"
+              name="q"
+              defaultValue={searchParams?.q ?? ""}
+              placeholder="Search by CID..."
+              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+            />
+          </form>
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
@@ -84,16 +129,38 @@ const LoyaltyPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {accounts.length ? (
-                accounts.map((account) => {
+              {filteredAccounts.length ? (
+                filteredAccounts.map((account) => {
                   const progress = Math.min(account.stamp_count, MAX_STAMPS);
                   const percent = Math.round((progress / MAX_STAMPS) * 100);
                   const rewardReady = account.stamp_count >= MAX_STAMPS;
                   const updatedAt = account.updated_at ?? account.created_at;
+                  const isSelected = selectedCid === account.cid.toUpperCase();
+
+                  const query = new URLSearchParams();
+                  if (searchValue.length) {
+                    query.set("q", searchValue);
+                  }
+                  query.set("cid", account.cid);
+
+                  const clearQuery = new URLSearchParams();
+                  if (searchValue.length) {
+                    clearQuery.set("q", searchValue);
+                  }
 
                   return (
-                    <tr key={account.id} className="border-t border-white/10">
-                      <td className="px-4 py-3 font-semibold text-white">{account.cid}</td>
+                    <tr
+                      key={account.id}
+                      className={`border-t border-white/10 ${isSelected ? "bg-white/10" : ""}`}
+                    >
+                      <td className="px-4 py-3 font-semibold text-white">
+                        <Link
+                          href={`?${isSelected ? clearQuery.toString() : query.toString()}`}
+                          className="transition hover:text-brand-accent"
+                        >
+                          {account.cid}
+                        </Link>
+                      </td>
                       <td className="px-4 py-3 text-white/80">
                         <div className="flex items-center gap-3">
                           <span>
@@ -145,6 +212,68 @@ const LoyaltyPage = async () => {
           </table>
         </div>
       </section>
+
+      {selectedCid.length ? (
+        <section className="glass-card space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/40">CID detail</p>
+              <h3 className="text-2xl font-semibold text-white">{selectedCid}</h3>
+              <p className="text-sm text-white/60">
+                Showing invoices that contributed to this loyalty account.
+              </p>
+            </div>
+            <Link
+              href={searchValue.length ? `?q=${encodeURIComponent(searchValue)}` : "?."}
+              className="text-sm text-brand-accent transition hover:underline"
+            >
+              Clear selection
+            </Link>
+          </div>
+          {relatedSales.length ? (
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+              <table className="w-full text-left text-sm text-white/80">
+                <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Invoice #</th>
+                    <th className="px-4 py-3 font-medium">Date</th>
+                    <th className="px-4 py-3 font-medium">Action</th>
+                    <th className="px-4 py-3 font-medium text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {relatedSales.map((sale) => (
+                    <tr key={sale.id} className="border-t border-white/10">
+                      <td className="px-4 py-3 text-white">{sale.invoice_number ?? sale.id}</td>
+                      <td className="px-4 py-3 text-white/60">
+                        {sale.created_at
+                          ? new Date(sale.created_at).toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-white/60 capitalize">
+                        {sale.loyalty_action ?? "none"}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-white">
+                        {currencyFormatter("GBP").format(sale.total ?? 0)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
+              No sales have been logged for this CID yet.
+            </p>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 };
