@@ -153,7 +153,7 @@ export const completeSale = async (
     if (!account) {
       const { data: createdAccount, error: createAccountError } = await supabase
         .from("loyalty_accounts")
-        .insert<Database["public"]["Tables"]["loyalty_accounts"]["Insert"]>([
+        .insert([
           {
             owner_id: session.user.id,
             cid,
@@ -213,7 +213,7 @@ export const completeSale = async (
 
   const { data: inserted, error } = await supabase
     .from("sales_orders")
-    .insert<Database["public"]["Tables"]["sales_orders"]["Insert"]>({
+    .insert({
       owner_id: session.user.id,
       cid,
       invoice_number: invoiceNumber,
@@ -235,7 +235,7 @@ export const completeSale = async (
 
   const { error: itemsError } = await supabase
     .from("sales_order_items")
-    .insert<Database["public"]["Tables"]["sales_order_items"]["Insert"]>(
+    .insert(
       items.map((item) => ({
         order_id: orderRecord.id,
         item_name: item.name,
@@ -253,7 +253,7 @@ export const completeSale = async (
   if (loyaltyUpdate) {
     const { error: loyaltyUpdateError } = await supabase
       .from("loyalty_accounts")
-      .update<Database["public"]["Tables"]["loyalty_accounts"]["Update"]>({
+      .update({
         stamp_count: loyaltyUpdate.stamp_count,
         total_stamps: loyaltyUpdate.total_stamps,
         total_redemptions: loyaltyUpdate.total_redemptions,
