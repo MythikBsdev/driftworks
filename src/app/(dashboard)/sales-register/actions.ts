@@ -157,7 +157,7 @@ export const completeSale = async (
           {
             owner_id: session.user.id,
             cid,
-          } as never,
+          } satisfies Database["public"]["Tables"]["loyalty_accounts"]["Insert"],
         )
         .select("id, stamp_count, total_stamps, total_redemptions")
         .single();
@@ -259,7 +259,7 @@ export const completeSale = async (
         stamp_count: loyaltyUpdate.stamp_count,
         total_stamps: loyaltyUpdate.total_stamps,
         total_redemptions: loyaltyUpdate.total_redemptions,
-      })
+      } satisfies Database["public"]["Tables"]["loyalty_accounts"]["Update"])
       .eq("id", loyaltyUpdate.id);
 
     if (loyaltyUpdateError) {
