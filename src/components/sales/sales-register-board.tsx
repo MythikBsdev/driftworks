@@ -46,9 +46,9 @@ const CompleteSaleButton = () => {
 
 const FILTERS = ["Normal", "Employee", "LEO", "All"];
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
-  { value: "none", label: "No loyalty action" },
-  { value: "stamp", label: "Add loyalty stamp" },
-  { value: "redeem", label: "Redeem free 10th sale" },
+  { value: "none", label: "No Loyalty Action" },
+  { value: "stamp", label: "Add Loyalty Stamp" },
+  { value: "redeem", label: "Redeem Dree 10th Sale" },
 ];
 
 const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
@@ -204,7 +204,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
               name="cid"
               value={cid}
               onChange={(event) => setCid(event.target.value)}
-              placeholder="Enter CID (e.g., CID1234)"
+              placeholder="Enter CID (e.g., 1234)"
               className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             />
           </div>

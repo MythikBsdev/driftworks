@@ -39,11 +39,11 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
     (loyaltyData ?? []) as Database["public"]["Tables"]["loyalty_accounts"]["Row"][];
 
   const searchValue =
-    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : "";
+    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : -;
   const selectedCid =
     typeof searchParams?.cid === "string" && searchParams.cid.trim().length
       ? searchParams.cid.trim().toUpperCase()
-      : "";
+      : -;
 
   const filteredAccounts = searchValue.length
     ? accounts.filter((account) => account.cid.toUpperCase().includes(searchValue))
@@ -107,34 +107,35 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f]/85 p-8 shadow-[0_25px_60px_-45px_rgba(255,22,22,0.6)]">
+      <section className="glass-card relative overflow-hidden border border-white/10 p-8 shadow-[0_25px_60px_-45px_rgba(255,22,22,0.6)]">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-brand-primary/20 via-transparent to-brand-accent/15" />
         <p className="text-xs uppercase tracking-[0.4em] text-white/40">Loyalty</p>
         <h1 className="text-3xl font-semibold text-white">Customer loyalty tracker</h1>
         <p className="mt-2 text-sm text-white/60">
           Track CID stamp balances and see who is ready for a free 10th purchase.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_10px_35px_-25px_rgba(0,0,0,0.8)]">
             <p className="text-xs uppercase tracking-[0.35em] text-white/40">Active CIDs</p>
             <p className="mt-2 text-3xl font-semibold text-white">{accounts.length}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_10px_35px_-25px_rgba(0,0,0,0.8)]">
             <p className="text-xs uppercase tracking-[0.35em] text-white/40">Ready For Reward</p>
             <p className="mt-2 text-3xl font-semibold text-white">{readyForReward}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_10px_35px_-25px_rgba(0,0,0,0.8)]">
             <p className="text-xs uppercase tracking-[0.35em] text-white/40">Free Sales Redeemed</p>
             <p className="mt-2 text-3xl font-semibold text-white">{totalRedemptions}</p>
           </div>
         </div>
       </section>
 
-      <section className="glass-card space-y-6">
+      <section className="glass-card space-y-6 border border-white/10 bg-[#0b0b0b]/90 shadow-[0_20px_55px_-45px_rgba(255,22,22,0.45)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-white">CID stamp balances</h2>
           <p className="text-sm text-white/60">
             {filteredAccounts.length
-              ? `${totalTrackedStamps} total stamps logged · ${readyForReward} customers can redeem now`
+              ? `${totalTrackedStamps} total stamps logged - ${readyForReward} customers can redeem now`
               : "Add a CID while completing a sale to start tracking loyalty stamps."}
           </p>
           <form className="w-full max-w-sm" method="get">
@@ -144,12 +145,12 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
               name="q"
               defaultValue={searchParams?.q ?? ""}
               placeholder="Search by CID..."
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+              className="w-full rounded-xl border border-white/10 bg-black/70 px-4 py-2 text-sm text-white placeholder-white/40 outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             />
           </form>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/70">
           <table className="w-full text-left text-sm text-white/80">
             <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
@@ -247,7 +248,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
       </section>
 
       {selectedCid.length ? (
-        <section className="glass-card space-y-4">
+        <section className="glass-card space-y-4 border border-white/10 bg-[#0b0b0b]/90">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.35em] text-white/40">CID detail</p>
@@ -264,7 +265,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
             </Link>
           </div>
           {relatedSales.length ? (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/70">
               <table className="w-full text-left text-sm text-white/80">
                 <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
                   <tr>
