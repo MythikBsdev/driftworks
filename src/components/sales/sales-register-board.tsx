@@ -29,6 +29,11 @@ type SalesRegisterBoardProps = {
 
 const initialState: CompleteSaleState = { status: "idle" };
 type LoyaltyAction = "none" | "stamp" | "redeem";
+type LoyaltyStatus = {
+  cid: string;
+  stampCount: number;
+  ready: boolean;
+};
 
 const CompleteSaleButton = () => {
   const { pending } = useFormStatus();
@@ -48,7 +53,7 @@ const FILTERS = ["Normal", "Employee", "LEO", "All"];
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
   { value: "none", label: "No Loyalty Action" },
   { value: "stamp", label: "Add Loyalty Stamp" },
-  { value: "redeem", label: "Redeem Dree 10th Sale" },
+  { value: "redeem", label: "Redeem Free 10th Sale" },
 ];
 
 const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
@@ -56,6 +61,9 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [cid, setCid] = useState("");
   const [loyaltyAction, setLoyaltyAction] = useState<LoyaltyAction>("none");
+  const [loyaltyStatus, setLoyaltyStatus] = useState<LoyaltyStatus | null>(null);
+  const [loyaltyMessage, setLoyaltyMessage] = useState<string | null>(null);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(
     null,
   );
@@ -69,11 +77,76 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     if (state.status === "success") {
       setCart([]);
       setInvoiceNumber("");
-       setCid("");
-       setLoyaltyAction("none");
+      setCid("");
+      setLoyaltyAction("none");
+      setLoyaltyStatus(null);
+      setLoyaltyMessage(null);
+      setLoyaltyLoading(false);
       setSelectedDiscountId(null);
     }
   }, [state.status]);
+
+  useEffect(() => {
+    const normalizedCid = cid.trim().toUpperCase();
+    if (!normalizedCid.length) {
+      setLoyaltyStatus(null);
+      setLoyaltyMessage(null);
+      setLoyaltyLoading(false);
+      setLoyaltyAction((current) => (current === "redeem" ? "none" : current));
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const fetchLoyaltyStatus = async () => {
+      setLoyaltyLoading(true);
+      try {
+        const response = await fetch(
+          `/api/loyalty-status?cid=${encodeURIComponent(normalizedCid)}`,
+          { cache: "no-store", signal: controller.signal },
+        );
+
+        if (!response.ok) {
+          throw new Error((await response.json())?.error ?? "Unable to load loyalty status");
+        }
+
+        const payload = (await response.json()) as LoyaltyStatus;
+        if (cancelled) {
+          return;
+        }
+
+        setLoyaltyStatus(payload);
+        setLoyaltyMessage(
+          payload.ready
+            ? "This CID can redeem a free 10th sale."
+            : `This CID currently has ${payload.stampCount}/9 stamps.`,
+        );
+        setLoyaltyAction((current) =>
+          current === "redeem" && !payload.ready ? "none" : current,
+        );
+      } catch (error) {
+        if (cancelled || (error as Error).name === "AbortError") {
+          return;
+        }
+        setLoyaltyStatus(null);
+        setLoyaltyMessage("Unable to fetch loyalty info right now.");
+        setLoyaltyAction((current) => (current === "redeem" ? "none" : current));
+      } finally {
+        if (!cancelled) {
+          setLoyaltyLoading(false);
+        }
+      }
+    };
+
+    const timeout = setTimeout(fetchLoyaltyStatus, 400);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [cid]);
 
   const filteredItems = useMemo(() => {
     if (filter === "All") {
@@ -223,13 +296,25 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
               disabled={!cid.trim().length}
             >
               {LOYALTY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={
+                    option.value === "redeem" && !loyaltyStatus?.ready
+                  }
+                >
+                  {option.value === "redeem" && !loyaltyStatus?.ready
+                    ? "Redeem free 10th sale (requires 9 stamps)"
+                    : option.label}
                 </option>
               ))}
             </select>
             <p className="text-xs text-white/50">
-              Track 9 paid visits to unlock a free 10th sale for that CID.
+              {cid.trim().length === 0
+                ? "Track 9 paid visits to unlock a free 10th sale for that CID."
+                : loyaltyLoading
+                  ? "Checking loyalty progress..."
+                  : loyaltyMessage ?? "This CID does not have any loyalty stamps yet."}
             </p>
           </div>
         </div>
@@ -340,6 +425,5 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 };
 
 export default SalesRegisterBoard;
-
 
 
