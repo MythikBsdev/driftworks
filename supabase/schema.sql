@@ -63,7 +63,9 @@ create table if not exists public.commission_rates (
 create table if not exists public.sales_orders (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.app_users(id) on delete cascade,
+  cid text,
   invoice_number text not null unique,
+  loyalty_action text not null default 'none',
   subtotal numeric not null default 0,
   discount numeric not null default 0,
   total numeric not null default 0,
@@ -80,6 +82,18 @@ create table if not exists public.sales_order_items (
   quantity integer not null default 1,
   unit_price numeric not null default 0,
   total numeric not null default 0
+);
+
+create table if not exists public.loyalty_accounts (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references public.app_users(id) on delete cascade,
+  cid text not null,
+  stamp_count integer not null default 0 check (stamp_count >= 0),
+  total_stamps integer not null default 0 check (total_stamps >= 0),
+  total_redemptions integer not null default 0 check (total_redemptions >= 0),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  unique (owner_id, cid)
 );
 
 create table if not exists public.employee_sales (
@@ -184,6 +198,12 @@ create trigger set_timestamp_invoices
   for each row
   execute procedure public.handle_updated_at();
 
+drop trigger if exists set_timestamp_loyalty_accounts on public.loyalty_accounts;
+create trigger set_timestamp_loyalty_accounts
+  before update on public.loyalty_accounts
+  for each row
+  execute procedure public.handle_updated_at();
+
 comment on table public.app_users is 'Application accounts managed within Driftworks';
 comment on table public.user_sessions is 'Session tokens for Driftworks dashboard users';
 comment on table public.inventory_items is 'Inventory of products and services available for sale';
@@ -195,3 +215,4 @@ comment on table public.employee_sales is 'Sales recorded against individual emp
 comment on table public.clients is 'Client records managed by a Driftworks account';
 comment on table public.invoices is 'Invoices issued to clients';
 comment on table public.invoice_items is 'Invoice line items';
+comment on table public.loyalty_accounts is 'Loyalty stamp balances per customer CID';

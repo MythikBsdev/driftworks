@@ -18,11 +18,36 @@ const cartItemSchema = z.object({
   quantity: z.number().min(1),
 });
 
-const saleSchema = z.object({
-  invoiceNumber: z.string().min(1, "Invoice number is required"),
-  items: z.array(cartItemSchema).min(1, "Add at least one item"),
-  discountId: z.string().uuid().nullable(),
-});
+const LOYALTY_ACTIONS = ["none", "stamp", "redeem"] as const;
+type LoyaltyAccount =
+  Database["public"]["Tables"]["loyalty_accounts"]["Row"];
+type LoyaltyUpdatePayload = {
+  id: string;
+  stamp_count: number;
+  total_stamps: number;
+  total_redemptions: number;
+};
+
+const saleSchema = z
+  .object({
+    invoiceNumber: z.string().min(1, "Invoice number is required"),
+    cid: z
+      .string()
+      .max(32, "CID must be 32 characters or fewer")
+      .optional()
+      .transform((value) => value?.trim().toUpperCase() ?? ""),
+    loyaltyAction: z.enum(LOYALTY_ACTIONS).default("none"),
+    items: z.array(cartItemSchema).min(1, "Add at least one item"),
+    discountId: z.string().uuid().nullable(),
+  })
+  .refine((data) => data.loyaltyAction === "none" || data.cid.length, {
+    message: "CID is required to apply a loyalty action",
+    path: ["cid"],
+  })
+  .transform((data) => ({
+    ...data,
+    cid: data.cid.length ? data.cid : null,
+  }));
 
 export type CompleteSaleState =
   | { status: "idle" }
@@ -40,6 +65,8 @@ export const completeSale = async (
 
   const parsed = saleSchema.safeParse({
     invoiceNumber: formData.get("invoiceNumber")?.toString().trim(),
+    cid: formData.get("cid")?.toString(),
+    loyaltyAction: formData.get("loyaltyAction")?.toString(),
     items: (() => {
       try {
         return JSON.parse(formData.get("items")?.toString() ?? "[]");
@@ -64,7 +91,7 @@ export const completeSale = async (
     };
   }
 
-  const { invoiceNumber, items, discountId } = parsed.data;
+  const { invoiceNumber, items, discountId, cid, loyaltyAction } = parsed.data;
   const roundCurrency = (amount: number) =>
     Math.round((amount + Number.EPSILON) * 100) / 100;
 
@@ -97,6 +124,81 @@ export const completeSale = async (
     );
   }
 
+  let loyaltyUpdate: LoyaltyUpdatePayload | null = null;
+  if (loyaltyAction !== "none") {
+    if (!cid) {
+      return {
+        status: "error",
+        message: "CID is required to apply a loyalty action",
+      };
+    }
+
+    const { data: loyaltyRecord, error: loyaltyFetchError } = await supabase
+      .from("loyalty_accounts")
+      .select("id, stamp_count, total_stamps, total_redemptions")
+      .eq("owner_id", session.user.id)
+      .eq("cid", cid)
+      .maybeSingle();
+
+    if (loyaltyFetchError) {
+      return {
+        status: "error",
+        message: loyaltyFetchError.message,
+      };
+    }
+
+    let account =
+      loyaltyRecord as LoyaltyAccount | null;
+
+    if (!account) {
+      const { data: createdAccount, error: createAccountError } = await supabase
+        .from("loyalty_accounts")
+        .insert(
+          {
+            owner_id: session.user.id,
+            cid,
+          } as never,
+        )
+        .select("id, stamp_count, total_stamps, total_redemptions")
+        .single();
+
+      if (createAccountError || !createdAccount) {
+        return {
+          status: "error",
+          message:
+            createAccountError?.message ?? "Unable to create loyalty account",
+        };
+      }
+
+      account = createdAccount as LoyaltyAccount;
+    }
+
+    if (loyaltyAction === "stamp") {
+      const nextStampCount = Math.min(account.stamp_count + 1, 9);
+      loyaltyUpdate = {
+        id: account.id,
+        stamp_count: nextStampCount,
+        total_stamps: account.total_stamps + 1,
+        total_redemptions: account.total_redemptions,
+      };
+    } else {
+      if (account.stamp_count < 9) {
+        return {
+          status: "error",
+          message: "Customer needs 9 loyalty stamps before redeeming a free sale",
+        };
+      }
+
+      loyaltyUpdate = {
+        id: account.id,
+        stamp_count: 0,
+        total_stamps: account.total_stamps,
+        total_redemptions: account.total_redemptions + 1,
+      };
+      discountAmount = subtotal;
+    }
+  }
+
   const total = roundCurrency(Math.max(subtotal - discountAmount, 0));
 
   const { data: existing } = await supabase
@@ -114,7 +216,9 @@ export const completeSale = async (
     .insert(
       {
         owner_id: session.user.id,
+        cid,
         invoice_number: invoiceNumber,
+        loyalty_action: loyaltyAction,
         subtotal,
         discount: discountAmount,
         total,
@@ -146,6 +250,24 @@ export const completeSale = async (
 
   if (itemsError) {
     return { status: "error", message: itemsError.message };
+  }
+
+  if (loyaltyUpdate) {
+    const { error: loyaltyUpdateError } = await supabase
+      .from("loyalty_accounts")
+      .update({
+        stamp_count: loyaltyUpdate.stamp_count,
+        total_stamps: loyaltyUpdate.total_stamps,
+        total_redemptions: loyaltyUpdate.total_redemptions,
+      })
+      .eq("id", loyaltyUpdate.id);
+
+    if (loyaltyUpdateError) {
+      return {
+        status: "error",
+        message: loyaltyUpdateError.message ?? "Unable to update loyalty data",
+      };
+    }
   }
 
   const formatter = currencyFormatter("GBP");
@@ -181,6 +303,7 @@ export const completeSale = async (
 
   revalidatePath("/sales");
   revalidatePath("/sales-register");
+  revalidatePath("/loyalty");
 
   return { status: "success" };
 };

@@ -28,6 +28,7 @@ type SalesRegisterBoardProps = {
 };
 
 const initialState: CompleteSaleState = { status: "idle" };
+type LoyaltyAction = "none" | "stamp" | "redeem";
 
 const CompleteSaleButton = () => {
   const { pending } = useFormStatus();
@@ -44,10 +45,17 @@ const CompleteSaleButton = () => {
 };
 
 const FILTERS = ["Normal", "Employee", "LEO", "All"];
+const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
+  { value: "none", label: "No loyalty action" },
+  { value: "stamp", label: "Add loyalty stamp" },
+  { value: "redeem", label: "Redeem free 10th sale" },
+];
 
 const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
   const [filter, setFilter] = useState<string>("All");
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [cid, setCid] = useState("");
+  const [loyaltyAction, setLoyaltyAction] = useState<LoyaltyAction>("none");
   const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(
     null,
   );
@@ -61,6 +69,8 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     if (state.status === "success") {
       setCart([]);
       setInvoiceNumber("");
+       setCid("");
+       setLoyaltyAction("none");
       setSelectedDiscountId(null);
     }
   }, [state.status]);
@@ -182,6 +192,46 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
             placeholder="Enter invoice number (e.g., #DW001)"
             className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
           />
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="muted-label" htmlFor="cid">
+              Customer ID (CID)
+            </label>
+            <input
+              id="cid"
+              name="cid"
+              value={cid}
+              onChange={(event) => setCid(event.target.value)}
+              placeholder="Enter CID (e.g., CID1234)"
+              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="muted-label" htmlFor="loyaltyAction">
+              Loyalty action
+            </label>
+            <select
+              id="loyaltyAction"
+              name="loyaltyAction"
+              value={loyaltyAction}
+              onChange={(event) =>
+                setLoyaltyAction(event.target.value as LoyaltyAction)
+              }
+              className="select-dark w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+              disabled={!cid.trim().length}
+            >
+              {LOYALTY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-white/50">
+              Track 9 paid visits to unlock a free 10th sale for that CID.
+            </p>
+          </div>
         </div>
 
         <input type="hidden" name="items" value={JSON.stringify(cart)} />

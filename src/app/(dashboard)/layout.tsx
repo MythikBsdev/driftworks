@@ -10,6 +10,7 @@ const TABS = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
+  { label: "Loyalty", href: "/loyalty" },
   { label: "Catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
@@ -23,13 +24,14 @@ const ROLE_TAB_MAP: Record<string, string[]> = {
     "/dashboard",
     "/sales-register",
     "/sales",
+    "/loyalty",
     "/inventory",
     "/manage-discounts",
   ],
-  shop_foreman: ["/dashboard", "/sales-register"],
-  master_tech: ["/dashboard", "/sales-register"],
-  mechanic: ["/dashboard", "/sales-register"],
-  apprentice: ["/dashboard", "/sales-register"],
+  shop_foreman: ["/dashboard", "/sales-register", "/loyalty"],
+  master_tech: ["/dashboard", "/sales-register", "/loyalty"],
+  mechanic: ["/dashboard", "/sales-register", "/loyalty"],
+  apprentice: ["/dashboard", "/sales-register", "/loyalty"],
 };
 
 const toTitleCase = (value: string | null | undefined) =>
