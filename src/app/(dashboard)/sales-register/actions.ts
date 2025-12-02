@@ -153,12 +153,12 @@ export const completeSale = async (
     if (!account) {
       const { data: createdAccount, error: createAccountError } = await supabase
         .from("loyalty_accounts")
-        .insert(
+        .insert([
           {
             owner_id: session.user.id,
             cid,
-          } satisfies Database["public"]["Tables"]["loyalty_accounts"]["Insert"],
-        )
+          } as Database["public"]["Tables"]["loyalty_accounts"]["Insert"],
+        ])
         .select("id, stamp_count, total_stamps, total_redemptions")
         .single();
 
@@ -259,7 +259,7 @@ export const completeSale = async (
         stamp_count: loyaltyUpdate.stamp_count,
         total_stamps: loyaltyUpdate.total_stamps,
         total_redemptions: loyaltyUpdate.total_redemptions,
-      } satisfies Database["public"]["Tables"]["loyalty_accounts"]["Update"])
+      } as Database["public"]["Tables"]["loyalty_accounts"]["Update"])
       .eq("id", loyaltyUpdate.id);
 
     if (loyaltyUpdateError) {
