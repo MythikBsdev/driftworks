@@ -155,7 +155,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
           <h2 className="text-xl font-semibold text-white">CID stamp balances</h2>
           <p className="text-sm text-white/60">
             {filteredAccounts.length
-              ? `${totalTrackedStamps} total stamps logged - ${readyForReward} customers can redeem now`
+              ? `${totalTrackedStamps} Total Stamps Logged - ${readyForReward} customers can redeem now`
               : "Add a CID while completing a sale to start tracking loyalty stamps."}
           </p>
           <form className="w-full max-w-sm" method="get">
