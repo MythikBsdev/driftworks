@@ -23,6 +23,7 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `SUPABASE_SERVICE_ROLE_KEY` *(needed for server actions that write to Supabase)*
    - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000`)
    - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `lscustoms` for Los Santos Customs)
+   - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_LSCUSTOMS` for brand-specific sale alerts (optional)
 3. **Provision Supabase**
    - Run `supabase/schema.sql` inside the Supabase SQL editor.
    - Enable the Email auth provider and allow redirects to `http://localhost:3000/login`.
@@ -41,6 +42,7 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
 - `NEXT_PUBLIC_BRAND` selects which preset to load at build/runtime. You can also match by domain via `findBrandByHost`.
 - Tailwind reads from CSS variables that the root layout injects, so new palettes automatically flow through every component.
 - To add a client, drop their logo in `public/`, add a brand entry, and update your env/domain mapping.
+- Discord sale alerts can be pointed at different channels per brand via `DISCORD_WEBHOOK_*` env vars listed above.
 
 ## Supabase Schema Cheatsheet
 `supabase/schema.sql` creates:

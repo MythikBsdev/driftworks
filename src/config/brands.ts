@@ -27,6 +27,10 @@ type BrandAssets = {
   favicon: string;
 };
 
+type BrandWebhooks = {
+  sales?: string;
+};
+
 export type BrandDefinition = {
   slug: string;
   name: string;
@@ -38,6 +42,7 @@ export type BrandDefinition = {
   copy: BrandCopy;
   assets: BrandAssets;
   metadata: Pick<Metadata, "title" | "description" | "icons">;
+  webhooks?: BrandWebhooks;
 };
 
 const BRANDS = {
@@ -81,6 +86,9 @@ const BRANDS = {
         icon: "/favicon.ico",
       },
     },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_DRIFTWORKS,
+    },
   },
   lscustoms: {
     slug: "lscustoms",
@@ -121,6 +129,9 @@ const BRANDS = {
       icons: {
         icon: "/favicon.ico",
       },
+    },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_LSCUSTOMS,
     },
   },
 } satisfies Record<string, BrandDefinition>;
