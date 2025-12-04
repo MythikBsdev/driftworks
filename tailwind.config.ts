@@ -1,5 +1,8 @@
-﻿import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
+
+const withAlpha = (variable: string) =>
+  `rgb(var(${variable}) / <alpha-value>)`;
 
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
@@ -7,11 +10,12 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          primary: "#ff1616",
-          accent: "#ff4d4d",
-          slate: "#101010",
-          card: "#171717",
-          outline: "#2a2a2a",
+          primary: withAlpha("--color-brand-primary"),
+          accent: withAlpha("--color-brand-accent"),
+          highlight: withAlpha("--color-brand-highlight"),
+          slate: withAlpha("--color-brand-slate"),
+          card: withAlpha("--color-brand-card"),
+          outline: withAlpha("--color-brand-outline"),
         },
       },
       fontFamily: {
@@ -19,7 +23,7 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
       },
       boxShadow: {
-        glow: "0 0 32px rgba(255, 22, 22, 0.3)",
+        glow: "0 0 32px rgb(var(--color-brand-primary) / 0.35)",
       },
     },
   },

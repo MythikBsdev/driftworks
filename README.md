@@ -1,12 +1,12 @@
-﻿# Driftworks Invoice Dashboard
+# Multi-brand Workshop Dashboard
 
-A modern invoice management experience for Driftworks teams. The app ships with a cinematic login screen, a Supabase-backed dashboard for invoices and clients, and ready-to-use CRUD flows for managing billing from any device. Built with the Next.js App Router for an optimal Vercel deployment path.
+A cinematic Supabase + Next.js dashboard for automotive teams. The project now ships with two ready-made identities (Driftworks and Los Santos Customs) and a scalable brand system so you can spin up additional client portals by editing a single config file.
 
 ## Tech Stack
 - Next.js 15 (App Router) + React 19
-- Tailwind CSS 4 with custom theming
-- Supabase for authentication, row-level security, and Postgres storage
-- TypeScript throughout, Zod for server-side validation, lucide-react icons
+- Tailwind CSS 4 with CSS-variable driven theming
+- Supabase for auth/Postgres/RLS
+- TypeScript + Zod + lucide-react icons
 
 ## Quick Start
 1. **Install dependencies**
@@ -17,62 +17,61 @@ A modern invoice management experience for Driftworks teams. The app ships with 
    ```bash
    cp .env.example .env.local
    ```
-   Populate the values:
+   Populate:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` *(optional – only required for admin tasks)*
-   - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` for local dev)
+   - `SUPABASE_SERVICE_ROLE_KEY` *(needed for server actions that write to Supabase)*
+   - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000`)
+   - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `lscustoms` for Los Santos Customs)
 3. **Provision Supabase**
-   - Open the Supabase SQL editor (or connect via `psql`) and run `supabase/schema.sql` located in this repo:
-     ```sql
-     -- inside Supabase SQL editor
-     -- paste the contents of supabase/schema.sql and run it once
-     ```
-   - Enable the **Email** auth provider and set the redirect URL to `http://localhost:3000/login`.
-   - Create at least one user from the Supabase Auth dashboard or by using the hosted `/auth/v1/signup` endpoint.
+   - Run `supabase/schema.sql` inside the Supabase SQL editor.
+   - Enable the Email auth provider and allow redirects to `http://localhost:3000/login`.
+   - Create an initial user from Supabase Auth or via the REST signup endpoint.
 4. **Run the dev server**
    ```bash
    npm run dev
    ```
-   The dashboard will be live at [http://localhost:3000](http://localhost:3000).
+   Visit [http://localhost:3000](http://localhost:3000).
 
 ### Optional Checks
-- `npm run lint` – type-aware linting via ESLint.
+- `npm run lint` - ESLint with type-aware rules.
+
+## Branding
+- All presets live in `src/config/brands.ts` (logo paths, colors, copy, domains).
+- `NEXT_PUBLIC_BRAND` selects which preset to load at build/runtime. You can also match by domain via `findBrandByHost`.
+- Tailwind reads from CSS variables that the root layout injects, so new palettes automatically flow through every component.
+- To add a client, drop their logo in `public/`, add a brand entry, and update your env/domain mapping.
 
 ## Supabase Schema Cheatsheet
-The included `supabase/schema.sql` file creates:
-- `profiles` – mirrors `auth.users` for display data.
-- `clients`, `invoices`, `invoice_items` – full invoice data model.
-- Row Level Security policies locking every table to the authenticated `auth.uid()` owner.
-- Updated-at triggers for clients & invoices.
+`supabase/schema.sql` creates:
+- `profiles`, `clients`, `invoices`, `invoice_items`, `sales_orders`, loyalty tables, etc.
+- RLS policies scoped to `auth.uid()`.
+- Updated-at triggers for key tables.
 
-Re-run the script at any time; policies are dropped/recreated idempotently.
+Re-run the script safely; it drops/recreates policies.
 
 ## Deploying to Vercel
-1. Push the repo to GitHub (or your preferred VCS).
-2. Create a new Vercel project targeting this directory.
-3. Add the environment variables from `.env.example` to the Vercel dashboard.
-4. Configure the Supabase authentication redirect for production (e.g. `https://your-vercel-app.vercel.app/login`).
+1. Push to GitHub (or your VCS).
+2. Create a Vercel project pointing at this folder.
+3. Add the env vars from `.env.example` in the Vercel dashboard (including `NEXT_PUBLIC_BRAND`).
+4. Configure Supabase auth redirects for your production domain (e.g. `https://lscustomsmechanic.com/login`).
 
-Vercel will build the project with `npm run build` automatically.
+Vercel runs `npm run build` automatically.
 
 ## Project Structure
 ```
 src/
   app/
-    (auth)/login          # Login experience & server actions
-    (dashboard)/          # All authenticated routes (dashboard, invoices, clients, etc)
-  components/             # Reusable UI, including forms and tables
+    (auth)/login          # Auth UI + server actions
+    (dashboard)/          # Authenticated routes (sales, clients, loyalty, etc.)
+  components/             # Reusable UI pieces
+  config/                 # Brand definitions
   lib/                    # Supabase helpers, env parsing, utilities
-supabase/schema.sql        # Database + RLS definition for Supabase
+supabase/schema.sql       # Database + RLS definition
 ```
 
-## Credentials & Access
-- The middleware guards every dashboard route. Anonymous users are redirected to `/login`.
-- Successful login returns users to the originally requested path (`redirectTo`) or `/dashboard`.
+## Access Control
+- Middleware guards every dashboard route and bounces anonymous users to `/login`.
+- Successful auth redirects back to `redirectTo` or `/dashboard`.
 
-## Contributing & Next Steps
-- Extend the `reports` or `settings` routes as new features ship.
-- Hook in PDF generation or payment providers by integrating with the `/invoices/[id]` detail view.
-
-Enjoy building with Driftworks!
+Enjoy building for Driftworks, Los Santos Customs, or your next client drop!

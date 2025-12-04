@@ -1,6 +1,7 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 
+import { brand } from "@/config/brands";
 import { cn } from "@/lib/utils";
 
 import LogoutButton from "./logout-button";
@@ -27,18 +28,18 @@ const getInitials = (fullName?: string | null, email?: string | null) => {
     return email.slice(0, 2).toUpperCase();
   }
 
-  return "DW";
+  return brand.initials;
 };
 
 const Sidebar = ({ user }: SidebarProps) => (
   <aside className="hidden w-72 flex-col border-r border-white/10 bg-[#0a0a0a]/95 px-5 py-6 backdrop-blur lg:flex">
     <Link href="/dashboard" className="flex items-center gap-3 pb-8">
       <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-        <Image src="/driftworks.png" alt="Driftworks" width={48} height={48} className="object-cover" />
+        <Image src={brand.assets.logo} alt={`${brand.shortName} logo`} width={48} height={48} className="object-cover" />
       </div>
       <div>
-        <p className="text-sm uppercase tracking-[0.4em] text-white/40">Driftworks</p>
-        <p className="text-lg font-semibold leading-5 text-white">Operations Hub</p>
+        <p className="text-sm uppercase tracking-[0.4em] text-white/40">{brand.shortName}</p>
+        <p className="text-lg font-semibold leading-5 text-white">{brand.copy.navSubtitle}</p>
       </div>
     </Link>
 

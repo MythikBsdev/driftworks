@@ -1,12 +1,19 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 :root {
   color-scheme: dark;
-  --dw-surface: rgba(18, 18, 20, 0.65);
-  --dw-surface-strong: rgba(12, 12, 15, 0.85);
-  --dw-outline: rgba(255, 255, 255, 0.08);
-  --dw-outline-strong: rgba(255, 255, 255, 0.14);
-  --dw-text-muted: rgba(229, 231, 235, 0.65);
+  --surface-base: rgba(18, 18, 20, 0.65);
+  --surface-strong: rgba(12, 12, 15, 0.85);
+  --outline-soft: rgba(255, 255, 255, 0.08);
+  --outline-strong: rgba(255, 255, 255, 0.14);
+  --text-muted: rgba(229, 231, 235, 0.65);
+  --color-brand-primary: 255 22 22;
+  --color-brand-accent: 255 77 77;
+  --color-brand-highlight: 255 179 71;
+  --color-brand-slate: 16 16 16;
+  --color-brand-card: 23 23 23;
+  --color-brand-outline: 42 42 42;
+  --brand-shadow: rgba(255, 22, 22, 0.35);
 }
 
 body {
@@ -25,7 +32,7 @@ a {
 }
 
 a:hover {
-  color: #ff4d4d;
+  color: rgb(var(--color-brand-accent));
 }
 
 ::-webkit-scrollbar {
@@ -43,18 +50,20 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff1616;
+  background: rgb(var(--color-brand-primary));
 }
 
 @layer components {
   .glass-panel {
     @apply rounded-3xl border border-white/[0.06] bg-black/70 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/10;
-    box-shadow: 0 0 0 1px rgba(255, 22, 22, 0.12), 0 32px 120px -35px rgba(5, 5, 10, 0.9);
+    background-color: var(--surface-base);
+    box-shadow: 0 0 0 1px rgb(var(--color-brand-primary) / 0.12), 0 32px 120px -35px rgba(5, 5, 10, 0.9);
   }
 
   .glass-card {
     @apply rounded-3xl border border-white/[0.06] bg-black/70 p-6 sm:p-8 backdrop-blur-xl shadow-[0_32px_120px_-35px_rgba(5,5,10,0.9)] ring-1 ring-white/10;
-    box-shadow: 0 0 0 1px rgba(255, 22, 22, 0.12), 0 32px 120px -35px rgba(5, 5, 10, 0.9);
+    background-color: var(--surface-strong);
+    box-shadow: 0 0 0 1px rgb(var(--color-brand-primary) / 0.12), 0 32px 120px -35px rgba(5, 5, 10, 0.9);
   }
 
   .panel-subtitle {
@@ -66,16 +75,25 @@ a:hover {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(255,22,22,0.35)] transition duration-200;
-    background: linear-gradient(135deg, rgba(255, 22, 22, 0.95), rgba(255, 77, 77, 0.85));
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition duration-200;
+    background: linear-gradient(
+      135deg,
+      rgb(var(--color-brand-primary) / 0.95),
+      rgb(var(--color-brand-accent) / 0.85)
+    );
+    box-shadow: 0 12px 30px rgb(var(--color-brand-primary) / 0.35);
   }
 
   .btn-primary:hover {
-    background: linear-gradient(135deg, rgba(255, 77, 77, 0.95), rgba(255, 22, 22, 0.9));
+    background: linear-gradient(
+      135deg,
+      rgb(var(--color-brand-accent) / 0.95),
+      rgb(var(--color-brand-primary) / 0.9)
+    );
   }
 
   .btn-primary:focus-visible {
-    outline: 2px solid rgba(255, 77, 77, 0.75);
+    outline: 2px solid rgb(var(--color-brand-accent) / 0.75);
     outline-offset: 4px;
   }
 
@@ -92,13 +110,13 @@ a:hover {
   .bg-\[\#0f0f0f\]\/85,
   .bg-\[\#101010\]\/90,
   .bg-\[\#111\]\/90 {
-    background-color: rgba(20, 22, 28, 0.72) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--surface-base) !important;
+    border-color: var(--outline-soft) !important;
     backdrop-filter: blur(18px);
   }
 
   .border-white\/10 {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--outline-soft);
   }
 
   table thead {
@@ -110,7 +128,7 @@ a:hover {
   }
 
   .select-dark {
-    background-color: rgba(10, 10, 12, 0.96);
+    background-color: var(--surface-strong);
     color: #f8f9fb;
   }
 
@@ -119,5 +137,3 @@ a:hover {
     color: #f8f9fb;
   }
 }
-
-

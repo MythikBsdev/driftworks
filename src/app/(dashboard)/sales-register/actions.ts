@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -284,7 +285,7 @@ export const completeSale = async (
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username: "DriftWorks sales Website",
+        username: `${brand.shortName} Sales Portal`,
         embeds: [
           {
             title: "🛒 New Sale Completed!",
@@ -295,7 +296,7 @@ export const completeSale = async (
               { name: "Amount", value: formatter.format(total), inline: true },
               { name: "Sold By", value: soldBy, inline: false },
             ],
-            footer: { text: "Driftworks Sales System" },
+            footer: { text: `${brand.shortName} Sales System` },
             timestamp: new Date().toISOString(),
           },
         ],

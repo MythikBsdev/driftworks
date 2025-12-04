@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { brand } from "@/config/brands";
 import { signOut } from "@/app/(dashboard)/actions";
 import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
@@ -78,11 +79,11 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
               </p>
             </div>
             <form action={logout} className="flex items-center justify-end gap-3">
-              <span className="hidden text-sm text-white/60 sm:inline">Driftworks</span>
+              <span className="hidden text-sm text-white/60 sm:inline">{brand.shortName}</span>
               <div className="relative h-9 w-9 overflow-hidden rounded-full border border-white/10 bg-black/70">
                 <Image
-                  src="/driftworks.png"
-                  alt="Driftworks logo"
+                  src={brand.assets.logo}
+                  alt={`${brand.shortName} logo`}
                   fill
                   className="object-cover"
                   sizes="36px"
@@ -104,7 +105,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
         </main>
 
         <footer className="mt-12 pb-6 text-center text-xs uppercase tracking-[0.4em] text-white/30">
-          Created by MythikBs
+          {brand.copy.footerCredit}
         </footer>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 import { createClient, type ClientFormState } from "@/app/(dashboard)/actions";
+import { brand } from "@/config/brands";
 
 const SubmitButton = () => {
   const { pending } = useFormStatus();
@@ -42,7 +43,7 @@ const NewClientForm = () => {
             id="name"
             name="name"
             required
-            placeholder="Driftworks South"
+            placeholder={brand.copy.clientPlaceholder}
             className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30"
           />
         </div>
