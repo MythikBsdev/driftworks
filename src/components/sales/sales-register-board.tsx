@@ -7,6 +7,11 @@ import {
   completeSale,
   type CompleteSaleState,
 } from "@/app/(dashboard)/sales-register/actions";
+import {
+  filterHighlightShadow,
+  formatCategoryLabel,
+  inventoryFilters,
+} from "@/config/brand-overrides";
 import { cn, currencyFormatter } from "@/lib/utils";
 
 type InventoryItem = {
@@ -49,7 +54,8 @@ const CompleteSaleButton = () => {
   );
 };
 
-const FILTERS = ["Normal", "Employee", "LEO", "All"];
+const FILTERS = inventoryFilters;
+const DEFAULT_FILTER = FILTERS[FILTERS.length - 1]?.value ?? "All";
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
   { value: "none", label: "No Loyalty Action" },
   { value: "stamp", label: "Add Loyalty Stamp" },
@@ -58,7 +64,7 @@ const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
 ];
 
 const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
-  const [filter, setFilter] = useState<string>("All");
+  const [filter, setFilter] = useState<string>(DEFAULT_FILTER);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [cid, setCid] = useState("");
   const [loyaltyAction, setLoyaltyAction] = useState<LoyaltyAction>("none");
@@ -154,7 +160,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
       return items;
     }
     return items.filter(
-      (item) => item.category.toLowerCase() === filter.toLowerCase(),
+      (item) => (item.category ?? "").toLowerCase() === filter.toLowerCase(),
     );
   }, [filter, items]);
 
@@ -210,17 +216,18 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
         <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.35em] text-white/40">
           {FILTERS.map((option) => (
             <button
-              key={option}
+              key={option.value}
               type="button"
-              onClick={() => setFilter(option)}
+              onClick={() => setFilter(option.value)}
               className={cn(
                 "rounded-full border border-white/10 px-3 py-1 text-xs transition backdrop-blur",
-                filter === option
-                  ? "bg-white text-black shadow-[0_14px_35px_-18px_rgba(255,22,22,0.6)]"
+                filter === option.value
+                  ? "bg-white text-black"
                   : "text-white/70 hover:text-white hover:bg-white/10",
               )}
+              style={filter === option.value ? { boxShadow: filterHighlightShadow } : undefined}
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>
@@ -237,7 +244,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
                   {item.name}
                 </span>
                 <span className="muted-label">
-                  {item.category}
+                  {formatCategoryLabel(item.category)}
                 </span>
                 <span className="text-sm text-white/70">
                   {formatter.format(item.price)}
@@ -426,4 +433,3 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
 };
 
 export default SalesRegisterBoard;
-

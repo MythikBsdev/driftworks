@@ -1,22 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { createCommission, deleteCommission } from "./actions";
+import { formatRoleLabel, roleOptions } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-
-const ROLE_OPTIONS = [
-  { value: "owner", label: "Owner" },
-  { value: "manager", label: "Manager" },
-  { value: "shop_foreman", label: "Shop Foreman" },
-  { value: "master_tech", label: "Master Tech" },
-  { value: "mechanic", label: "Mechanic" },
-  { value: "apprentice", label: "Apprentice" },
-];
-
-const formatRole = (role: string) =>
-  ROLE_OPTIONS.find((option) => option.value === role)?.label ??
-  role.charAt(0).toUpperCase() + role.slice(1);
 
 const ManageCommissionsPage = async () => {
   const session = await getSession();
@@ -66,7 +54,7 @@ const ManageCommissionsPage = async () => {
                 name="role"
                 className="select-dark w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
               >
-                {ROLE_OPTIONS.map((option) => (
+                {roleOptions.map((option) => (
                   <option key={option.value} value={option.value} className="bg-[#101010]">
                     {option.label}
                   </option>
@@ -128,7 +116,7 @@ const ManageCommissionsPage = async () => {
                 commissionRows.map((commission) => (
                   <tr key={commission.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-white">
-                      {formatRole(commission.role)}
+                      {formatRoleLabel(commission.role)}
                     </td>
                     <td className="px-4 py-3 text-white/60">
                       {(commission.rate * 100).toFixed(2)}%

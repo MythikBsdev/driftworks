@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { KeyRound, Trash2 } from "lucide-react";
 
 import CreateUserForm from "@/components/users/create-user-form";
+import {
+  formatRoleLabel,
+  roleOptions,
+} from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -11,18 +15,6 @@ import {
   resetUserPassword,
   updateUserRole,
 } from "./actions";
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  manager: "Manager",
-  shop_foreman: "Shop Foreman",
-  master_tech: "Master Tech",
-  mechanic: "Mechanic",
-  apprentice: "Apprentice",
-};
-
-const formatRole = (role: string) =>
-  ROLE_LABELS[role] ?? role.charAt(0).toUpperCase() + role.slice(1);
 
 const ManageUsersPage = async () => {
   const session = await getSession();
@@ -107,7 +99,7 @@ const ManageUsersPage = async () => {
                           defaultValue={user.role}
                           className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40 dark:bg-black"
                         >
-                          {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                          {roleOptions.map(({ value, label }) => (
                             <option key={value} value={value} className="bg-[#101010]">
                               {label}
                             </option>
@@ -118,7 +110,9 @@ const ManageUsersPage = async () => {
                             </button>
                           </form>
                         ) : (
-                          <p className="text-sm text-white/70">{formatRole(user.role)}</p>
+                          <p className="text-sm text-white/70">
+                            {formatRoleLabel(user.role)}
+                          </p>
                         )}
                       </td>
                       <td className="px-4 py-3 align-middle">

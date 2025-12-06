@@ -2,24 +2,12 @@
 import { redirect } from "next/navigation";
 import { Download, RotateCcw } from "lucide-react";
 
-
+import { formatRoleLabel } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 import { deleteSale, resetAllSales, resetUserSales } from "./actions";
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  manager: "Manager",
-  shop_foreman: "Shop Foreman",
-  master_tech: "Master Tech",
-  mechanic: "Mechanic",
-  apprentice: "Apprentice",
-};
-
-const formatRole = (role: string) =>
-  ROLE_LABELS[role] ?? role.charAt(0).toUpperCase() + role.slice(1);
 
 type SalesPageProps = {
   searchParams?: {
@@ -151,7 +139,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     ["Name", "Role", "Total Sales", "Commission %", "Commission"],
     ...summaryRows.map((row) => [
       row.displayName,
-      formatRole(row.role),
+      formatRoleLabel(row.role),
       row.totalSales.toFixed(2),
       (row.commissionRate * 100).toFixed(2),
       row.commissionTotal.toFixed(2),
@@ -326,7 +314,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                           {row.displayName}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-white/60">{formatRole(row.role)}</td>
+                      <td className="px-4 py-3 text-white/60">
+                        {formatRoleLabel(row.role)}
+                      </td>
                       <td className="px-4 py-3 font-medium text-white">
                         {formatter.format(row.totalSales)}
                       </td>

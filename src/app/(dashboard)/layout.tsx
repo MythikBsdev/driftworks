@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { brand } from "@/config/brands";
+import { formatRoleLabel } from "@/config/brand-overrides";
 import { signOut } from "@/app/(dashboard)/actions";
 import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
@@ -35,14 +36,6 @@ const ROLE_TAB_MAP: Record<string, string[]> = {
   apprentice: ["/dashboard", "/sales-register", "/loyalty"],
 };
 
-const toTitleCase = (value: string | null | undefined) =>
-  value
-    ? value
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ")
-    : "User";
-
 const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   const session = await getSession();
 
@@ -51,7 +44,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   }
 
   const displayName = session.user.full_name ?? session.user.username;
-  const roleLabel = toTitleCase(session.user.role);
+  const roleLabel = formatRoleLabel(session.user.role);
   const allowedRoutes =
     ROLE_TAB_MAP[session.user.role] ?? ROLE_TAB_MAP.apprentice;
   const visibleTabs = TABS.filter((tab) => allowedRoutes.includes(tab.href));

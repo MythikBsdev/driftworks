@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { tabHighlight } from "@/config/brand-overrides";
 import { cn } from "@/lib/utils";
 
 type Tab = {
@@ -25,9 +26,17 @@ const DashboardTabs = ({ tabs }: { tabs: Tab[] }) => {
             className={cn(
               "tab-pill border border-transparent",
               active
-                ? "bg-black/70 text-white border-brand-primary/60 shadow-[0_0_22px_rgba(255,22,22,0.25)]"
+                ? "bg-black/70 text-white"
                 : "text-white/70 hover:text-white hover:bg-white/5 hover:border-white/20",
             )}
+            style={
+              active
+                ? {
+                    borderColor: tabHighlight.borderColor,
+                    boxShadow: tabHighlight.shadow,
+                  }
+                : undefined
+            }
           >
             {tab.label}
           </Link>

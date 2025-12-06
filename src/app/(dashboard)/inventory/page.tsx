@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Edit3 } from "lucide-react";
 
+import { formatCategoryLabel, inventoryCategories } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -12,7 +13,8 @@ import {
   updateInventoryItem,
 } from "./actions";
 
-const categories = ["Normal", "Employee", "LEO"];
+const categories = inventoryCategories;
+const defaultCategory = categories[0]?.value ?? "Normal";
 
 const InventoryPage = async () => {
   const session = await getSession();
@@ -79,12 +81,16 @@ const InventoryPage = async () => {
             <select
               id="category"
               name="category"
-              defaultValue="Normal"
+              defaultValue={defaultCategory}
               className="select-dark w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             >
               {categories.map((category) => (
-                <option key={category} value={category} className="bg-[#101010]">
-                  {category}
+                <option
+                  key={category.value}
+                  value={category.value}
+                  className="bg-[#101010]"
+                >
+                  {category.label}
                 </option>
               ))}
             </select>
@@ -143,7 +149,9 @@ const InventoryPage = async () => {
                 inventoryItems.map((item) => (
                   <tr key={item.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{item.name}</td>
-                    <td className="px-4 py-3 text-white/60">{item.category}</td>
+                    <td className="px-4 py-3 text-white/60">
+                      {formatCategoryLabel(item.category)}
+                    </td>
                     <td className="px-4 py-3 font-medium text-white">
                       {formatter.format(item.price ?? 0)}
                     </td>
@@ -185,12 +193,12 @@ const InventoryPage = async () => {
                               <select
                                 id={`category-${item.id}`}
                                 name="category"
-                                defaultValue={item.category ?? "Normal"}
+                                defaultValue={item.category ?? defaultCategory}
                                 className="select-dark w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
                               >
                                 {categories.map((category) => (
-                                  <option key={category} value={category}>
-                                    {category}
+                                  <option key={category.value} value={category.value}>
+                                    {category.label}
                                   </option>
                                 ))}
                               </select>
