@@ -3,8 +3,6 @@ import "dotenv/config";
 import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import type { Database } from "../src/lib/supabase/types";
-
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,16 +17,13 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.");
 }
 
-const supabase: SupabaseClient<Database> = createClient<Database>(
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
+// Use a loosely typed client here to avoid build-time type mismatches if the generated Supabase types lag schema changes.
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
   },
-);
+}) as SupabaseClient;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
