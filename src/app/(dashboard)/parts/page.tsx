@@ -1,3 +1,6 @@
+import { revalidatePath } from "next/cache";
+
+import PartsList from "@/components/parts/parts-list";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
@@ -34,6 +37,16 @@ const PartsPage = async () => {
 
   const formatter = currencyFormatter(CURRENCY);
 
+  const deletePurchase = async (formData: FormData) => {
+    "use server";
+    const id = formData.get("purchaseId")?.toString();
+    if (!id) return;
+
+    const supabase = createSupabaseServerClient();
+    await supabase.from("discord_purchases").delete().eq("id", id);
+    revalidatePath("/parts");
+  };
+
   return (
     <div className="space-y-8">
       <header className="space-y-2">
@@ -61,43 +74,21 @@ const PartsPage = async () => {
 
       <div className="glass-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Recent parts purchases</h2>
-            <p className="text-sm text-white/60">
-              Showing {purchases.length} entr{purchases.length === 1 ? "y" : "ies"} from the bot.
-            </p>
-          </div>
+          <PartsHeader count={purchases.length} />
         </div>
-        <div className="mt-4 divide-y divide-white/5 border-t border-white/10">
-          {purchases.length === 0 ? (
-            <p className="py-6 text-sm text-white/60">No purchases recorded yet.</p>
-          ) : (
-            <ul className="divide-y divide-white/5">
-              {purchases.map((purchase) => (
-                <li key={purchase.id} className="py-3 text-sm">
-                  <div className="flex flex-col gap-2 md:grid md:grid-cols-[1.1fr_1fr_1fr_1fr] md:items-center md:gap-3">
-                    <div className="font-medium text-white">
-                      {formatter.format(normalizeAmount(purchase.amount))}
-                    </div>
-                    <div className="text-white/70">
-                      {new Date(purchase.created_at).toLocaleString()}
-                    </div>
-                    <div className="text-white/50">
-                      User: <span className="text-white/80">{purchase.user_id ?? "Unknown"}</span>
-                    </div>
-                    <div className="text-white/40">
-                      {purchase.guild_id ? `Guild ${purchase.guild_id}` : "DM/Unknown"}
-                      {purchase.channel_id ? ` · #${purchase.channel_id}` : ""}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <PartsList purchases={purchases} formatterCurrency={CURRENCY} deleteAction={deletePurchase} />
       </div>
     </div>
   );
 };
 
 export default PartsPage;
+
+const PartsHeader = ({ count }: { count: number }) => (
+  <div>
+    <h2 className="text-xl font-semibold text-white">Recent parts purchases</h2>
+    <p className="text-sm text-white/60">
+      Showing {count} entr{count === 1 ? "y" : "ies"} from the bot.
+    </p>
+  </div>
+);
