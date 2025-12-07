@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+
+// Load variables from .env.local (Next-style) first, then fall back to .env.
+loadEnv({ path: ".env.local" });
+loadEnv();
 
 import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -66,16 +70,16 @@ client.on("messageCreate", async (message) => {
     return;
   }
 
-  const { data: totalRow, error: totalError } = await supabase
-    .from("discord_purchases")
-    .select("running_total:sum(amount)")
-    .single();
+  const { data: totalRow, error: totalError } = await supabase.rpc("discord_purchases_total", {
+    p_guild_id: message.guildId,
+    p_channel_id: null,
+  });
 
   if (totalError) {
     console.error("[discord-bot] Failed to calculate running total", totalError);
   }
 
-  const runningTotal = Number(totalRow?.running_total ?? amount);
+  const runningTotal = Number(totalRow ?? 0) || amount;
 
   const embed = new EmbedBuilder()
     .setTitle("Purchase Recorded")

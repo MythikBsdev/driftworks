@@ -116,6 +116,16 @@ create table if not exists public.discord_purchases (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create or replace function public.discord_purchases_total(p_guild_id text default null, p_channel_id text default null)
+returns numeric
+language sql
+as $$
+  select coalesce(sum(amount), 0)
+  from public.discord_purchases
+  where (p_guild_id is null or guild_id = p_guild_id)
+    and (p_channel_id is null or channel_id = p_channel_id);
+$$;
+
 create table if not exists public.clients (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.app_users(id) on delete cascade,

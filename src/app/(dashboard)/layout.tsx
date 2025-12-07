@@ -8,11 +8,13 @@ import { signOut } from "@/app/(dashboard)/actions";
 import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
+const isLscustoms = brand.slug === "lscustoms";
+
 const TABS = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
-  { label: "Loyalty", href: "/loyalty" },
+  isLscustoms ? { label: "Parts", href: "/parts" } : { label: "Loyalty", href: "/loyalty" },
   { label: "Catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
@@ -20,20 +22,22 @@ const TABS = [
   { label: "Add Employee Sale", href: "/employee-sales" },
 ];
 
+const brandSpecificTab = isLscustoms ? "/parts" : "/loyalty";
+
 const ROLE_TAB_MAP: Record<string, string[]> = {
   owner: TABS.map((tab) => tab.href),
   manager: [
     "/dashboard",
     "/sales-register",
     "/sales",
-    "/loyalty",
+    brandSpecificTab,
     "/inventory",
     "/manage-discounts",
   ],
-  shop_foreman: ["/dashboard", "/sales-register", "/loyalty"],
-  master_tech: ["/dashboard", "/sales-register", "/loyalty"],
-  mechanic: ["/dashboard", "/sales-register", "/loyalty"],
-  apprentice: ["/dashboard", "/sales-register", "/loyalty"],
+  shop_foreman: ["/dashboard", "/sales-register", brandSpecificTab],
+  master_tech: ["/dashboard", "/sales-register", brandSpecificTab],
+  mechanic: ["/dashboard", "/sales-register", brandSpecificTab],
+  apprentice: ["/dashboard", "/sales-register", brandSpecificTab],
 };
 
 const DashboardLayout = async ({ children }: { children: ReactNode }) => {
