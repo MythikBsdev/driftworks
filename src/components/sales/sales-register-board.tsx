@@ -7,6 +7,7 @@ import {
   completeSale,
   type CompleteSaleState,
 } from "@/app/(dashboard)/sales-register/actions";
+import { brand } from "@/config/brands";
 import {
   filterHighlightShadow,
   formatCategoryLabel,
@@ -56,6 +57,7 @@ const CompleteSaleButton = () => {
 
 const FILTERS = inventoryFilters;
 const DEFAULT_FILTER = FILTERS[FILTERS.length - 1]?.value ?? "All";
+const LOYALTY_ENABLED = brand.slug !== "lscustoms";
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
   { value: "none", label: "No Loyalty Action" },
   { value: "stamp", label: "Add Loyalty Stamp" },
@@ -94,6 +96,8 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
   }, [state.status]);
 
   useEffect(() => {
+    if (!LOYALTY_ENABLED) return;
+
     const normalizedCid = cid.trim().toUpperCase();
     if (!normalizedCid.length) {
       setLoyaltyStatus(null);
@@ -276,55 +280,61 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
         </div>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="muted-label" htmlFor="cid">
-              Customer ID (CID)
-            </label>
-            <input
-              id="cid"
-              name="cid"
-              value={cid}
-              onChange={(event) => setCid(event.target.value)}
-              placeholder="Enter CID (e.g., 1234)"
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="muted-label" htmlFor="loyaltyAction">
-              Loyalty action
-            </label>
-            <select
-              id="loyaltyAction"
-              name="loyaltyAction"
-              value={loyaltyAction}
-              onChange={(event) =>
-                setLoyaltyAction(event.target.value as LoyaltyAction)
-              }
-              className="select-dark w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-              disabled={!cid.trim().length}
-            >
-              {LOYALTY_OPTIONS.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                  disabled={
-                    option.value === "redeem" && !loyaltyStatus?.ready
+          {LOYALTY_ENABLED ? (
+            <>
+              <div className="space-y-2">
+                <label className="muted-label" htmlFor="cid">
+                  Customer ID (CID)
+                </label>
+                <input
+                  id="cid"
+                  name="cid"
+                  value={cid}
+                  onChange={(event) => setCid(event.target.value)}
+                  placeholder="Enter CID (e.g., 1234)"
+                  className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="muted-label" htmlFor="loyaltyAction">
+                  Loyalty action
+                </label>
+                <select
+                  id="loyaltyAction"
+                  name="loyaltyAction"
+                  value={loyaltyAction}
+                  onChange={(event) =>
+                    setLoyaltyAction(event.target.value as LoyaltyAction)
                   }
+                  className="select-dark w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                  disabled={!cid.trim().length}
                 >
-                  {option.value === "redeem" && !loyaltyStatus?.ready
-                    ? "Redeem free 10th sale (requires 9 stamps)"
-                    : option.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-white/50">
-              {cid.trim().length === 0
-                ? "Track 9 paid visits to unlock a free 10th sale for that CID. Use Double Stamp Tuesday to apply two stamps during promos."
-                : loyaltyLoading
-                  ? "Checking loyalty progress..."
-                  : loyaltyMessage ?? "This CID does not have any loyalty stamps yet."}
-            </p>
-          </div>
+                  {LOYALTY_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      disabled={
+                        option.value === "redeem" && !loyaltyStatus?.ready
+                      }
+                    >
+                      {option.value === "redeem" && !loyaltyStatus?.ready
+                        ? "Redeem free 10th sale (requires 9 stamps)"
+                        : option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-white/50">
+                  {cid.trim().length === 0
+                    ? "Track 9 paid visits to unlock a free 10th sale for that CID. Use Double Stamp Tuesday to apply two stamps during promos."
+                    : loyaltyLoading
+                      ? "Checking loyalty progress..."
+                      : loyaltyMessage ?? "This CID does not have any loyalty stamps yet."}
+                </p>
+              </div>
+            </>
+          ) : (
+            <input type="hidden" name="loyaltyAction" value="none" />
+          )}
         </div>
 
         <input type="hidden" name="items" value={JSON.stringify(cart)} />

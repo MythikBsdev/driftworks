@@ -17,6 +17,7 @@ const cartItemSchema = z.object({
 });
 
 const LOYALTY_ACTIONS = ["none", "stamp", "double", "redeem"] as const;
+const LOYALTY_ENABLED = brand.slug !== "lscustoms";
 type LoyaltyAccount =
   Database["public"]["Tables"]["loyalty_accounts"]["Row"];
 type LoyaltyUpdatePayload = {
@@ -64,7 +65,9 @@ export const completeSale = async (
   const parsed = saleSchema.safeParse({
     invoiceNumber: formData.get("invoiceNumber")?.toString().trim(),
     cid: formData.get("cid")?.toString(),
-    loyaltyAction: formData.get("loyaltyAction")?.toString(),
+    loyaltyAction: LOYALTY_ENABLED
+      ? formData.get("loyaltyAction")?.toString()
+      : "none",
     items: (() => {
       try {
         return JSON.parse(formData.get("items")?.toString() ?? "[]");
@@ -123,7 +126,7 @@ export const completeSale = async (
   }
 
   let loyaltyUpdate: LoyaltyUpdatePayload | null = null;
-  if (loyaltyAction !== "none") {
+  if (LOYALTY_ENABLED && loyaltyAction !== "none") {
     if (!cid) {
       return {
         status: "error",
@@ -312,7 +315,9 @@ export const completeSale = async (
 
   revalidatePath("/sales");
   revalidatePath("/sales-register");
-  revalidatePath("/loyalty");
+  if (LOYALTY_ENABLED) {
+    revalidatePath("/loyalty");
+  }
 
   return { status: "success" };
 };
