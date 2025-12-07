@@ -106,6 +106,16 @@ create table if not exists public.employee_sales (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.discord_purchases (
+  id uuid primary key default gen_random_uuid(),
+  guild_id text,
+  channel_id text,
+  message_id text,
+  user_id text not null,
+  amount numeric not null check (amount >= 0),
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.clients (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.app_users(id) on delete cascade,
@@ -212,6 +222,7 @@ comment on table public.commission_rates is 'Commission rate per user role';
 comment on table public.sales_orders is 'Completed sales register orders';
 comment on table public.sales_order_items is 'Line items associated with sales orders';
 comment on table public.employee_sales is 'Sales recorded against individual employees';
+comment on table public.discord_purchases is 'Purchases recorded from Discord !buy command';
 comment on table public.clients is 'Client records managed by a Driftworks account';
 comment on table public.invoices is 'Invoices issued to clients';
 comment on table public.invoice_items is 'Invoice line items';

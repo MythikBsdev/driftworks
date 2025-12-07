@@ -6,13 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "discord:dev": "tsx discord/bot.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.75.0",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.546.0",
     "next": "^15.5.7",
@@ -30,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "^15.5.7",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

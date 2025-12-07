@@ -24,6 +24,9 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000`)
    - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `lscustoms` for Los Santos Customs)
    - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_LSCUSTOMS` for brand-specific sale alerts (optional)
+   - `DISCORD_BOT_TOKEN` for the `!buy` Discord bot (optional)
+   - `DISCORD_CART_IMAGE` optional thumbnail URL for the bot embed (optional)
+   - `DISCORD_CURRENCY` currency code for the bot totals (defaults to `USD`)
 3. **Provision Supabase**
    - Run `supabase/schema.sql` inside the Supabase SQL editor.
    - Enable the Email auth provider and allow redirects to `http://localhost:3000/login`.
@@ -36,6 +39,12 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
 
 ### Optional Checks
 - `npm run lint` - ESLint with type-aware rules.
+
+## Discord !buy Bot
+- Apply `supabase/schema.sql` so the `discord_purchases` table exists.
+- Create a Discord bot token with Message Content intent enabled and set `DISCORD_BOT_TOKEN` (plus `DISCORD_CART_IMAGE` / `DISCORD_CURRENCY` if you want a thumbnail or different currency).
+- Start the bot with `npm run discord:dev`. It listens for `!buy <amount>` and replies with an embed showing the price and running total (persisted in Supabase).
+- Inviting the bot: grant the `Send Messages` and `Embed Links` permissions in the channels where it should run.
 
 ## Branding
 - All presets live in `src/config/brands.ts` (logo paths, colors, copy, domains).
