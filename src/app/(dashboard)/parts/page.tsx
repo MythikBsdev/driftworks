@@ -1,5 +1,4 @@
 import { revalidatePath } from "next/cache";
-
 import ClearAllButton from "@/components/parts/clear-all-button";
 import PartsList from "@/components/parts/parts-list";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -48,17 +47,6 @@ const PartsPage = async () => {
     revalidatePath("/parts");
   };
 
-  const clearAllPurchases = async (_formData: FormData) => {
-    "use server";
-    const supabase = createSupabaseServerClient();
-    const { error } = await supabase.from("discord_purchases").delete();
-    if (error) {
-      console.error("[parts] Failed to clear purchases", error);
-      return;
-    }
-    revalidatePath("/parts");
-  };
-
   return (
     <div className="space-y-8">
       <header className="space-y-2">
@@ -93,7 +81,7 @@ const PartsPage = async () => {
             {purchases.length ? "Manage Discord parts purchases." : "No purchases recorded yet."}
           </p>
           {purchases.length ? (
-            <ClearAllButton action={clearAllPurchases} />
+            <ClearAllButton />
           ) : null}
         </div>
         <PartsList purchases={purchases} formatterCurrency={CURRENCY} deleteAction={deletePurchase} />
