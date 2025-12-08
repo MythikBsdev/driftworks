@@ -24,20 +24,28 @@ const TABS = [
 
 const brandSpecificTab = isLscustoms ? "/parts" : "/loyalty";
 
+const ownerTabs = TABS.map((tab) => tab.href);
+const managerTabs = isLscustoms
+  ? ownerTabs
+  : [
+      "/dashboard",
+      "/sales-register",
+      "/sales",
+      brandSpecificTab,
+      "/inventory",
+      "/manage-discounts",
+    ];
+
+const gateParts = (routes: string[]) =>
+  isLscustoms ? routes.filter((href) => href !== "/parts") : routes;
+
 const ROLE_TAB_MAP: Record<string, string[]> = {
-  owner: TABS.map((tab) => tab.href),
-  manager: [
-    "/dashboard",
-    "/sales-register",
-    "/sales",
-    brandSpecificTab,
-    "/inventory",
-    "/manage-discounts",
-  ],
-  shop_foreman: ["/dashboard", "/sales-register", brandSpecificTab],
-  master_tech: ["/dashboard", "/sales-register", brandSpecificTab],
-  mechanic: ["/dashboard", "/sales-register", brandSpecificTab],
-  apprentice: ["/dashboard", "/sales-register", brandSpecificTab],
+  owner: ownerTabs,
+  manager: managerTabs,
+  shop_foreman: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
+  master_tech: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
+  mechanic: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
+  apprentice: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
 };
 
 const DashboardLayout = async ({ children }: { children: ReactNode }) => {
