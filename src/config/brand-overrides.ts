@@ -19,6 +19,8 @@ const toTitleCase = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
+export const brandCurrency = isLscustoms ? "USD" : "GBP";
+
 export const roleLabelsMap = roleOptions.reduce<Record<string, string>>(
   (acc, option) => {
     acc[option.value] = option.label;
@@ -37,21 +39,16 @@ export const formatRoleLabel = (role?: string | null) => {
 export type InventoryCategoryOption = { value: string; label: string };
 
 export const inventoryCategories: InventoryCategoryOption[] = isLscustoms
-  ? [
-      { value: "Normal", label: "Normal" },
-      { value: "Employee", label: "Employee" },
-      { value: "LEO", label: "Jr. Mech" },
-    ]
+  ? [{ value: "Normal", label: "Normal" }]
   : [
       { value: "Normal", label: "Normal" },
       { value: "Employee", label: "Employee" },
       { value: "LEO", label: "LEO" },
     ];
 
-export const inventoryFilters: InventoryCategoryOption[] = [
-  ...inventoryCategories,
-  { value: "All", label: "All" },
-];
+export const inventoryFilters: InventoryCategoryOption[] = isLscustoms
+  ? [...inventoryCategories]
+  : [...inventoryCategories, { value: "All", label: "All" }];
 
 export const formatCategoryLabel = (category?: string | null) => {
   if (!category) {

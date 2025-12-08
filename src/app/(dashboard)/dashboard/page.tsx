@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const DashboardPage = async () => {
   const session = await getSession();
@@ -102,7 +103,7 @@ const DashboardPage = async () => {
   }, 0);
 
   const latestSales = sales.slice(0, 6);
-  const formatter = currencyFormatter("GBP");
+  const formatter = currencyFormatter(brandCurrency);
 
   return (
     <div className="space-y-8">
@@ -240,5 +241,4 @@ const DashboardPage = async () => {
 };
 
 export default DashboardPage;
-
 

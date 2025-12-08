@@ -9,6 +9,7 @@ import InvoiceTable, { type InvoiceRow } from "@/components/invoices/invoice-tab
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database, InvoiceStatus } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const DashboardPage = async () => {
   const supabase = await createSupabaseServerClient();
@@ -42,7 +43,7 @@ const DashboardPage = async () => {
 
   const invoices = (invoiceRows ?? []) as DashboardInvoice[];
   const clients = (clientRows ?? []) as Database["public"]["Tables"]["clients"]["Row"][];
-  const defaultCurrency = invoices[0]?.currency ?? "GBP";
+  const defaultCurrency = invoices[0]?.currency ?? brandCurrency;
   const formatter = currencyFormatter(defaultCurrency);
 
   const paidInvoices = invoices.filter((invoice) => invoice.status === "paid");

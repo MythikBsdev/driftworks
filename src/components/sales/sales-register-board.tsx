@@ -9,6 +9,7 @@ import {
 } from "@/app/(dashboard)/sales-register/actions";
 import { brand } from "@/config/brands";
 import {
+  brandCurrency,
   filterHighlightShadow,
   formatCategoryLabel,
   inventoryFilters,
@@ -168,7 +169,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     );
   }, [filter, items]);
 
-  const formatter = currencyFormatter("GBP");
+  const formatter = currencyFormatter(brandCurrency);
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,

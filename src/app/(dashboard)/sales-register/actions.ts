@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const cartItemSchema = z.object({
   itemId: z.string().uuid(),
@@ -276,7 +277,7 @@ export const completeSale = async (
     }
   }
 
-  const formatter = currencyFormatter("GBP");
+  const formatter = currencyFormatter(brandCurrency);
   const saleIdDisplay = orderRecord.id.slice(0, 8).toUpperCase();
   const soldBy = session.user.full_name ?? session.user.username;
 

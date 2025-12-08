@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 import { deleteSale, resetAllSales, resetUserSales } from "./actions";
 
 type SalesPageProps = {
@@ -99,7 +100,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     commissionMap.set(rate.role, rate.rate ?? 0);
   });
 
-  const formatter = currencyFormatter("GBP");
+  const formatter = currencyFormatter(brandCurrency);
 
   const summaryRows = users
     .map((user) => {

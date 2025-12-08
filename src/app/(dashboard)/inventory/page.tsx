@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { Edit3 } from "lucide-react";
 
-import { formatCategoryLabel, inventoryCategories } from "@/config/brand-overrides";
+import {
+  brandCurrency,
+  formatCategoryLabel,
+  inventoryCategories,
+} from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -37,7 +41,7 @@ const InventoryPage = async () => {
   const inventoryItems =
     (inventory ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
 
-  const formatter = currencyFormatter("GBP");
+  const formatter = currencyFormatter(brandCurrency);
 
   const createItem = async (formData: FormData) => {
     "use server";

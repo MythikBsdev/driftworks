@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const ClientsPage = async () => {
   const session = await getSession();
@@ -29,7 +30,7 @@ const ClientsPage = async () => {
 
   const invoices =
     (invoiceRows ?? []) as Database["public"]["Tables"]["invoices"]["Row"][];
-  const defaultCurrency = invoices[0]?.currency ?? "GBP";
+  const defaultCurrency = invoices[0]?.currency ?? brandCurrency;
   const formatter = currencyFormatter(defaultCurrency);
 
   const clientRecords =

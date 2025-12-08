@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const MAX_STAMPS = 9;
 const LOYALTY_ACTION_LABELS = {
@@ -318,7 +319,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
                         {formatLoyaltyAction(sale.loyalty_action)}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-white">
-                        {currencyFormatter("GBP").format(sale.total ?? 0)}
+                        {currencyFormatter(brandCurrency).format(sale.total ?? 0)}
                       </td>
                     </tr>
                   ))}
