@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
@@ -21,7 +22,12 @@ export const createCommission = async (
   formData: FormData,
 ): Promise<CommissionFormState> => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return {
       status: "error",
       message: "Only owners can create commission rates",
@@ -63,7 +69,12 @@ export const createCommission = async (
 
 export const deleteCommission = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 

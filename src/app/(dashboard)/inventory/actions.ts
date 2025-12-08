@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
@@ -126,7 +127,9 @@ export const updateInventoryItem = async (
     } as never)
     .eq("id", itemId);
 
-  if (session.user.role !== "owner") {
+  const isElevatedManager =
+    brand.slug === "lscustoms" && session.user.role === "manager";
+  if (session.user.role !== "owner" && !isElevatedManager) {
     query = query.eq("owner_id", session.user.id);
   }
 

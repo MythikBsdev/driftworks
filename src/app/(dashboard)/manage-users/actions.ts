@@ -7,6 +7,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { brand } from "@/config/brands";
 
 const createUserSchema = z.object({
   username: z
@@ -44,7 +45,12 @@ export const createUserAccount = async (
   formData: FormData,
 ): Promise<CreateUserState> => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return {
       status: "error",
       message: "You do not have permission to create users.",
@@ -107,7 +113,12 @@ const updateRoleSchema = z.object({
 
 export const updateUserRole = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 
@@ -169,7 +180,12 @@ const resetPasswordSchema = z.object({
 
 export const resetUserPassword = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 
@@ -204,7 +220,12 @@ const deleteUserSchema = z.object({
 
 export const deleteUserAccount = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 

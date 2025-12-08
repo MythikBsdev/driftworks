@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -84,7 +85,12 @@ const removeUserSales = async (
 
 export const resetAllSales = async () => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 
@@ -117,7 +123,12 @@ export const resetAllSales = async () => {
 
 export const resetUserSales = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || session.user.role !== "owner") {
+  const canManage =
+    session &&
+    (session.user.role === "owner" ||
+      (brand.slug === "lscustoms" && session.user.role === "manager"));
+
+  if (!canManage) {
     return;
   }
 

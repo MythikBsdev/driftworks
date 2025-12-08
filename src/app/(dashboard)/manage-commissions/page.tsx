@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { createCommission, deleteCommission } from "./actions";
 import { formatRoleLabel, roleOptions } from "@/config/brand-overrides";
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -22,7 +23,9 @@ const ManageCommissionsPage = async () => {
   const commissionRows =
     (commissions ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
 
-  const canManage = session.user.role === "owner";
+  const canManage =
+    session.user.role === "owner" ||
+    (brand.slug === "lscustoms" && session.user.role === "manager");
 
   const create = async (formData: FormData) => {
     "use server";
