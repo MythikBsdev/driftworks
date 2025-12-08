@@ -47,6 +47,13 @@ const PartsPage = async () => {
     revalidatePath("/parts");
   };
 
+  const clearAllPurchases = async () => {
+    "use server";
+    const supabase = createSupabaseServerClient();
+    await supabase.from("discord_purchases").delete();
+    revalidatePath("/parts");
+  };
+
   return (
     <div className="space-y-8">
       <header className="space-y-2">
@@ -75,6 +82,21 @@ const PartsPage = async () => {
       <div className="glass-panel p-6">
         <div className="flex items-center justify-between gap-3">
           <PartsHeader count={purchases.length} />
+        </div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-white/60">
+            {purchases.length ? "Manage Discord parts purchases." : "No purchases recorded yet."}
+          </p>
+          {purchases.length ? (
+            <form action={clearAllPurchases}>
+              <button
+                type="submit"
+                className="rounded-full bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 transition hover:bg-red-500/20"
+              >
+                Clear all
+              </button>
+            </form>
+          ) : null}
         </div>
         <PartsList purchases={purchases} formatterCurrency={CURRENCY} deleteAction={deletePurchase} />
       </div>
