@@ -51,7 +51,11 @@ const PartsPage = async () => {
   const clearAllPurchases = async (_formData: FormData) => {
     "use server";
     const supabase = createSupabaseServerClient();
-    await supabase.from("discord_purchases").delete();
+    const { error } = await supabase.from("discord_purchases").delete();
+    if (error) {
+      console.error("[parts] Failed to clear purchases", error);
+      throw new Error("Unable to clear purchases right now.");
+    }
     revalidatePath("/parts");
   };
 

@@ -8,6 +8,7 @@ const ClearAllButton = ({ action }: ClearAllButtonProps) => {
   return (
     <form
       action={action}
+      method="post"
       onSubmit={(event) => {
         const confirmed = window.confirm(
           "Are you sure you want to clear all parts purchases? This cannot be undone.",
