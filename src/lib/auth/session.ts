@@ -1,4 +1,5 @@
-﻿import { cookies } from "next/headers";
+﻿import { unstable_noStore as noStore } from "next/cache";
+import { cookies } from "next/headers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -39,6 +40,8 @@ export const createSession = async (user: SessionUser) => {
 };
 
 export const getSession = async (): Promise<Session | null> => {
+  // Always fetch session data without caching so role updates show up immediately.
+  noStore();
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) {
@@ -92,6 +95,10 @@ export const destroySession = async (token: string | null) => {
   const supabase = createSupabaseServerClient();
   await supabase.from("user_sessions").delete().eq("token", token);
 };
+
+
+
+
 
 
 

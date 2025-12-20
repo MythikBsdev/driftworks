@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import { KeyRound, Trash2 } from "lucide-react";
 
@@ -18,6 +19,9 @@ import {
 } from "./actions";
 
 const ManageUsersPage = async () => {
+  // Ensure latest session and role data for every request.
+  noStore();
+
   const session = await getSession();
 
   if (!session) {
