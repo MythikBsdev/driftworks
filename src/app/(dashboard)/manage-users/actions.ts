@@ -1,6 +1,7 @@
 ﻿"use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { hashPassword } from "@/lib/auth/password";
@@ -170,6 +171,7 @@ export const updateUserRole = async (formData: FormData) => {
 
   if (!error) {
     revalidatePath("/manage-users");
+    redirect("/manage-users");
   }
 };
 
