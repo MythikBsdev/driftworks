@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
+const allowedRoles = new Set(["owner", "manager"]);
+
 const discountSchema = z.object({
   name: z.string().min(1, "Discount name is required"),
   percentage: z.coerce
@@ -24,8 +26,8 @@ export const createDiscount = async (
   formData: FormData,
 ): Promise<DiscountFormState> => {
   const session = await getSession();
-  if (!session) {
-    return { status: "error", message: "You must be signed in" };
+  if (!session || !allowedRoles.has(session.user.role)) {
+    return { status: "error", message: "You do not have permission" };
   }
 
   const parsed = discountSchema.safeParse({
@@ -64,7 +66,7 @@ export const createDiscount = async (
 
 export const deleteDiscount = async (formData: FormData) => {
   const session = await getSession();
-  if (!session) {
+  if (!session || !allowedRoles.has(session.user.role)) {
     return;
   }
 
@@ -81,5 +83,5 @@ export const deleteDiscount = async (formData: FormData) => {
     .eq("owner_id", session.user.id);
 
   revalidatePath("/manage-discounts");
+  revalidatePath("/sales-register");
 };
-
