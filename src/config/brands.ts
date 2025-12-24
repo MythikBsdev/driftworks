@@ -76,14 +76,14 @@ const BRANDS = {
     },
     assets: {
       logo: "/driftworks.png",
-      favicon: "/favicon.ico",
+      favicon: "/driftworks.png",
     },
     metadata: {
       title: "Driftworks Invoice Dashboard",
       description:
         "Manage Driftworks invoices, clients, and payments with a dark, automotive-inspired dashboard powered by Supabase.",
       icons: {
-        icon: "/favicon.ico",
+        icon: "/driftworks.png",
       },
     },
     webhooks: {
@@ -120,14 +120,14 @@ const BRANDS = {
     },
     assets: {
       logo: "/lscustoms.png",
-      favicon: "/favicon.ico",
+      favicon: "/lscustoms.png",
     },
     metadata: {
       title: "Los Santos Customs Portal",
       description:
         "Manage estimates, invoices, and loyalty builds for Los Santos Customs with Supabase-backed workflows.",
       icons: {
-        icon: "/favicon.ico",
+        icon: "/lscustoms.png",
       },
     },
     webhooks: {
@@ -164,14 +164,14 @@ const BRANDS = {
     },
     assets: {
       logo: "/synlineauto.png",
-      favicon: "/favicon.ico",
+      favicon: "/synlineauto.png",
     },
     metadata: {
       title: "Synline Auto Dashboard",
       description:
         "Manage Synline Auto operations, invoices, and client loyalty with a Supabase-backed control center.",
       icons: {
-        icon: "/favicon.ico",
+        icon: "/synlineauto.png",
       },
     },
     webhooks: {
