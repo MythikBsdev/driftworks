@@ -84,6 +84,8 @@ const BRANDS = {
         "Manage Driftworks invoices, clients, and payments with a dark, automotive-inspired dashboard powered by Supabase.",
       icons: {
         icon: "/driftworks.png",
+        shortcut: "/driftworks.png",
+        apple: "/driftworks.png",
       },
     },
     webhooks: {
@@ -128,6 +130,8 @@ const BRANDS = {
         "Manage estimates, invoices, and loyalty builds for Los Santos Customs with Supabase-backed workflows.",
       icons: {
         icon: "/lscustoms.png",
+        shortcut: "/lscustoms.png",
+        apple: "/lscustoms.png",
       },
     },
     webhooks: {
@@ -172,6 +176,8 @@ const BRANDS = {
         "Manage Synline Auto operations, invoices, and client loyalty with a Supabase-backed control center.",
       icons: {
         icon: "/synlineauto.png",
+        shortcut: "/synlineauto.png",
+        apple: "/synlineauto.png",
       },
     },
     webhooks: {
