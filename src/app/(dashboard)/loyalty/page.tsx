@@ -34,13 +34,14 @@ type SalesOrderWithOwner = Database["public"]["Tables"]["sales_orders"]["Row"] &
 };
 
 type LoyaltyPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     q?: string;
     cid?: string;
-  };
+  }>;
 };
 
 const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getSession();
 
   if (!session) {
@@ -60,10 +61,12 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
     (loyaltyData ?? []) as Database["public"]["Tables"]["loyalty_accounts"]["Row"][];
 
   const searchValue =
-    typeof searchParams?.q === "string" ? searchParams.q.trim().toUpperCase() : "";
+    typeof resolvedSearchParams?.q === "string"
+      ? resolvedSearchParams.q.trim().toUpperCase()
+      : "";
   const selectedCid =
-    typeof searchParams?.cid === "string" && searchParams.cid.trim().length
-      ? searchParams.cid.trim().toUpperCase()
+    typeof resolvedSearchParams?.cid === "string" && resolvedSearchParams.cid.trim().length
+      ? resolvedSearchParams.cid.trim().toUpperCase()
       : "";
 
   const filteredAccounts = searchValue.length
@@ -164,7 +167,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
             <input
               type="search"
               name="q"
-              defaultValue={searchParams?.q ?? ""}
+              defaultValue={resolvedSearchParams?.q ?? ""}
               placeholder="Search by CID..."
               className="w-full rounded-xl border border-white/10 bg-black/70 px-4 py-2 text-sm text-white placeholder-white/40 outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             />

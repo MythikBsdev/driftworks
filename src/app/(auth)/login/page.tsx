@@ -10,12 +10,15 @@ export const metadata: Metadata = {
 };
 
 type LoginPageProps = {
-  searchParams?: Record<string, string | string[]>;
+  searchParams?: Promise<Record<string, string | string[]>>;
 };
 
-const LoginPage = ({ searchParams }: LoginPageProps) => {
+const LoginPage = async ({ searchParams }: LoginPageProps) => {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const redirectTo =
-    typeof searchParams?.redirectTo === "string" ? searchParams.redirectTo : undefined;
+    typeof resolvedSearchParams?.redirectTo === "string"
+      ? resolvedSearchParams.redirectTo
+      : undefined;
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#050505] px-4 text-white">

@@ -11,11 +11,11 @@ import { brandCurrency } from "@/config/brand-overrides";
 import { deleteSale, resetAllSales, resetUserSales } from "./actions";
 
 type SalesPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     summary?: string;
     log?: string;
     user?: string;
-  };
+  }>;
 };
 
 type SalesLogRowBase = {
@@ -33,6 +33,7 @@ type SalesLogRow =
   | ({ type: "employee" } & SalesLogRowBase);
 
 const SalesPage = async ({ searchParams }: SalesPageProps) => {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getSession();
 
   if (!session) {
@@ -44,11 +45,11 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     redirect("/dashboard");
   }
 
-  const summaryQuery = searchParams?.summary?.toLowerCase().trim() ?? "";
-  const logQuery = searchParams?.log?.toLowerCase().trim() ?? "";
+  const summaryQuery = resolvedSearchParams?.summary?.toLowerCase().trim() ?? "";
+  const logQuery = resolvedSearchParams?.log?.toLowerCase().trim() ?? "";
   const selectedUser =
-    typeof searchParams?.user === "string" && searchParams.user.length > 0
-      ? searchParams.user
+    typeof resolvedSearchParams?.user === "string" && resolvedSearchParams.user.length > 0
+      ? resolvedSearchParams.user
       : undefined;
 
   const supabase = createSupabaseServerClient();
@@ -218,8 +219,8 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     )
     .slice(0, 50);
 
-  const summaryValue = searchParams?.summary ?? "";
-  const logValue = searchParams?.log ?? "";
+  const summaryValue = resolvedSearchParams?.summary ?? "";
+  const logValue = resolvedSearchParams?.log ?? "";
 
   const createSearchParams = () => {
     const params = new URLSearchParams();

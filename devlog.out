@@ -1,0 +1,15 @@
+
+> driftworks@0.1.0 dev
+> next dev --turbopack --hostname 127.0.0.1 --port 3002
+
+   ▲ Next.js 15.5.7 (Turbopack)
+   - Local:        http://127.0.0.1:3002
+   - Network:      http://127.0.0.1:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 279ms
+ ✓ Ready in 1421ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.6s
+ GET /login 200 in 3134ms
