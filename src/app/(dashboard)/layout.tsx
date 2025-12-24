@@ -9,12 +9,23 @@ import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
 const isLscustoms = brand.slug === "lscustoms";
+const isSynlineauto = brand.slug === "synlineauto";
+const loyaltyEnabled = !isLscustoms && !isSynlineauto;
+const brandSpecificTab = isLscustoms ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
 
-const TABS = [
+const baseTabs = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sales Register", href: "/sales-register" },
   { label: "Sales", href: "/sales" },
-  isLscustoms ? { label: "Parts", href: "/parts" } : { label: "Loyalty", href: "/loyalty" },
+];
+
+const optionalTab = isLscustoms
+  ? { label: "Parts", href: "/parts" }
+  : loyaltyEnabled
+    ? { label: "Loyalty", href: "/loyalty" }
+    : null;
+
+const tailTabs = [
   { label: "Catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
@@ -22,19 +33,17 @@ const TABS = [
   { label: "Add Employee Sale", href: "/employee-sales" },
 ];
 
-const brandSpecificTab = isLscustoms ? "/parts" : "/loyalty";
+const TABS = [...baseTabs, ...(optionalTab ? [optionalTab] : []), ...tailTabs];
 
 const ownerTabs = TABS.map((tab) => tab.href);
-const managerTabs = isLscustoms
-  ? ownerTabs
-  : [
-      "/dashboard",
-      "/sales-register",
-      "/sales",
-      brandSpecificTab,
-      "/inventory",
-      "/manage-discounts",
-    ];
+const managerTabs = [
+  "/dashboard",
+  "/sales-register",
+  "/sales",
+  ...(brandSpecificTab ? [brandSpecificTab] : []),
+  "/inventory",
+  "/manage-discounts",
+];
 
 const gateParts = (routes: string[]) =>
   isLscustoms ? routes.filter((href) => href !== "/parts") : routes;
@@ -42,10 +51,26 @@ const gateParts = (routes: string[]) =>
 const ROLE_TAB_MAP: Record<string, string[]> = {
   owner: ownerTabs,
   manager: managerTabs,
-  shop_foreman: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
-  master_tech: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
-  mechanic: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
-  apprentice: gateParts(["/dashboard", "/sales-register", brandSpecificTab]),
+  shop_foreman: gateParts(
+    ["/dashboard", "/sales-register", brandSpecificTab].filter(
+      (value): value is string => Boolean(value),
+    ),
+  ),
+  master_tech: gateParts(
+    ["/dashboard", "/sales-register", brandSpecificTab].filter(
+      (value): value is string => Boolean(value),
+    ),
+  ),
+  mechanic: gateParts(
+    ["/dashboard", "/sales-register", brandSpecificTab].filter(
+      (value): value is string => Boolean(value),
+    ),
+  ),
+  apprentice: gateParts(
+    ["/dashboard", "/sales-register", brandSpecificTab].filter(
+      (value): value is string => Boolean(value),
+    ),
+  ),
 };
 
 const DashboardLayout = async ({ children }: { children: ReactNode }) => {

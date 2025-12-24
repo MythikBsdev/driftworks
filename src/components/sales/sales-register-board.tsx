@@ -58,7 +58,7 @@ const CompleteSaleButton = () => {
 
 const FILTERS = inventoryFilters;
 const DEFAULT_FILTER = FILTERS[FILTERS.length - 1]?.value ?? "All";
-const LOYALTY_ENABLED = brand.slug !== "lscustoms";
+const LOYALTY_ENABLED = brand.slug === "driftworks";
 const LOYALTY_OPTIONS: { value: LoyaltyAction; label: string }[] = [
   { value: "none", label: "No Loyalty Action" },
   { value: "stamp", label: "Add Loyalty Stamp" },

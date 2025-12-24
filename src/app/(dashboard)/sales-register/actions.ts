@@ -18,7 +18,7 @@ const cartItemSchema = z.object({
 });
 
 const LOYALTY_ACTIONS = ["none", "stamp", "double", "redeem"] as const;
-const LOYALTY_ENABLED = brand.slug !== "lscustoms";
+const LOYALTY_ENABLED = brand.slug === "driftworks";
 type LoyaltyAccount =
   Database["public"]["Tables"]["loyalty_accounts"]["Row"];
 type LoyaltyUpdatePayload = {

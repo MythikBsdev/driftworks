@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -46,6 +47,10 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
 
   if (!session) {
     redirect("/login");
+  }
+
+  if (brand.slug === "synlineauto") {
+    redirect("/dashboard");
   }
 
   const supabase = createSupabaseServerClient();
