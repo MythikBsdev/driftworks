@@ -1,6 +1,7 @@
 import { brand } from "@/config/brands";
 
 const isLscustoms = brand.slug === "lscustoms";
+const isSynlineauto = brand.slug === "synlineauto";
 
 export const apprenticeLabel = isLscustoms ? "Jr. Mech" : "Apprentice";
 
@@ -19,7 +20,7 @@ const toTitleCase = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-export const brandCurrency = isLscustoms ? "USD" : "GBP";
+export const brandCurrency = isLscustoms || isSynlineauto ? "USD" : "GBP";
 
 export const roleLabelsMap = roleOptions.reduce<Record<string, string>>(
   (acc, option) => {

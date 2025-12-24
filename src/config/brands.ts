@@ -134,6 +134,50 @@ const BRANDS = {
       sales: process.env.DISCORD_WEBHOOK_LSCUSTOMS,
     },
   },
+  synlineauto: {
+    slug: "synlineauto",
+    name: "Synline Auto Operations Hub",
+    shortName: "Synline Auto",
+    initials: "SA",
+    siteUrl: "https://synlineauto.com",
+    domains: ["synlineauto.com", "synlineauto"],
+    palette: {
+      primary: "#d62828",
+      accent: "#a9afb8",
+      highlight: "#f26c4f",
+      slate: "#0b0c10",
+      card: "#15171c",
+      outline: "#242830",
+      surface: "rgba(10, 12, 16, 0.75)",
+      surfaceStrong: "rgba(5, 6, 10, 0.9)",
+      textMuted: "rgba(220, 224, 230, 0.65)",
+      glow: "rgba(214, 40, 40, 0.4)",
+    },
+    copy: {
+      heroTitle: "Synline Auto Service Dashboard",
+      heroDescription:
+        "Run Synline Auto invoices, clients, and loyalty from a gritty red-and-steel command center powered by Supabase.",
+      loginSubtitle: "Log in to access the Synline Auto control room",
+      footerCredit: "Synline Auto",
+      navSubtitle: "Service Command",
+      clientPlaceholder: "Synline Auto HQ",
+    },
+    assets: {
+      logo: "/synlineauto.png",
+      favicon: "/favicon.ico",
+    },
+    metadata: {
+      title: "Synline Auto Dashboard",
+      description:
+        "Manage Synline Auto operations, invoices, and client loyalty with a Supabase-backed control center.",
+      icons: {
+        icon: "/favicon.ico",
+      },
+    },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_SYNLINELAUTO,
+    },
+  },
 } satisfies Record<string, BrandDefinition>;
 
 export type BrandKey = keyof typeof BRANDS;
