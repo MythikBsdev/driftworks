@@ -11,7 +11,7 @@ const SubmitButton = () => {
       type="submit"
       className={cn(
         "w-full rounded-xl px-4 py-3 text-sm font-semibold tracking-wide transition",
-        "bg-brand-primary text-white shadow-[0_10px_30px_rgba(255,22,22,0.35)]",
+        "bg-brand-primary text-white shadow-[0_10px_30px_rgb(var(--color-brand-primary)_/_0.35)]",
         "hover:bg-brand-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent",
         pending && "cursor-wait opacity-80",
       )}
