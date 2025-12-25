@@ -84,12 +84,20 @@ export const deleteCommission = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
-  await supabase
-    .from("commission_rates")
-    .delete()
-    .eq("id", id)
-    .eq("owner_id", session.user.id);
+  const isOwner = session.user.role === "owner";
+
+  // For LS Customs we allow managers to delete any commission entry; owners can always delete.
+  let deleteQuery = supabase.from("commission_rates").delete().eq("id", id);
+  if (!isOwner && brand.slug !== "lscustoms") {
+    deleteQuery = deleteQuery.eq("owner_id", session.user.id);
+  }
+
+  const { error } = await deleteQuery;
+  if (error) {
+    console.error("Failed to delete commission rate", error);
+    return;
+  }
 
   revalidatePath("/manage-commissions");
+  revalidatePath("/sales");
 };
-
