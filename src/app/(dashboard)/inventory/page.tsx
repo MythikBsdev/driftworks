@@ -138,8 +138,9 @@ const InventoryPage = async () => {
           View, edit, or delete existing items.
         </p>
         <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-          <table className="w-full text-sm text-white/70">
-            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
+          <div className="max-h-[480px] overflow-y-auto">
+            <table className="w-full text-sm text-white/70">
+              <thead className="sticky top-0 z-10 bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Category</th>
@@ -267,7 +268,8 @@ const InventoryPage = async () => {
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </section>
     </div>

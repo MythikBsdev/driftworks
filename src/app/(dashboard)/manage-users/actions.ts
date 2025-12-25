@@ -244,11 +244,12 @@ export const deleteUserAccount = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
+  const targetUserId = parsed.data.userId;
 
   const { data: target } = await supabase
     .from("app_users")
     .select("id, role")
-    .eq("id", parsed.data.userId)
+    .eq("id", targetUserId)
     .maybeSingle();
 
   if (!target) {
@@ -272,14 +273,59 @@ export const deleteUserAccount = async (formData: FormData) => {
     }
   }
 
+  // Clean up references so we do not hit foreign key blocks when removing the user.
+  const fallbackOwnerId = session.user.id;
+  const cleanupSteps = [
+    supabase.from("user_sessions").delete().eq("user_id", targetUserId),
+    supabase
+      .from("inventory_items")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("discounts")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("commission_rates")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("sales_orders")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("loyalty_accounts")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("employee_sales")
+      .update({ owner_id: fallbackOwnerId } as never)
+      .eq("owner_id", targetUserId),
+    supabase
+      .from("employee_sales")
+      .update({ employee_id: fallbackOwnerId } as never)
+      .eq("employee_id", targetUserId),
+  ];
+
+  for (const step of cleanupSteps) {
+    const { error } = await step;
+    if (error) {
+      console.error("Failed to clean up before deleting user", error);
+      return;
+    }
+  }
+
   const { error } = await supabase
     .from("app_users")
     .delete()
-    .eq("id", parsed.data.userId);
+    .eq("id", targetUserId);
 
   if (!error) {
     revalidatePath("/manage-users");
+    revalidatePath("/sales");
+    revalidatePath("/employee-sales");
+  } else {
+    console.error("Failed to delete user account", error);
   }
 };
-
 

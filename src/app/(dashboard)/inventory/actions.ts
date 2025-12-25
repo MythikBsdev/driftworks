@@ -80,11 +80,35 @@ export const deleteInventoryItem = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
-  await supabase
-    .from("inventory_items")
-    .delete()
-    .eq("id", itemId)
-    .eq("owner_id", session.user.id);
+  const allowedRoles = new Set(["owner", "manager"]);
+  if (!allowedRoles.has(session.user.role)) {
+    return;
+  }
+
+  // Drop catalog references so sales history stays intact and the FK constraint doesn't block deletion.
+  const { error: detachError } = await supabase
+    .from("sales_order_items")
+    .update({ catalog_item_id: null } as never)
+    .eq("catalog_item_id", itemId);
+
+  if (detachError) {
+    console.error("Failed to detach inventory item from sales order items", detachError);
+    return;
+  }
+
+  const canDeleteAny =
+    session.user.role === "owner" || session.user.role === "manager";
+
+  let deleteQuery = supabase.from("inventory_items").delete().eq("id", itemId);
+  if (!canDeleteAny) {
+    deleteQuery = deleteQuery.eq("owner_id", session.user.id);
+  }
+
+  const { error: deleteError } = await deleteQuery;
+  if (deleteError) {
+    console.error("Failed to delete inventory item", deleteError);
+    return;
+  }
 
   revalidatePath("/inventory");
   revalidatePath("/sales-register");
