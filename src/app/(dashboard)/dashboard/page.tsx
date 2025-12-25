@@ -62,7 +62,9 @@ const DashboardPage = async () => {
   const team =
     (usersResult.data ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
-  const totalRevenue = sum(sales.map((sale) => sale.total ?? 0));
+  const registerRevenue = sum(sales.map((sale) => sale.total ?? 0));
+  const employeeRevenue = sum(employeeSales.map((entry) => entry.amount ?? 0));
+  const totalRevenue = registerRevenue + employeeRevenue;
   const commissionMap = new Map<string, number>();
   commissionRates.forEach((rate) => {
     if (!rate.role) {
@@ -241,4 +243,3 @@ const DashboardPage = async () => {
 };
 
 export default DashboardPage;
-
