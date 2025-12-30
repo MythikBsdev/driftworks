@@ -41,14 +41,7 @@ const tailTabs = [
 const TABS = [...baseTabs, ...(optionalTab ? [optionalTab] : []), ...tailTabs];
 
 const ownerTabs = TABS.map((tab) => tab.href);
-const managerTabs = [
-  "/dashboard",
-  "/sales-register",
-  "/sales",
-  ...(brandSpecificTab ? [brandSpecificTab] : []),
-  "/inventory",
-  "/manage-discounts",
-];
+const managerTabs = ownerTabs;
 
 const gateParts = (routes: string[]) =>
   isLscustoms ? routes.filter((href) => href !== "/parts") : routes;
