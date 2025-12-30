@@ -3,12 +3,17 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { brand } from "@/config/brands";
-import { formatRoleLabel } from "@/config/brand-overrides";
+import {
+  formatRoleLabel,
+  hasManagerLikeAccess,
+  hasOwnerLikeAccess,
+  isLscustoms,
+  normalizeRole,
+} from "@/config/brand-overrides";
 import { signOut } from "@/app/(dashboard)/actions";
 import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
-const isLscustoms = brand.slug === "lscustoms";
 const isSynlineauto = brand.slug === "synlineauto";
 const loyaltyEnabled = !isLscustoms && !isSynlineauto;
 const brandSpecificTab = isLscustoms ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
@@ -82,8 +87,15 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   const displayName = session.user.full_name ?? session.user.username;
   const roleLabel = formatRoleLabel(session.user.role);
-  const allowedRoutes =
-    ROLE_TAB_MAP[session.user.role] ?? ROLE_TAB_MAP.apprentice;
+  const isOwnerLike = hasOwnerLikeAccess(session.user.role);
+  const isManagerLike = hasManagerLikeAccess(session.user.role);
+  const normalizedRole = normalizeRole(session.user.role);
+
+  const allowedRoutes = isOwnerLike
+    ? ownerTabs
+    : isManagerLike
+      ? managerTabs
+      : ROLE_TAB_MAP[normalizedRole] ?? ROLE_TAB_MAP.apprentice;
   const visibleTabs = TABS.filter((tab) => allowedRoutes.includes(tab.href));
   const tabsToRender = visibleTabs.length ? visibleTabs : TABS;
 

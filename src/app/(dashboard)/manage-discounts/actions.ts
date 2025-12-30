@@ -5,8 +5,7 @@ import { z } from "zod";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
-
-const allowedRoles = new Set(["owner", "manager"]);
+import { hasManagerLikeAccess, hasOwnerLikeAccess } from "@/config/brand-overrides";
 
 const discountSchema = z.object({
   name: z.string().min(1, "Discount name is required"),
@@ -26,7 +25,7 @@ export const createDiscount = async (
   formData: FormData,
 ): Promise<DiscountFormState> => {
   const session = await getSession();
-  if (!session || !allowedRoles.has(session.user.role)) {
+  if (!session || !hasManagerLikeAccess(session.user.role)) {
     return { status: "error", message: "You do not have permission" };
   }
 
@@ -66,7 +65,7 @@ export const createDiscount = async (
 
 export const deleteDiscount = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || !allowedRoles.has(session.user.role)) {
+  if (!session || !hasManagerLikeAccess(session.user.role)) {
     return;
   }
 
@@ -76,11 +75,17 @@ export const deleteDiscount = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
-  await supabase
-    .from("discounts")
-    .delete()
-    .eq("id", id)
-    .eq("owner_id", session.user.id);
+  const isOwnerLike = hasOwnerLikeAccess(session.user.role);
+  let deleteQuery = supabase.from("discounts").delete().eq("id", id);
+  if (!isOwnerLike) {
+    deleteQuery = deleteQuery.eq("owner_id", session.user.id);
+  }
+
+  const { error } = await deleteQuery;
+  if (error) {
+    console.error("Failed to delete discount", error);
+    return;
+  }
 
   revalidatePath("/manage-discounts");
   revalidatePath("/sales-register");

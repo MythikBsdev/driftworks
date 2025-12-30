@@ -1,7 +1,36 @@
 import { brand } from "@/config/brands";
 
-const isLscustoms = brand.slug === "lscustoms";
+export const isLscustoms = brand.slug === "lscustoms";
 const isSynlineauto = brand.slug === "synlineauto";
+
+export const normalizeRole = (role?: string | null) =>
+  (role ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+export const hasOwnerLikeAccess = (role?: string | null) => {
+  const normalizedRole = normalizeRole(role);
+  return normalizedRole === "owner" || (isLscustoms && normalizedRole === "shop_foreman");
+};
+
+export const hasManagerLikeAccess = (role?: string | null) => {
+  const normalizedRole = normalizeRole(role);
+  return normalizedRole === "manager" || hasOwnerLikeAccess(normalizedRole);
+};
+
+export const hasLsManagerOrOwnerAccess = (role?: string | null) => {
+  const normalizedRole = normalizeRole(role);
+  return hasOwnerLikeAccess(normalizedRole) || (isLscustoms && normalizedRole === "manager");
+};
+
+export const canManageUsers = (role?: string | null) => {
+  const normalizedRole = normalizeRole(role);
+  return (
+    normalizedRole === "owner" ||
+    (isLscustoms && (normalizedRole === "manager" || normalizedRole === "shop_foreman"))
+  );
+};
 
 export const apprenticeLabel = isLscustoms ? "Jr. Mech" : "Apprentice";
 
@@ -34,7 +63,9 @@ export const formatRoleLabel = (role?: string | null) => {
   if (!role) {
     return "User";
   }
-  return roleLabelsMap[role] ?? toTitleCase(role);
+  const normalizedRole = normalizeRole(role);
+  const safeRole = normalizedRole || role;
+  return roleLabelsMap[normalizedRole] ?? toTitleCase(safeRole);
 };
 
 export type InventoryCategoryOption = { value: string; label: string };

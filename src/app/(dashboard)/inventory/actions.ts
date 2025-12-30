@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { brand } from "@/config/brands";
+import { hasManagerLikeAccess, hasOwnerLikeAccess, isLscustoms } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
@@ -80,8 +81,7 @@ export const deleteInventoryItem = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
-  const allowedRoles = new Set(["owner", "manager"]);
-  if (!allowedRoles.has(session.user.role)) {
+  if (!hasManagerLikeAccess(session.user.role)) {
     return;
   }
 
@@ -96,8 +96,7 @@ export const deleteInventoryItem = async (formData: FormData) => {
     return;
   }
 
-  const canDeleteAny =
-    session.user.role === "owner" || session.user.role === "manager";
+  const canDeleteAny = hasOwnerLikeAccess(session.user.role) || session.user.role === "manager";
 
   let deleteQuery = supabase.from("inventory_items").delete().eq("id", itemId);
   if (!canDeleteAny) {
@@ -152,8 +151,8 @@ export const updateInventoryItem = async (
     .eq("id", itemId);
 
   const isElevatedManager =
-    brand.slug === "lscustoms" && session.user.role === "manager";
-  if (session.user.role !== "owner" && !isElevatedManager) {
+    isLscustoms && (session.user.role === "manager" || session.user.role === "shop_foreman");
+  if (!hasOwnerLikeAccess(session.user.role) && !isElevatedManager) {
     query = query.eq("owner_id", session.user.id);
   }
 

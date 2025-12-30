@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { brand } from "@/config/brands";
+import {
+  hasLsManagerOrOwnerAccess,
+  hasManagerLikeAccess,
+} from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -85,10 +88,7 @@ const removeUserSales = async (
 
 export const resetAllSales = async () => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
 
   if (!canManage) {
     return;
@@ -123,10 +123,7 @@ export const resetAllSales = async () => {
 
 export const resetUserSales = async (formData: FormData) => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
 
   if (!canManage) {
     return;
@@ -150,7 +147,7 @@ export const resetUserSales = async (formData: FormData) => {
 
 export const deleteSale = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || !["owner", "manager"].includes(session.user.role)) {
+  if (!session || !hasManagerLikeAccess(session.user.role)) {
     return;
   }
 

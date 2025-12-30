@@ -8,7 +8,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { brand } from "@/config/brands";
+import { canManageUsers, hasOwnerLikeAccess } from "@/config/brand-overrides";
 
 const createUserSchema = z.object({
   username: z
@@ -46,10 +46,7 @@ export const createUserAccount = async (
   formData: FormData,
 ): Promise<CreateUserState> => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && canManageUsers(session.user.role);
 
   if (!canManage) {
     return {
@@ -114,10 +111,7 @@ const updateRoleSchema = z.object({
 
 export const updateUserRole = async (formData: FormData) => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && canManageUsers(session.user.role);
 
   if (!canManage) {
     return;
@@ -182,10 +176,7 @@ const resetPasswordSchema = z.object({
 
 export const resetUserPassword = async (formData: FormData) => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && canManageUsers(session.user.role);
 
   if (!canManage) {
     return;
@@ -222,10 +213,7 @@ const deleteUserSchema = z.object({
 
 export const deleteUserAccount = async (formData: FormData) => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && canManageUsers(session.user.role);
 
   if (!canManage) {
     return;
@@ -328,4 +316,3 @@ export const deleteUserAccount = async (formData: FormData) => {
     console.error("Failed to delete user account", error);
   }
 };
-

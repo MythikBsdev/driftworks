@@ -5,9 +5,9 @@ import { KeyRound, Trash2 } from "lucide-react";
 import CreateUserForm from "@/components/users/create-user-form";
 import {
   formatRoleLabel,
+  canManageUsers,
   roleOptions,
 } from "@/config/brand-overrides";
-import { brand } from "@/config/brands";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -37,9 +37,7 @@ const ManageUsersPage = async () => {
   const userRows =
     (users ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
-  const canManage =
-    session.user.role === "owner" ||
-    (brand.slug === "lscustoms" && session.user.role === "manager");
+  const canManage = canManageUsers(session.user.role);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { brand } from "@/config/brands";
+import { hasLsManagerOrOwnerAccess, hasOwnerLikeAccess } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
@@ -22,15 +23,12 @@ export const createCommission = async (
   formData: FormData,
 ): Promise<CommissionFormState> => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
 
   if (!canManage) {
     return {
       status: "error",
-      message: "Only owners can create commission rates",
+      message: "You do not have permission to create commission rates",
     };
   }
 
@@ -69,10 +67,7 @@ export const createCommission = async (
 
 export const deleteCommission = async (formData: FormData) => {
   const session = await getSession();
-  const canManage =
-    session &&
-    (session.user.role === "owner" ||
-      (brand.slug === "lscustoms" && session.user.role === "manager"));
+  const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
 
   if (!canManage) {
     return;
@@ -84,11 +79,13 @@ export const deleteCommission = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
-  const isOwner = session.user.role === "owner";
+  const isOwnerLike = hasOwnerLikeAccess(session.user.role);
+  const isLscustomsManager = brand.slug === "lscustoms" && session.user.role === "manager";
 
-  // For LS Customs we allow managers to delete any commission entry; owners can always delete.
+  // Owner-like users (including LS shop foremen) or LS managers can delete any entry.
+  // Other cases fall back to owner_id matching.
   let deleteQuery = supabase.from("commission_rates").delete().eq("id", id);
-  if (!isOwner && brand.slug !== "lscustoms") {
+  if (!isOwnerLike && !isLscustomsManager) {
     deleteQuery = deleteQuery.eq("owner_id", session.user.id);
   }
 

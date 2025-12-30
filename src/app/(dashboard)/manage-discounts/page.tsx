@@ -1,6 +1,7 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { createDiscount, deleteDiscount } from "./actions";
+import { hasManagerLikeAccess } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -12,8 +13,7 @@ const ManageDiscountsPage = async () => {
     redirect("/login");
   }
 
-  const allowedRoles = new Set(["owner", "manager"]);
-  if (!allowedRoles.has(session.user.role)) {
+  if (!hasManagerLikeAccess(session.user.role)) {
     redirect("/dashboard");
   }
 
@@ -45,10 +45,7 @@ const ManageDiscountsPage = async () => {
         </p>
         <form action={create} className="mt-6 space-y-4">
           <div className="space-y-2">
-            <label
-              className="muted-label"
-              htmlFor="name"
-            >
+            <label className="muted-label" htmlFor="name">
               Discount Name
             </label>
             <input
@@ -60,10 +57,7 @@ const ManageDiscountsPage = async () => {
             />
           </div>
           <div className="space-y-2">
-            <label
-              className="muted-label"
-              htmlFor="percentage"
-            >
+            <label className="muted-label" htmlFor="percentage">
               Percentage (0.00 - 1.00)
             </label>
             <input
@@ -78,10 +72,7 @@ const ManageDiscountsPage = async () => {
               className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             />
           </div>
-          <button
-            type="submit"
-            className="btn-primary w-full justify-center"
-          >
+          <button type="submit" className="btn-primary w-full justify-center">
             Add Discount
           </button>
         </form>
@@ -117,11 +108,7 @@ const ManageDiscountsPage = async () => {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <form action={remove}>
-                        <input
-                          type="hidden"
-                          name="discountId"
-                          value={discount.id}
-                        />
+                        <input type="hidden" name="discountId" value={discount.id} />
                         <button
                           type="submit"
                           className="text-xs uppercase tracking-[0.3em] text-red-400 transition hover:text-red-300"
@@ -151,9 +138,3 @@ const ManageDiscountsPage = async () => {
 };
 
 export default ManageDiscountsPage;
-
-
-
-
-
-
