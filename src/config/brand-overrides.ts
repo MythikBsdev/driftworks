@@ -3,11 +3,22 @@ import { brand } from "@/config/brands";
 export const isLscustoms = brand.slug === "lscustoms";
 const isSynlineauto = brand.slug === "synlineauto";
 
-export const normalizeRole = (role?: string | null) =>
-  (role ?? "")
+const roleAliases: Record<string, string> = {
+  shopforeman: "shop_foreman",
+  shopforemen: "shop_foreman",
+  mastertech: "master_tech",
+  mechanic: "mechanic",
+  apprentice: "apprentice",
+};
+
+export const normalizeRole = (role?: string | null) => {
+  const normalized = (role ?? "")
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
+
+  return roleAliases[normalized] ?? normalized;
+};
 
 export const hasOwnerLikeAccess = (role?: string | null) => {
   const normalizedRole = normalizeRole(role);

@@ -5,6 +5,7 @@ import {
   brandCurrency,
   formatCategoryLabel,
   inventoryCategories,
+  hasManagerLikeAccess,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -27,8 +28,7 @@ const InventoryPage = async () => {
     redirect("/login");
   }
 
-  const allowedRoles = new Set(["owner", "manager"]);
-  if (!allowedRoles.has(session.user.role)) {
+  if (!hasManagerLikeAccess(session.user.role)) {
     redirect("/dashboard");
   }
 
