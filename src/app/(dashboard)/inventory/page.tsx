@@ -38,7 +38,7 @@ const InventoryPage = async () => {
   const { data: inventory } = await supabase
     .from("inventory_items")
     .select(
-      "id, name, category, price, profit, commission_rate_override, description, updated_at, created_at",
+      "id, name, category, price, profit, commission_flat_override, description, updated_at, created_at",
     )
     .order("updated_at", { ascending: false });
 
@@ -151,24 +151,22 @@ const InventoryPage = async () => {
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="muted-label" htmlFor="commissionRateOverride">
-                  Fixed Commission Rate (optional)
+                <label className="muted-label" htmlFor="commissionFlatOverride">
+                  Fixed Commission Payout (optional)
                 </label>
                 <div className="flex items-center gap-2">
                   <input
-                    id="commissionRateOverride"
-                    name="commissionRateOverride"
+                    id="commissionFlatOverride"
+                    name="commissionFlatOverride"
                     type="number"
                     step="0.01"
                     min="0"
-                    max="100"
-                    placeholder="e.g., 12.5"
+                    placeholder="e.g., 100.00"
                     className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
                   />
-                  <span className="text-sm text-white/50">%</span>
                 </div>
                 <p className="text-xs text-white/50">
-                  Leave blank to use the employee&apos;s rank rate. If set, this percentage is used for this item regardless of role.
+                  Leave blank to use the employee&apos;s rank rate. If set, this amount is paid per unit sold regardless of role (after discounts).
                 </p>
               </div>
             </div>
@@ -207,9 +205,9 @@ const InventoryPage = async () => {
                     </td>
                     <td className="px-4 py-3 font-medium text-white">
                       {formatter.format(item.price ?? 0)}
-                      {showProfit && item.commission_rate_override != null ? (
+                      {showProfit && item.commission_flat_override != null ? (
                         <p className="text-xs text-white/50">
-                          Fixed commission: {(item.commission_rate_override * 100).toFixed(1)}%
+                          Fixed commission: {formatter.format(item.commission_flat_override)}
                         </p>
                       ) : null}
                     </td>
@@ -318,27 +316,25 @@ const InventoryPage = async () => {
                                     htmlFor={`commissionRateOverride-${item.id}`}
                                     className="muted-label"
                                   >
-                                    Fixed Commission Rate (optional)
+                                    Fixed Commission Payout (optional)
                                   </label>
                                   <div className="flex items-center gap-2">
                                     <input
                                       id={`commissionRateOverride-${item.id}`}
-                                      name="commissionRateOverride"
+                                      name="commissionFlatOverride"
                                       type="number"
                                       step="0.01"
                                       min="0"
-                                      max="100"
                                       defaultValue={
-                                        item.commission_rate_override != null
-                                          ? (item.commission_rate_override * 100).toString()
+                                        item.commission_flat_override != null
+                                          ? item.commission_flat_override.toString()
                                           : ""
                                       }
                                       className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
                                     />
-                                    <span className="text-sm text-white/50">%</span>
                                   </div>
                                   <p className="text-xs text-white/45">
-                                    Leave blank to use the employee&apos;s rank rate. If set, this percentage is used for this item regardless of role.
+                                    Leave blank to use the employee&apos;s rank rate. If set, this amount is paid per unit sold regardless of role (after discounts).
                                   </p>
                                 </div>
                               </div>

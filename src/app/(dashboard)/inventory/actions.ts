@@ -7,25 +7,22 @@ import { hasManagerLikeAccess, hasOwnerLikeAccess, isLscustoms } from "@/config/
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 
-const commissionOverrideSchema = z
-  .preprocess(
-    (value) => {
-      if (value === undefined || value === null) {
-        return null;
-      }
-      const raw = value.toString().trim();
-      if (!raw.length) {
-        return null;
-      }
-      return Number(raw);
-    },
-    z
-      .number()
-      .min(0, "Commission override must be zero or greater")
-      .max(100, "Commission override cannot exceed 100%")
-      .nullable(),
-  )
-  .transform((value) => (value === null ? null : value / 100));
+const commissionOverrideSchema = z.preprocess(
+  (value) => {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    const raw = value.toString().trim();
+    if (!raw.length) {
+      return null;
+    }
+    return Number(raw);
+  },
+  z
+    .number()
+    .nonnegative("Commission override must be zero or greater")
+    .nullable(),
+);
 
 const itemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
@@ -33,7 +30,7 @@ const itemSchema = z.object({
   description: z.string().optional().or(z.literal("")),
   price: z.coerce.number().nonnegative("Price must be zero or greater"),
   profit: z.coerce.number().nonnegative("Profit must be zero or greater").default(0),
-  commissionRateOverride: commissionOverrideSchema,
+  commissionFlatOverride: commissionOverrideSchema,
 });
 
 const updateSchema = itemSchema.extend({
@@ -60,7 +57,7 @@ export const createInventoryItem = async (
     description: formData.get("description")?.toString(),
     price: formData.get("price"),
     profit: formData.get("profit"),
-    commissionRateOverride: formData.get("commissionRateOverride"),
+    commissionFlatOverride: formData.get("commissionFlatOverride"),
   });
 
   if (!parsed.success) {
@@ -80,7 +77,7 @@ export const createInventoryItem = async (
       description: parsed.data.description || null,
       price: parsed.data.price,
       profit: parsed.data.profit ?? 0,
-      commission_rate_override: parsed.data.commissionRateOverride,
+      commission_flat_override: parsed.data.commissionFlatOverride,
     } as never,
   );
 
@@ -154,7 +151,7 @@ export const updateInventoryItem = async (
     description: formData.get("description"),
     price: formData.get("price"),
     profit: formData.get("profit"),
-    commissionRateOverride: formData.get("commissionRateOverride"),
+    commissionFlatOverride: formData.get("commissionFlatOverride"),
   });
 
   if (!parsed.success) {
@@ -175,7 +172,7 @@ export const updateInventoryItem = async (
       description: payload.description || null,
       price: payload.price,
       profit: payload.profit ?? 0,
-      commission_rate_override: payload.commissionRateOverride,
+      commission_flat_override: payload.commissionFlatOverride,
     } as never)
     .eq("id", itemId);
 

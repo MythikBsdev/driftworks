@@ -16,7 +16,7 @@ const SalesRegisterPage = async () => {
   const [{ data: items }, { data: discountRows }] = await Promise.all([
     supabase
       .from("inventory_items")
-      .select("id, name, category, price, profit, commission_rate_override")
+      .select("id, name, category, price, profit, commission_flat_override")
       .order("price", { ascending: false }),
     supabase
       .from("discounts")

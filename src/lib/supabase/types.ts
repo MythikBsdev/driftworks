@@ -61,7 +61,7 @@ export type Database = {
           description: string | null;
           price: number;
           profit: number;
-          commission_rate_override: number | null;
+          commission_flat_override: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -73,7 +73,7 @@ export type Database = {
           description?: string | null;
           price?: number;
           profit?: number;
-          commission_rate_override?: number | null;
+          commission_flat_override?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -85,7 +85,7 @@ export type Database = {
           description?: string | null;
           price?: number;
           profit?: number;
-          commission_rate_override?: number | null;
+          commission_flat_override?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -197,7 +197,7 @@ export type Database = {
           unit_profit: number;
           total: number;
           profit_total: number;
-          commission_rate_override: number | null;
+          commission_flat_override: number | null;
         };
         Insert: {
           id?: string;
@@ -209,7 +209,7 @@ export type Database = {
           unit_profit: number;
           total: number;
           profit_total: number;
-          commission_rate_override?: number | null;
+          commission_flat_override?: number | null;
         };
         Update: {
           id?: string;
@@ -221,7 +221,7 @@ export type Database = {
           unit_profit?: number;
           total?: number;
           profit_total?: number;
-          commission_rate_override?: number | null;
+          commission_flat_override?: number | null;
         };
       };
       employee_sales: {

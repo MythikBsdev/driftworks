@@ -67,7 +67,7 @@ const DashboardPage = async () => {
   if (saleIds.length) {
     const { data: saleItemRows } = await supabase
       .from("sales_order_items")
-      .select("order_id, total, profit_total, commission_rate_override")
+      .select("order_id, total, profit_total, commission_flat_override, quantity")
       .in("order_id", saleIds);
 
     salesOrderItems =
@@ -129,8 +129,12 @@ const DashboardPage = async () => {
           ? item.profit_total ?? 0
           : (item.total ?? 0) * discountMultiplier;
         addBase(ownerId, base);
-        const appliedRate = item.commission_rate_override ?? roleRate;
-        addCommission(ownerId, base * appliedRate);
+        const appliedFlat = item.commission_flat_override;
+        if (appliedFlat != null) {
+          addCommission(ownerId, appliedFlat * (item.quantity ?? 1) * discountMultiplier);
+        } else {
+          addCommission(ownerId, base * roleRate);
+        }
       });
       return;
     }

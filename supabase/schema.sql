@@ -39,7 +39,7 @@ create table if not exists public.inventory_items (
   description text,
   price numeric not null default 0,
   profit numeric not null default 0,
-  commission_rate_override numeric check (commission_rate_override >= 0 and commission_rate_override <= 1),
+  commission_flat_override numeric check (commission_flat_override >= 0),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -87,7 +87,7 @@ create table if not exists public.sales_order_items (
   unit_profit numeric not null default 0,
   total numeric not null default 0,
   profit_total numeric not null default 0,
-  commission_rate_override numeric check (commission_rate_override >= 0 and commission_rate_override <= 1)
+  commission_flat_override numeric check (commission_flat_override >= 0)
 );
 
 create table if not exists public.loyalty_accounts (
