@@ -67,7 +67,7 @@ const ManageUsersPage = async () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="overflow-visible rounded-2xl border border-white/10 bg-white/5">
           <table className="w-full text-sm text-white/80">
             <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
