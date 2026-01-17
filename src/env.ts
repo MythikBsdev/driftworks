@@ -8,6 +8,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
   NEXT_PUBLIC_BRAND: z.string().optional(),
+  DEBUG_HEALTH_TOKEN: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse({
@@ -16,6 +17,7 @@ const parsed = envSchema.safeParse({
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_BRAND: process.env.NEXT_PUBLIC_BRAND,
+  DEBUG_HEALTH_TOKEN: process.env.DEBUG_HEALTH_TOKEN,
 });
 
 if (!parsed.success) {
@@ -28,4 +30,5 @@ export const env = {
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_BRAND: process.env.NEXT_PUBLIC_BRAND,
+  DEBUG_HEALTH_TOKEN: process.env.DEBUG_HEALTH_TOKEN,
 };

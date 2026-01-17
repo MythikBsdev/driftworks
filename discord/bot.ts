@@ -154,7 +154,7 @@ client.on("messageCreate", async (message) => {
   const parsedAmount = parseFloat((amountRaw ?? "").replace(/[$,]/g, ""));
 
   if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-    await message.reply("Usage: `!buy 100` – provide a positive number to record a purchase.");
+    await message.reply("Usage: `!buy 100` - provide a positive number to record a purchase.");
     return;
   }
 

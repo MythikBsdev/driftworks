@@ -35,6 +35,17 @@ create table if not exists public.termination_logs (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.payout_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.app_users(id) on delete set null,
+  username text not null,
+  sales_total numeric not null default 0,
+  commission_total numeric not null default 0,
+  bonus numeric not null default 0,
+  action text not null default 'pay',
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.user_sessions (
   token uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.app_users(id) on delete cascade,

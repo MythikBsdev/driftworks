@@ -104,6 +104,60 @@ const payUserSchema = z.object({
   ),
 });
 
+type SalesOrderRow = Database["public"]["Tables"]["sales_orders"]["Row"];
+type SalesOrderItemRow = Database["public"]["Tables"]["sales_order_items"]["Row"];
+type EmployeeSalesRow = Database["public"]["Tables"]["employee_sales"]["Row"];
+
+const computeTotals = (
+  salesOrders: SalesOrderRow[],
+  salesOrderItems: SalesOrderItemRow[],
+  employeeSales: EmployeeSalesRow[],
+  roleRate: number,
+  useProfitBase: boolean,
+) => {
+  const itemsByOrderId = new Map<string, SalesOrderItemRow[]>();
+  salesOrderItems.forEach((item) => {
+    const current = itemsByOrderId.get(item.order_id) ?? [];
+    current.push(item);
+    itemsByOrderId.set(item.order_id, current);
+  });
+
+  let commissionTotal = 0;
+  let salesTotal = 0;
+
+  salesOrders.forEach((order) => {
+    salesTotal += order.total ?? 0;
+    const discountMultiplier =
+      order.subtotal && order.subtotal > 0
+        ? Math.max(Math.min((order.total ?? 0) / order.subtotal, 1), 0)
+        : 0;
+    const lineItems = itemsByOrderId.get(order.id) ?? [];
+    if (lineItems.length) {
+      lineItems.forEach((item) => {
+        const base = useProfitBase
+          ? item.profit_total ?? 0
+          : (item.total ?? 0) * discountMultiplier;
+        const appliedFlat = item.commission_flat_override;
+        if (appliedFlat != null) {
+          commissionTotal += appliedFlat * (item.quantity ?? 1) * discountMultiplier;
+        } else {
+          commissionTotal += base * roleRate;
+        }
+      });
+      return;
+    }
+    const fallbackBase = useProfitBase ? order.profit_total ?? 0 : order.total ?? 0;
+    commissionTotal += fallbackBase * roleRate;
+  });
+
+  employeeSales.forEach((entry) => {
+    salesTotal += entry.amount ?? 0;
+    commissionTotal += (entry.amount ?? 0) * roleRate;
+  });
+
+  return { salesTotal, commissionTotal };
+};
+
 export const resetAllSales = async () => {
   const session = await getSession();
   const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
@@ -116,19 +170,36 @@ export const resetAllSales = async () => {
 
   const { data: userRows, error: userSelectError } = await supabase
     .from("app_users")
-    .select("id");
+    .select("id, role, username");
 
   if (userSelectError) {
     console.error("Failed to fetch users for reset", userSelectError);
     return;
   }
 
-  const userIds = (userRows ?? [])
-    .map((row) => (row as Database["public"]["Tables"]["app_users"]["Row"]).id)
-    .filter((id): id is string => Boolean(id));
+  const typedUsers =
+    (userRows ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
-  for (const userId of userIds) {
-    const success = await removeUserSales(supabase, userId);
+  for (const user of typedUsers) {
+    const { salesTotal, commissionTotal } = await computeUserTotalsForUser(
+      supabase,
+      user.id,
+      user.role,
+    );
+
+    const { error: logError } = await supabase.from("payout_logs").insert({
+      user_id: user.id,
+      username: user.username,
+      sales_total: salesTotal,
+      commission_total: commissionTotal,
+      bonus: 0,
+      action: "reset",
+    } as never);
+    if (logError) {
+      console.error("Failed to log payout during resetAll", logError);
+    }
+
+    const success = await removeUserSales(supabase, user.id);
     if (!success) {
       return;
     }
@@ -153,6 +224,34 @@ export const resetUserSales = async (formData: FormData) => {
   }
 
   const supabase = createSupabaseServerActionClient();
+  const { data: userRowRaw } = await supabase
+    .from("app_users")
+    .select("id, role, username")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const userRow =
+    userRowRaw as Database["public"]["Tables"]["app_users"]["Row"] | null;
+
+  if (userRow) {
+    const { salesTotal, commissionTotal } = await computeUserTotalsForUser(
+      supabase,
+      userRow.id,
+      userRow.role,
+    );
+    const { error: logError } = await supabase.from("payout_logs").insert({
+      user_id: userRow.id,
+      username: userRow.username,
+      sales_total: salesTotal,
+      commission_total: commissionTotal,
+      bonus: 0,
+      action: "reset",
+    } as never);
+    if (logError) {
+      console.error("Failed to log payout during resetUser", logError);
+    }
+  }
+
   const success = await removeUserSales(supabase, userId);
   if (!success) {
     return;
@@ -214,6 +313,49 @@ export const deleteSale = async (formData: FormData) => {
 };
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+
+const computeUserTotalsForUser = async (
+  supabase: ReturnType<typeof createSupabaseServerActionClient>,
+  userId: string,
+  role: string,
+) => {
+  const [{ data: commissionRatesResult }, { data: salesOrdersResult }, { data: employeeSalesResult }] =
+    await Promise.all([
+      supabase.from("commission_rates").select("role, rate"),
+      supabase
+        .from("sales_orders")
+        .select("id, owner_id, subtotal, total, profit_total")
+        .eq("owner_id", userId),
+      supabase
+        .from("employee_sales")
+        .select("employee_id, amount")
+        .eq("employee_id", userId),
+    ]);
+
+  const commissionRates =
+    (commissionRatesResult ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
+  const salesOrders =
+    (salesOrdersResult ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
+  const employeeSales =
+    (employeeSalesResult ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
+
+  const commissionMap = new Map<string, number>();
+  commissionRates.forEach((rate) => commissionMap.set(rate.role, rate.rate ?? 0));
+  const roleRate = commissionMap.get(role) ?? 0;
+
+  const saleIds = salesOrders.map((order) => order.id).filter(Boolean);
+  let salesOrderItems: Database["public"]["Tables"]["sales_order_items"]["Row"][] = [];
+  if (saleIds.length) {
+    const { data: saleItemRows } = await supabase
+      .from("sales_order_items")
+      .select("order_id, total, profit_total, commission_flat_override, quantity")
+      .in("order_id", saleIds);
+    salesOrderItems =
+      (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
+  }
+
+  return computeTotals(salesOrders, salesOrderItems, employeeSales, roleRate, commissionUsesProfit);
+};
 
 export type PayUserState =
   | { status: "idle"; message?: string }

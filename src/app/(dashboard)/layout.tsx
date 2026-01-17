@@ -9,6 +9,7 @@ import {
   hasOwnerLikeAccess,
   isBennys,
   isLscustoms,
+  isBigtuna,
   normalizeRole,
 } from "@/config/brand-overrides";
 import { signOut } from "@/app/(dashboard)/actions";
@@ -16,9 +17,9 @@ import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
 const isSynlineauto = brand.slug === "synlineauto";
-const isBigtuna = brand.slug === "bigtuna";
-const loyaltyEnabled = !isLscustoms && !isSynlineauto && !isBigtuna && !isBennys;
-const brandSpecificTab = isLscustoms || isBennys ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
+const partsEnabled = isLscustoms || isBennys || isBigtuna;
+const loyaltyEnabled = !partsEnabled && !isSynlineauto;
+const brandSpecificTab = partsEnabled ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
 
 const baseTabs = [
   { label: "Dashboard", href: "/dashboard" },
@@ -26,7 +27,7 @@ const baseTabs = [
   { label: "Sales", href: "/sales" },
 ];
 
-const optionalTab = isLscustoms || isBennys
+const optionalTab = partsEnabled
   ? { label: "Parts", href: "/parts" }
   : loyaltyEnabled
     ? { label: "Loyalty", href: "/loyalty" }
@@ -49,7 +50,7 @@ const ownerTabs = TABS.map((tab) => tab.href);
 const managerTabs = ownerTabs;
 
 const gateParts = (routes: string[]) =>
-  isLscustoms || isBennys ? routes.filter((href) => href !== "/parts") : routes;
+  isLscustoms || isBennys || isBigtuna ? routes.filter((href) => href !== "/parts") : routes;
 
 const ROLE_TAB_MAP: Record<string, string[]> = {
   owner: ownerTabs,

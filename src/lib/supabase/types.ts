@@ -64,6 +64,38 @@ export type Database = {
           created_at?: string;
         };
       };
+      payout_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          username: string;
+          sales_total: number;
+          commission_total: number;
+          bonus: number;
+          action: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          username: string;
+          sales_total?: number;
+          commission_total?: number;
+          bonus?: number;
+          action?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          username?: string;
+          sales_total?: number;
+          commission_total?: number;
+          bonus?: number;
+          action?: string;
+          created_at?: string;
+        };
+      };
       user_sessions: {
         Row: {
           token: string;
