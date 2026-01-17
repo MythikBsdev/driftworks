@@ -61,7 +61,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     await Promise.all([
       supabase
         .from("app_users")
-        .select("id, username, full_name, role")
+        .select("id, username, full_name, role, bank_account")
         .order("username", { ascending: true }),
       supabase
         .from("employee_sales")
@@ -190,6 +190,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         commissionBase,
         commissionRate,
         commissionTotal,
+        bankAccount: user.bank_account ?? null,
       };
     })
     .filter((row) => {
@@ -214,13 +215,14 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   const commissionBaseLabel = commissionUsesProfit ? "Total Profit" : "Total Sales";
   const csvRows = [
-    ["Name", "Role", commissionBaseLabel, "Commission %", "Commission"],
+    ["Name", "Role", commissionBaseLabel, "Commission %", "Commission", "Bank Account"],
     ...summaryRows.map((row) => [
       row.displayName,
       formatRoleLabel(row.role),
       row.commissionBase.toFixed(2),
       (row.commissionRate * 100).toFixed(2),
       row.commissionTotal.toFixed(2),
+      row.bankAccount ?? "",
     ]),
   ];
   const csvDataUri = `data:text/csv;charset=utf-8,${encodeURIComponent(
@@ -369,6 +371,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                   {commissionBaseLabel}
                 </th>
                 <th className="px-4 py-3 font-medium text-left">Commission</th>
+                <th className="px-4 py-3 font-medium text-left">Bank Account</th>
                 <th className="px-4 py-3 font-medium text-left">Actions</th>
               </tr>
             </thead>
@@ -405,6 +408,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                       </td>
                       <td className="px-4 py-3 text-white/60">
                         {formatter.format(row.commissionTotal)}
+                      </td>
+                      <td className="px-4 py-3 text-white/60">
+                        {row.bankAccount ?? "-"}
                       </td>
                       <td className="px-4 py-3">
                         {session.user.role === "owner" ? (

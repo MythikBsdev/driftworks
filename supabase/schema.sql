@@ -19,6 +19,7 @@ create table if not exists public.app_users (
   username text not null unique,
   password_hash text not null,
   full_name text,
+  bank_account text,
   role text not null default 'staff',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())

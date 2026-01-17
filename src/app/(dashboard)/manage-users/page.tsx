@@ -1,6 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
-import { KeyRound, Trash2 } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 
 import CreateUserForm from "@/components/users/create-user-form";
 import {
@@ -14,7 +14,7 @@ import type { Database } from "@/lib/supabase/types";
 
 import {
   deleteUserAccount,
-  resetUserPassword,
+  updateUserAccount,
   updateUserRole,
 } from "./actions";
 
@@ -31,7 +31,7 @@ const ManageUsersPage = async () => {
   const supabase = createSupabaseServerClient();
   const { data: users } = await supabase
     .from("app_users")
-    .select("id, username, full_name, role, created_at")
+    .select("id, username, full_name, bank_account, role, created_at")
     .order("username", { ascending: true });
 
   const userRows =
@@ -73,7 +73,6 @@ const ManageUsersPage = async () => {
               <tr>
                 <th className="px-4 py-3 text-left font-medium">User</th>
                 <th className="px-4 py-3 text-left font-medium">Role</th>
-                <th className="px-4 py-3 text-center font-medium">Set Password</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
@@ -120,41 +119,65 @@ const ManageUsersPage = async () => {
                           </p>
                         )}
                       </td>
-                      <td className="px-4 py-3 align-middle">
-                        {canManage ? (
-                          <form action={resetUserPassword} className="flex items-center gap-2 justify-center sm:justify-start">
-                            <input type="hidden" name="userId" value={user.id} />
-                            <input
-                              type="password"
-                              name="password"
-                              minLength={8}
-                              required
-                              placeholder="New password"
-                              autoComplete="new-password"
-                              className="w-48 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-                            />
-                            <button type="submit" className="btn-ghost px-3 py-2 text-xs">
-                              <KeyRound className="h-4 w-4" />
-                              Set
-                            </button>
-                          </form>
-                        ) : (
-                          <span className="text-sm text-white/50">Owner access required</span>
-                        )}
-                      </td>
                       <td className="px-4 py-3 text-right align-middle">
                         {canManage ? (
-                          <form action={deleteUserAccount} className="inline-flex">
-                            <input type="hidden" name="userId" value={user.id} />
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                              disabled={isSelf}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </button>
-                          </form>
+                          <div className="flex items-center justify-end gap-3">
+                            <details className="relative">
+                              <summary className="flex cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-black/40 p-2 text-white/70 transition hover:border-white/20 hover:text-white [&::-webkit-details-marker]:hidden">
+                                <span className="sr-only">Edit {user.username}</span>
+                                <Edit3 className="h-4 w-4" />
+                              </summary>
+                              <form
+                                action={updateUserAccount}
+                                className="absolute right-0 z-10 mt-3 w-80 space-y-3 rounded-2xl border border-white/10 bg-black/85 p-4 text-left shadow-[0_25px_60px_-35px_rgba(0,0,0,0.75)] backdrop-blur-xl"
+                              >
+                                <input type="hidden" name="userId" value={user.id} />
+                                <div className="space-y-1">
+                                  <label className="muted-label" htmlFor={`password-${user.id}`}>
+                                    New Password
+                                  </label>
+                                  <input
+                                    id={`password-${user.id}`}
+                                    name="password"
+                                    type="password"
+                                    minLength={8}
+                                    placeholder="Leave blank to keep current"
+                                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="muted-label" htmlFor={`bank-${user.id}`}>
+                                    Bank Account #
+                                  </label>
+                                  <input
+                                    id={`bank-${user.id}`}
+                                    name="bankAccount"
+                                    defaultValue={user.bank_account ?? ""}
+                                    placeholder="Enter payout account"
+                                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                                  />
+                                  <p className="text-xs text-white/45">
+                                    This value shows in sales summary for payouts.
+                                  </p>
+                                </div>
+                                <button type="submit" className="btn-primary w-full justify-center">
+                                  Save changes
+                                </button>
+                              </form>
+                            </details>
+
+                            <form action={deleteUserAccount} className="inline-flex">
+                              <input type="hidden" name="userId" value={user.id} />
+                              <button
+                                type="submit"
+                                className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={isSelf}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </button>
+                            </form>
+                          </div>
                         ) : (
                           <span className="text-sm text-white/50">Owner access required</span>
                         )}

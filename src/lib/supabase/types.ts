@@ -9,6 +9,7 @@ export type Database = {
           username: string;
           password_hash: string;
           full_name: string | null;
+          bank_account: string | null;
           role: string;
           created_at: string;
           updated_at: string;
@@ -18,6 +19,7 @@ export type Database = {
           username: string;
           password_hash: string;
           full_name?: string | null;
+          bank_account?: string | null;
           role?: string;
           created_at?: string;
           updated_at?: string;
@@ -27,6 +29,7 @@ export type Database = {
           username?: string;
           password_hash?: string;
           full_name?: string | null;
+          bank_account?: string | null;
           role?: string;
           created_at?: string;
           updated_at?: string;

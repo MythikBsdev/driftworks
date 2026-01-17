@@ -174,6 +174,23 @@ const resetPasswordSchema = z.object({
   password: createUserSchema.shape.password,
 });
 
+const updateUserAccountSchema = z
+  .object({
+    userId: z.string().uuid(),
+    password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
+    bankAccount: z
+      .string()
+      .max(64, "Bank account is too long")
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine(
+    (value) =>
+      (value.password && value.password.length >= 8) ||
+      (value.bankAccount && value.bankAccount.trim().length > 0),
+    { message: "Provide a new password or bank account number" },
+  );
+
 export const resetUserPassword = async (formData: FormData) => {
   const session = await getSession();
   const canManage = session && canManageUsers(session.user.role);
@@ -204,6 +221,51 @@ export const resetUserPassword = async (formData: FormData) => {
 
   if (!error) {
     revalidatePath("/manage-users");
+  }
+};
+
+export const updateUserAccount = async (formData: FormData) => {
+  const session = await getSession();
+  const canManage = session && canManageUsers(session.user.role);
+
+  if (!canManage) {
+    return;
+  }
+
+  const parsed = updateUserAccountSchema.safeParse({
+    userId: formData.get("userId")?.toString(),
+    password: formData.get("password")?.toString() ?? "",
+    bankAccount: formData.get("bankAccount")?.toString() ?? "",
+  });
+
+  if (!parsed.success) {
+    return;
+  }
+
+  const updatePayload: Partial<Database["public"]["Tables"]["app_users"]["Update"]> = {};
+
+  if (parsed.data.bankAccount !== undefined) {
+    const trimmed = parsed.data.bankAccount.trim();
+    updatePayload.bank_account = trimmed.length ? trimmed : null;
+  }
+
+  if (parsed.data.password && parsed.data.password.length >= 8) {
+    updatePayload.password_hash = await hashPassword(parsed.data.password);
+  }
+
+  if (!Object.keys(updatePayload).length) {
+    return;
+  }
+
+  const supabase = createSupabaseServerActionClient();
+  const { error } = await supabase
+    .from("app_users")
+    .update(updatePayload as never)
+    .eq("id", parsed.data.userId);
+
+  if (!error) {
+    revalidatePath("/manage-users");
+    revalidatePath("/sales");
   }
 };
 
