@@ -46,6 +46,52 @@ export type BrandDefinition = {
 };
 
 const BRANDS = {
+  bennys: {
+    slug: "bennys",
+    name: "Benny's Service Dashboard",
+    shortName: "Benny's",
+    initials: "BM",
+    siteUrl: "https://bennysmechanic.com",
+    domains: ["bennysmechanic.com", "bennys"],
+    palette: {
+      primary: "#ff1616",
+      accent: "#ff4d4d",
+      highlight: "#ffb347",
+      slate: "#101010",
+      card: "#171717",
+      outline: "#2a2a2a",
+      surface: "rgba(18, 18, 20, 0.65)",
+      surfaceStrong: "rgba(12, 12, 15, 0.85)",
+      textMuted: "rgba(229, 231, 235, 0.65)",
+      glow: "rgba(255, 22, 22, 0.35)",
+    },
+    copy: {
+      heroTitle: "Benny's Invoice Dashboard",
+      heroDescription:
+        "Manage Benny's invoices, clients, and payments with a dark, automotive-inspired dashboard powered by Supabase.",
+      loginSubtitle: "Enter your credentials to access the Benny's dashboard",
+      footerCredit: "Benny's Original Motor Works",
+      navSubtitle: "Operations Hub",
+      clientPlaceholder: "Benny's Original Motor Works",
+    },
+    assets: {
+      logo: "/bennys.png",
+      favicon: "/bennys.png",
+    },
+    metadata: {
+      title: "Benny's Invoice Dashboard",
+      description:
+        "Manage Benny's invoices, clients, and payments with a dark, automotive-inspired dashboard powered by Supabase.",
+      icons: {
+        icon: "/bennys.png",
+        shortcut: "/bennys.png",
+        apple: "/bennys.png",
+      },
+    },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_BENNYS,
+    },
+  },
   bigtuna: {
     slug: "bigtuna",
     name: "Big Tuna Operations Hub",
