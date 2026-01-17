@@ -32,12 +32,15 @@ const optionalTab = isLscustoms || isBennys
     ? { label: "Loyalty", href: "/loyalty" }
     : null;
 
+const logsTab = isBennys ? { label: "Logs", href: "/logs" } : null;
+
 const tailTabs = [
   { label: "Catalogue", href: "/inventory" },
   { label: "Manage Users", href: "/manage-users" },
   { label: "Manage Discounts", href: "/manage-discounts" },
   { label: "Manage Commissions", href: "/manage-commissions" },
   { label: "Add Employee Sale", href: "/employee-sales" },
+  ...(logsTab ? [logsTab] : []),
 ];
 
 const TABS = [...baseTabs, ...(optionalTab ? [optionalTab] : []), ...tailTabs];

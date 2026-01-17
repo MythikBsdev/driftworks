@@ -373,23 +373,35 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
           allowed_mentions: { parse: [] },
         }),
       },
-    );
+  );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[payout] Failed to send payslip", {
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("[payout] Failed to send payslip", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
-      });
-      return {
-        status: "error",
-        message: `Discord error (${response.status}): ${response.statusText}`,
-      };
+    });
+    return {
+      status: "error",
+      message: `Discord error (${response.status}): ${response.statusText}`,
+    };
+  }
+
+    // Reset this user's commission history after paying out.
+    const resetSuccess = await removeUserSales(supabase, targetRow.id);
+    if (!resetSuccess) {
+      console.error("[payout] Failed to reset commissions after payout", { userId: targetRow.id });
     }
 
     revalidatePath("/sales");
-    return { status: "success", message: "Payslip sent to Discord." };
+    revalidatePath("/sales-register");
+    return {
+      status: "success",
+      message: resetSuccess
+        ? "Payslip sent and commission reset."
+        : "Payslip sent. Could not reset commission; please reset manually.",
+    };
   } catch (error) {
     console.error("[payout] Unexpected error", error);
     return { status: "error", message: "Unexpected error sending payslip." };

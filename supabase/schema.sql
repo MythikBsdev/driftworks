@@ -26,6 +26,15 @@ create table if not exists public.app_users (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.termination_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.app_users(id) on delete set null,
+  username text not null,
+  reason text not null,
+  deleted_by uuid references public.app_users(id) on delete set null,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.user_sessions (
   token uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.app_users(id) on delete cascade,

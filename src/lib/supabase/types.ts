@@ -38,6 +38,32 @@ export type Database = {
           updated_at?: string;
         };
       };
+      termination_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          username: string;
+          reason: string;
+          deleted_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          username: string;
+          reason: string;
+          deleted_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          username?: string;
+          reason?: string;
+          deleted_by?: string | null;
+          created_at?: string;
+        };
+      };
       user_sessions: {
         Row: {
           token: string;

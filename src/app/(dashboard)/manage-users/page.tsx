@@ -17,6 +17,7 @@ import {
   updateUserAccount,
   updateUserRole,
 } from "./actions";
+import DeleteUserButton from "@/components/users/delete-user-button";
 
 const ManageUsersPage = async () => {
   // Ensure latest session and role data for every request.
@@ -166,17 +167,7 @@ const ManageUsersPage = async () => {
                               </form>
                             </details>
 
-                            <form action={deleteUserAccount} className="inline-flex">
-                              <input type="hidden" name="userId" value={user.id} />
-                              <button
-                                type="submit"
-                                className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                                disabled={isSelf}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                              </button>
-                            </form>
+                            <DeleteUserButton userId={user.id} disabled={isSelf} />
                           </div>
                         ) : (
                           <span className="text-sm text-white/50">Owner access required</span>

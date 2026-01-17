@@ -41,6 +41,11 @@ export type CreateUserState =
   | { status: "success" }
   | { status: "error"; message: string };
 
+export type DeleteUserState =
+  | { status: "idle" }
+  | { status: "success" }
+  | { status: "error"; message: string };
+
 export const createUserAccount = async (
   _prev: CreateUserState,
   formData: FormData,
@@ -271,26 +276,28 @@ export const updateUserAccount = async (formData: FormData) => {
 
 const deleteUserSchema = z.object({
   userId: z.string().uuid(),
+  reason: z.string().min(3, "Reason is required"),
 });
 
-export const deleteUserAccount = async (formData: FormData) => {
+export const deleteUserAccount = async (formData: FormData): Promise<DeleteUserState> => {
   const session = await getSession();
   const canManage = session && canManageUsers(session.user.role);
 
   if (!canManage) {
-    return;
+    return { status: "error", message: "You do not have permission to delete users." };
   }
 
   const parsed = deleteUserSchema.safeParse({
     userId: formData.get("userId")?.toString(),
+    reason: formData.get("reason")?.toString()?.trim(),
   });
 
   if (!parsed.success) {
-    return;
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid request" };
   }
 
   if (parsed.data.userId === session.user.id) {
-    return;
+    return { status: "error", message: "You cannot delete your own account." };
   }
 
   const supabase = createSupabaseServerActionClient();
@@ -298,12 +305,12 @@ export const deleteUserAccount = async (formData: FormData) => {
 
   const { data: target } = await supabase
     .from("app_users")
-    .select("id, role")
+    .select("id, role, username")
     .eq("id", targetUserId)
     .maybeSingle();
 
   if (!target) {
-    return;
+    return { status: "error", message: "User not found" };
   }
 
   const targetRow =
@@ -361,8 +368,18 @@ export const deleteUserAccount = async (formData: FormData) => {
     const { error } = await step;
     if (error) {
       console.error("Failed to clean up before deleting user", error);
-      return;
+      return { status: "error", message: "Cleanup failed; user was not deleted." };
     }
+  }
+
+  const { error: logError } = await supabase.from("termination_logs").insert({
+    user_id: targetRow.id,
+    username: targetRow.username,
+    reason: parsed.data.reason,
+    deleted_by: session.user.id,
+  } as never);
+  if (logError) {
+    console.error("Failed to record termination log", logError);
   }
 
   const { error } = await supabase
@@ -374,7 +391,10 @@ export const deleteUserAccount = async (formData: FormData) => {
     revalidatePath("/manage-users");
     revalidatePath("/sales");
     revalidatePath("/employee-sales");
-  } else {
-    console.error("Failed to delete user account", error);
+    revalidatePath("/logs");
+    return { status: "success" };
   }
+
+  console.error("Failed to delete user account", error);
+  return { status: "error", message: "Failed to delete user." };
 };
