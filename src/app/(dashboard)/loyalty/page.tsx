@@ -49,7 +49,7 @@ const LoyaltyPage = async ({ searchParams }: LoyaltyPageProps) => {
     redirect("/login");
   }
 
-  if (brand.slug === "synlineauto") {
+  if (brand.slug === "synlineauto" || brand.slug === "bigtuna") {
     redirect("/dashboard");
   }
 

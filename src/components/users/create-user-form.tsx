@@ -28,7 +28,7 @@ const SubmitButton = () => {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-70"
+      className="btn-primary w-full px-4 py-3 text-sm font-semibold disabled:cursor-wait disabled:opacity-70"
     >
       {pending ? "Adding..." : "Add User"}
     </button>

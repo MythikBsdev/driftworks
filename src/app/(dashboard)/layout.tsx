@@ -15,7 +15,8 @@ import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
 const isSynlineauto = brand.slug === "synlineauto";
-const loyaltyEnabled = !isLscustoms && !isSynlineauto;
+const isBigtuna = brand.slug === "bigtuna";
+const loyaltyEnabled = !isLscustoms && !isSynlineauto && !isBigtuna;
 const brandSpecificTab = isLscustoms ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
 
 const baseTabs = [

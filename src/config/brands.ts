@@ -70,7 +70,7 @@ const BRANDS = {
       heroDescription:
         "Run Big Tuna service tickets, invoices, and client loyalty from a neon ocean-inspired control room powered by Supabase.",
       loginSubtitle: "Sign in to access the Big Tuna mechanic portal",
-      footerCredit: "Big Tuna Mechanics",
+      footerCredit: "Made By MythikBs",
       navSubtitle: "Service Command",
       clientPlaceholder: "Big Tuna Bay",
     },
