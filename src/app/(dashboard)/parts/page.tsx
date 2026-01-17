@@ -9,14 +9,40 @@ import { currencyFormatter, sum } from "@/lib/utils";
 
 type DiscordPurchase = Database["public"]["Tables"]["discord_purchases"]["Row"];
 
+const guildIds =
+  process.env.DISCORD_BRAND_GUILD_IDS
+    ?.split(",")
+    .map((id) => id.trim())
+    .filter(Boolean) ?? [];
+
 const PartsPage = async () => {
   const supabase = createSupabaseServerClient();
 
-  const { data, error } = await supabase
-    .from("discord_purchases")
-    .select("id, amount, user_id, guild_id, channel_id, message_id, created_at")
-    .eq("brand_slug", brand.slug)
-    .order("created_at", { ascending: false });
+  const buildQuery = (filterByBrand: boolean) => {
+    let query = supabase
+      .from("discord_purchases")
+      .select("id, amount, user_id, guild_id, channel_id, message_id, created_at")
+      .order("created_at", { ascending: false });
+
+    if (guildIds.length) {
+      query = query.in("guild_id", guildIds);
+    }
+
+    if (filterByBrand) {
+      query = query.eq("brand_slug", brand.slug);
+    }
+
+    return query;
+  };
+
+  let { data, error } = await buildQuery(true);
+
+  // If the brand_slug column is missing (legacy schema), retry without it.
+  if (error && error.code === "42703") {
+    const retry = await buildQuery(false);
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     return (
