@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { brand } from "@/config/brands";
 import { hasManagerLikeAccess, hasOwnerLikeAccess, isLscustoms } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
@@ -13,6 +12,7 @@ const itemSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().optional().or(z.literal("")),
   price: z.coerce.number().nonnegative("Price must be zero or greater"),
+  profit: z.coerce.number().nonnegative("Profit must be zero or greater").default(0),
 });
 
 const updateSchema = itemSchema.extend({
@@ -38,6 +38,7 @@ export const createInventoryItem = async (
     category: formData.get("category")?.toString(),
     description: formData.get("description")?.toString(),
     price: formData.get("price"),
+    profit: formData.get("profit"),
   });
 
   if (!parsed.success) {
@@ -56,6 +57,7 @@ export const createInventoryItem = async (
       category: parsed.data.category,
       description: parsed.data.description || null,
       price: parsed.data.price,
+      profit: parsed.data.profit ?? 0,
     } as never,
   );
 
@@ -128,6 +130,7 @@ export const updateInventoryItem = async (
     category: formData.get("category"),
     description: formData.get("description"),
     price: formData.get("price"),
+    profit: formData.get("profit"),
   });
 
   if (!parsed.success) {
@@ -147,6 +150,7 @@ export const updateInventoryItem = async (
       category: payload.category,
       description: payload.description || null,
       price: payload.price,
+      profit: payload.profit ?? 0,
     } as never)
     .eq("id", itemId);
 

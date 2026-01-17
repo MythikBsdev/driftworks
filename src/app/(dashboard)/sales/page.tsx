@@ -2,12 +2,16 @@
 import { redirect } from "next/navigation";
 import { Download, RotateCcw } from "lucide-react";
 
-import { formatRoleLabel, hasManagerLikeAccess } from "@/config/brand-overrides";
+import {
+  brandCurrency,
+  formatRoleLabel,
+  hasManagerLikeAccess,
+  isBigtuna,
+} from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
-import { brandCurrency } from "@/config/brand-overrides";
 import { deleteSale, resetAllSales, resetUserSales } from "./actions";
 
 type SalesPageProps = {
@@ -69,7 +73,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         .order("role", { ascending: true }),
       supabase
         .from("sales_orders")
-        .select("id, owner_id, invoice_number, subtotal, discount, total, created_at")
+        .select("id, owner_id, invoice_number, subtotal, discount, total, profit_total, created_at")
          .order("created_at", { ascending: false })
         .limit(50),
     ]);
@@ -83,16 +87,19 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const salesOrders =
     (salesOrdersResult.data ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
 
+  const registerTotals = new Map<string, number>();
+  salesOrders.forEach((order) => {
+    const commissionableAmount = isBigtuna
+      ? order.profit_total ?? 0
+      : order.total ?? 0;
+    const current = registerTotals.get(order.owner_id) ?? 0;
+    registerTotals.set(order.owner_id, current + commissionableAmount);
+  });
+
   const employeeTotals = new Map<string, number>();
   employeeSales.forEach((entry) => {
     const current = employeeTotals.get(entry.employee_id) ?? 0;
     employeeTotals.set(entry.employee_id, current + (entry.amount ?? 0));
-  });
-
-  const registerTotals = new Map<string, number>();
-  salesOrders.forEach((order) => {
-    const current = registerTotals.get(order.owner_id) ?? 0;
-    registerTotals.set(order.owner_id, current + (order.total ?? 0));
   });
 
   const commissionMap = new Map<string, number>();
@@ -104,17 +111,17 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   const summaryRows = users
     .map((user) => {
-      const totalSales =
+      const commissionBase =
         (registerTotals.get(user.id) ?? 0) +
         (employeeTotals.get(user.id) ?? 0);
       const commissionRate = commissionMap.get(user.role) ?? 0;
-      const commissionTotal = totalSales * commissionRate;
+      const commissionTotal = commissionBase * commissionRate;
       return {
         id: user.id,
         displayName: user.full_name ?? user.username,
         username: user.username,
         role: user.role,
-        totalSales,
+        commissionBase,
         commissionRate,
         commissionTotal,
       };
@@ -128,20 +135,24 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         row.username.toLowerCase().includes(summaryQuery)
       );
     })
-    .sort((a, b) => b.totalSales - a.totalSales);
+    .sort((a, b) => b.commissionBase - a.commissionBase);
 
-  const grandTotalSales = summaryRows.reduce((acc, row) => acc + row.totalSales, 0);
+  const grandTotalCommissionBase = summaryRows.reduce(
+    (acc, row) => acc + row.commissionBase,
+    0,
+  );
   const grandTotalCommission = summaryRows.reduce(
     (acc, row) => acc + row.commissionTotal,
     0,
   );
 
+  const commissionBaseLabel = isBigtuna ? "Total Profit" : "Total Sales";
   const csvRows = [
-    ["Name", "Role", "Total Sales", "Commission %", "Commission"],
+    ["Name", "Role", commissionBaseLabel, "Commission %", "Commission"],
     ...summaryRows.map((row) => [
       row.displayName,
       formatRoleLabel(row.role),
-      row.totalSales.toFixed(2),
+      row.commissionBase.toFixed(2),
       (row.commissionRate * 100).toFixed(2),
       row.commissionTotal.toFixed(2),
     ]),
@@ -237,6 +248,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const selectedUserName = selectedUser
     ? userNameLookup.get(selectedUser) ?? "Selected user"
     : null;
+  const summaryCopy = isBigtuna
+    ? "Total profit (after discounts) used to calculate commission per user since their last summary reset."
+    : "Total sales amount and calculated commission per user since their last summary reset.";
 
   return (
     <div className="space-y-8">
@@ -245,7 +259,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           <div>
             <h2 className="text-xl font-semibold text-white">User Sales Summary</h2>
             <p className="text-sm text-white/60">
-              Total sales amount and calculated commission per user since their last summary reset.
+              {summaryCopy}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -285,7 +299,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
               <tr>
                 <th className="px-4 py-3 font-medium text-left">User</th>
                 <th className="px-4 py-3 font-medium text-left">Role</th>
-                <th className="px-4 py-3 font-medium text-left">Total Sales</th>
+                <th className="px-4 py-3 font-medium text-left">
+                  {commissionBaseLabel}
+                </th>
                 <th className="px-4 py-3 font-medium text-left">Commission</th>
                 <th className="px-4 py-3 font-medium text-left">Actions</th>
               </tr>
@@ -319,7 +335,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                         {formatRoleLabel(row.role)}
                       </td>
                       <td className="px-4 py-3 font-medium text-white">
-                        {formatter.format(row.totalSales)}
+                        {formatter.format(row.commissionBase)}
                       </td>
                       <td className="px-4 py-3 text-white/60">
                         {formatter.format(row.commissionTotal)}
@@ -365,7 +381,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white">
-          <span>Grand Total Sales: {formatter.format(grandTotalSales)}</span>
+          <span>
+            Grand Total {commissionBaseLabel}: {formatter.format(grandTotalCommissionBase)}
+          </span>
           <span>
             Grand Total Commission: {formatter.format(grandTotalCommission)}
           </span>

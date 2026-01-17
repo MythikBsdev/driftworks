@@ -21,6 +21,7 @@ type InventoryItem = {
   name: string;
   category: string;
   price: number;
+  profit: number;
 };
 
 type Discount = {
@@ -78,7 +79,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     null,
   );
   const [cart, setCart] = useState<
-    Array<{ itemId: string; name: string; price: number; quantity: number }>
+    Array<{ itemId: string; name: string; price: number; profit: number; quantity: number }>
   >([]);
 
   const [state, formAction] = useFormState(completeSale, initialState);
@@ -196,7 +197,13 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
       }
       return [
         ...current,
-        { itemId: item.id, name: item.name, price: item.price, quantity: 1 },
+        {
+          itemId: item.id,
+          name: item.name,
+          price: item.price,
+          profit: item.profit ?? 0,
+          quantity: 1,
+        },
       ];
     });
   };

@@ -6,6 +6,7 @@ import {
   formatCategoryLabel,
   inventoryCategories,
   hasManagerLikeAccess,
+  isBigtuna,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -20,6 +21,7 @@ import {
 
 const categories = inventoryCategories;
 const defaultCategory = categories[0]?.value ?? "Normal";
+const showProfit = isBigtuna;
 
 const InventoryPage = async () => {
   const session = await getSession();
@@ -35,7 +37,7 @@ const InventoryPage = async () => {
   const supabase = createSupabaseServerClient();
   const { data: inventory } = await supabase
     .from("inventory_items")
-    .select("id, name, category, price, description, updated_at, created_at")
+    .select("id, name, category, price, profit, description, updated_at, created_at")
     .order("updated_at", { ascending: false });
 
   const inventoryItems =
@@ -113,7 +115,7 @@ const InventoryPage = async () => {
           </div>
           <div className="space-y-2">
             <label className="muted-label" htmlFor="price">
-              Item Price (£)
+              Item Price ({brandCurrency})
             </label>
             <input
               id="price"
@@ -126,6 +128,26 @@ const InventoryPage = async () => {
               className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
             />
           </div>
+          {showProfit ? (
+            <div className="space-y-2">
+              <label className="muted-label" htmlFor="profit">
+                Expected Profit ({brandCurrency})
+              </label>
+              <input
+                id="profit"
+                name="profit"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                placeholder="e.g., 125.00"
+                className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+              />
+              <p className="text-xs text-white/50">
+                Commission for Big Tuna is calculated from this profit instead of the sale price.
+              </p>
+            </div>
+          ) : null}
           <button type="submit" className="btn-primary w-full justify-center">
             Add Item
           </button>
@@ -145,6 +167,7 @@ const InventoryPage = async () => {
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium">Price</th>
+                {showProfit ? <th className="px-4 py-3 font-medium">Profit</th> : null}
                 <th className="px-4 py-3 font-medium">Updated</th>
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -160,6 +183,11 @@ const InventoryPage = async () => {
                     <td className="px-4 py-3 font-medium text-white">
                       {formatter.format(item.price ?? 0)}
                     </td>
+                    {showProfit ? (
+                      <td className="px-4 py-3 font-medium text-white">
+                        {formatter.format(item.profit ?? 0)}
+                      </td>
+                    ) : null}
                     <td className="px-4 py-3 text-white/60">
                       {new Date(
                         item.updated_at ?? item.created_at ?? Date.now(),
@@ -224,7 +252,7 @@ const InventoryPage = async () => {
 
                             <div className="space-y-1">
                               <label htmlFor={`price-${item.id}`} className="muted-label">
-                                Price
+                                Price ({brandCurrency})
                               </label>
                               <input
                                 id={`price-${item.id}`}
@@ -237,6 +265,24 @@ const InventoryPage = async () => {
                                 className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
                               />
                             </div>
+
+                            {showProfit ? (
+                              <div className="space-y-1">
+                                <label htmlFor={`profit-${item.id}`} className="muted-label">
+                                  Profit ({brandCurrency})
+                                </label>
+                                <input
+                                  id={`profit-${item.id}`}
+                                  name="profit"
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  defaultValue={item.profit ?? 0}
+                                  required
+                                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                                />
+                              </div>
+                            ) : null}
 
                             <button type="submit" className="btn-primary w-full justify-center">
                               Save changes
@@ -261,7 +307,7 @@ const InventoryPage = async () => {
                 <tr>
                   <td
                     className="px-4 py-12 text-center text-sm text-white/50"
-                    colSpan={5}
+                    colSpan={showProfit ? 6 : 5}
                   >
                     No items in inventory.
                   </td>
@@ -277,3 +323,5 @@ const InventoryPage = async () => {
 };
 
 export default InventoryPage;
+
+

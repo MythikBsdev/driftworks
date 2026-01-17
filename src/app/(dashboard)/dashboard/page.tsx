@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
-import { brandCurrency } from "@/config/brand-overrides";
+import { brandCurrency, isBigtuna } from "@/config/brand-overrides";
 
 const DashboardPage = async () => {
   const session = await getSession();
@@ -26,7 +26,7 @@ const DashboardPage = async () => {
   ] = await Promise.all([
     supabase
       .from("sales_orders")
-      .select("id, owner_id, invoice_number, total, created_at")
+      .select("id, owner_id, invoice_number, total, profit_total, created_at")
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -79,7 +79,8 @@ const DashboardPage = async () => {
       return;
     }
     const current = registerTotals.get(sale.owner_id) ?? 0;
-    registerTotals.set(sale.owner_id, current + (sale.total ?? 0));
+    const commissionable = isBigtuna ? sale.profit_total ?? 0 : sale.total ?? 0;
+    registerTotals.set(sale.owner_id, current + commissionable);
   });
 
   const employeeTotals = new Map<string, number>();
@@ -96,12 +97,12 @@ const DashboardPage = async () => {
     if (commissionRate === 0) {
       return acc;
     }
-    const totalSalesForMember =
+    const commissionBaseForMember =
       (registerTotals.get(member.id) ?? 0) + (employeeTotals.get(member.id) ?? 0);
-    if (totalSalesForMember === 0) {
+    if (commissionBaseForMember === 0) {
       return acc;
     }
-    return acc + totalSalesForMember * commissionRate;
+    return acc + commissionBaseForMember * commissionRate;
   }, 0);
 
   const latestSales = sales.slice(0, 6);

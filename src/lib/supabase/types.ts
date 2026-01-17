@@ -60,6 +60,7 @@ export type Database = {
           category: string;
           description: string | null;
           price: number;
+          profit: number;
           created_at: string;
           updated_at: string;
         };
@@ -70,6 +71,7 @@ export type Database = {
           category?: string;
           description?: string | null;
           price?: number;
+          profit?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -80,6 +82,7 @@ export type Database = {
           category?: string;
           description?: string | null;
           price?: number;
+          profit?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -146,6 +149,7 @@ export type Database = {
           subtotal: number;
           discount: number;
           total: number;
+          profit_total: number;
           status: string;
           created_at: string;
           updated_at: string;
@@ -159,6 +163,7 @@ export type Database = {
           subtotal?: number;
           discount?: number;
           total?: number;
+          profit_total?: number;
           status?: string;
           created_at?: string;
           updated_at?: string;
@@ -172,6 +177,7 @@ export type Database = {
           subtotal?: number;
           discount?: number;
           total?: number;
+          profit_total?: number;
           status?: string;
           created_at?: string;
           updated_at?: string;
@@ -185,7 +191,9 @@ export type Database = {
           catalog_item_id: string | null;
           quantity: number;
           unit_price: number;
+          unit_profit: number;
           total: number;
+          profit_total: number;
         };
         Insert: {
           id?: string;
@@ -194,7 +202,9 @@ export type Database = {
           catalog_item_id?: string | null;
           quantity: number;
           unit_price: number;
+          unit_profit: number;
           total: number;
+          profit_total: number;
         };
         Update: {
           id?: string;
@@ -203,7 +213,9 @@ export type Database = {
           catalog_item_id?: string | null;
           quantity?: number;
           unit_price?: number;
+          unit_profit?: number;
           total?: number;
+          profit_total?: number;
         };
       };
       employee_sales: {

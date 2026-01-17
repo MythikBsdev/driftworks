@@ -2,7 +2,7 @@ import { brand } from "@/config/brands";
 
 export const isLscustoms = brand.slug === "lscustoms";
 export const isBennys = brand.slug === "bennys";
-const isBigtuna = brand.slug === "bigtuna";
+export const isBigtuna = brand.slug === "bigtuna";
 const isSynlineauto = brand.slug === "synlineauto";
 
 const roleAliases: Record<string, string> = {

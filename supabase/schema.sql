@@ -38,6 +38,7 @@ create table if not exists public.inventory_items (
   category text not null default 'Normal',
   description text,
   price numeric not null default 0,
+  profit numeric not null default 0,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -69,6 +70,7 @@ create table if not exists public.sales_orders (
   subtotal numeric not null default 0,
   discount numeric not null default 0,
   total numeric not null default 0,
+  profit_total numeric not null default 0,
   status text not null default 'completed',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
@@ -81,7 +83,9 @@ create table if not exists public.sales_order_items (
   catalog_item_id uuid references public.inventory_items(id),
   quantity integer not null default 1,
   unit_price numeric not null default 0,
-  total numeric not null default 0
+  unit_profit numeric not null default 0,
+  total numeric not null default 0,
+  profit_total numeric not null default 0
 );
 
 create table if not exists public.loyalty_accounts (

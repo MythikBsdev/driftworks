@@ -14,6 +14,7 @@ const cartItemSchema = z.object({
   itemId: z.string().uuid(),
   name: z.string(),
   price: z.number(),
+  profit: z.number().nonnegative().default(0),
   quantity: z.number().min(1),
 });
 
@@ -99,6 +100,9 @@ export const completeSale = async (
 
   const subtotal = roundCurrency(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+  );
+  const profitSubtotal = roundCurrency(
+    items.reduce((acc, item) => acc + (item.profit ?? 0) * item.quantity, 0),
   );
 
   const supabase = createSupabaseServerActionClient();
@@ -205,6 +209,8 @@ export const completeSale = async (
   }
 
   const total = roundCurrency(Math.max(subtotal - discountAmount, 0));
+  const discountMultiplier = subtotal > 0 ? Math.max(total / subtotal, 0) : 0;
+  const profitTotal = roundCurrency(Math.max(profitSubtotal * discountMultiplier, 0));
 
   const { data: existing } = await supabase
     .from("sales_orders")
@@ -227,6 +233,7 @@ export const completeSale = async (
         subtotal,
         discount: discountAmount,
         total,
+        profit_total: profitTotal,
         status: "completed",
       } as never,
     )
@@ -249,7 +256,11 @@ export const completeSale = async (
         catalog_item_id: item.itemId,
         quantity: item.quantity,
         unit_price: item.price,
+        unit_profit: item.profit ?? 0,
         total: item.price * item.quantity,
+        profit_total: roundCurrency(
+          Math.max((item.profit ?? 0) * item.quantity * discountMultiplier, 0),
+        ),
       })) as never,
     );
 
