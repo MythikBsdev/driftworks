@@ -118,8 +118,14 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     commissionMap.set(rate.role, rate.rate ?? 0);
   });
 
+  const salesGrossByUser = new Map<string, number>();
   const commissionBaseByUser = new Map<string, number>();
   const commissionTotalByUser = new Map<string, number>();
+
+  const addSalesGross = (userId: string, amount: number) => {
+    const current = salesGrossByUser.get(userId) ?? 0;
+    salesGrossByUser.set(userId, current + amount);
+  };
 
   const addBase = (userId: string, amount: number) => {
     const current = commissionBaseByUser.get(userId) ?? 0;
@@ -147,6 +153,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     const lineItems = itemsByOrderId.get(order.id) ?? [];
     if (lineItems.length) {
       lineItems.forEach((item) => {
+        const grossBase = (item.total ?? 0) * discountMultiplier;
+        addSalesGross(ownerId, grossBase);
+
         const base = commissionUsesProfit
           ? item.profit_total ?? 0
           : (item.total ?? 0) * discountMultiplier;
@@ -161,6 +170,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       return;
     }
 
+    const grossBase = order.total ?? 0;
+    addSalesGross(ownerId, grossBase);
+
     const fallbackBase = commissionUsesProfit ? order.profit_total ?? 0 : order.total ?? 0;
     addBase(ownerId, fallbackBase);
     addCommission(ownerId, fallbackBase * roleRate);
@@ -171,6 +183,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     const role = userRoleLookup.get(employeeId) ?? "";
     const roleRate = commissionMap.get(role) ?? 0;
     const base = entry.amount ?? 0;
+    addSalesGross(employeeId, base);
     addBase(employeeId, base);
     addCommission(employeeId, base * roleRate);
   });
@@ -179,6 +192,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
   const summaryRows = users
     .map((user) => {
+      const salesGross = salesGrossByUser.get(user.id) ?? 0;
       const commissionBase = commissionBaseByUser.get(user.id) ?? 0;
       const commissionTotal = commissionTotalByUser.get(user.id) ?? 0;
       const roleRate = commissionMap.get(user.role) ?? 0;
@@ -189,6 +203,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         displayName: user.full_name ?? user.username,
         username: user.username,
         role: user.role,
+        salesGross,
         commissionBase,
         commissionRate,
         commissionTotal,
@@ -204,12 +219,9 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         row.username.toLowerCase().includes(summaryQuery)
       );
     })
-    .sort((a, b) => b.commissionBase - a.commissionBase);
+    .sort((a, b) => b.salesGross - a.salesGross);
 
-  const grandTotalCommissionBase = summaryRows.reduce(
-    (acc, row) => acc + row.commissionBase,
-    0,
-  );
+  const grandTotalSales = summaryRows.reduce((acc, row) => acc + row.salesGross, 0);
   const grandTotalCommission = summaryRows.reduce(
     (acc, row) => acc + row.commissionTotal,
     0,
@@ -221,7 +233,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     ...summaryRows.map((row) => [
       row.displayName,
       formatRoleLabel(row.role),
-      row.commissionBase.toFixed(2),
+      row.salesGross.toFixed(2),
       (row.commissionRate * 100).toFixed(2),
       row.commissionTotal.toFixed(2),
       row.bankAccount ?? "",
@@ -406,7 +418,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                         {formatRoleLabel(row.role)}
                       </td>
                       <td className="px-4 py-3 font-medium text-white">
-                        {formatter.format(row.commissionBase)}
+                        {formatter.format(row.salesGross)}
                       </td>
                       <td className="px-4 py-3 text-white/60">
                         {formatter.format(row.commissionTotal)}
@@ -467,7 +479,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white">
           <span>
-            Grand Total {commissionBaseLabel}: {formatter.format(grandTotalCommissionBase)}
+            Grand Total {commissionBaseLabel}: {formatter.format(grandTotalSales)}
           </span>
           <span>
             Grand Total Commission: {formatter.format(grandTotalCommission)}
