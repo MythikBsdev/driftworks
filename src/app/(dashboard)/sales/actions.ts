@@ -52,6 +52,7 @@ const removeUserSales = async (
   const { data: orderRows, error: orderSelectError } = await supabase
     .from("sales_orders")
     .select("id")
+    .eq("archived" as never, false)
     .eq("owner_id", userId);
 
   if (orderSelectError) {
@@ -65,26 +66,21 @@ const removeUserSales = async (
     .map((order) => order.id)
     .filter((id): id is string => Boolean(id));
 
-  const itemsDeleted = await deleteOrderItemsInChunks(supabase, orderIds);
-  if (!itemsDeleted) {
-    return false;
-  }
-
   const { error: salesOrdersError } = await supabase
     .from("sales_orders")
-    .delete()
+    .update({ archived: true } as never)
     .eq("owner_id", userId);
   if (salesOrdersError) {
-    console.error("Failed to delete sales orders", salesOrdersError);
+    console.error("Failed to archive sales orders", salesOrdersError);
     return false;
   }
 
   const { error: employeeSalesError } = await supabase
     .from("employee_sales")
-    .delete()
+    .update({ archived: true } as never)
     .or(`employee_id.eq.${userId},owner_id.eq.${userId}`);
   if (employeeSalesError) {
-    console.error("Failed to delete employee sales", employeeSalesError);
+    console.error("Failed to archive employee sales", employeeSalesError);
     return false;
   }
 
@@ -325,10 +321,12 @@ const computeUserTotalsForUser = async (
       supabase
         .from("sales_orders")
         .select("id, owner_id, subtotal, total, profit_total")
+        .eq("archived" as never, false)
         .eq("owner_id", userId),
       supabase
         .from("employee_sales")
         .select("employee_id, amount")
+        .eq("archived" as never, false)
         .eq("employee_id", userId),
     ]);
 
@@ -410,10 +408,12 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
         supabase
           .from("sales_orders")
           .select("id, owner_id, subtotal, total, profit_total")
+          .eq("archived" as never, false)
           .eq("owner_id", targetRow.id),
         supabase
           .from("employee_sales")
           .select("employee_id, amount")
+          .eq("archived" as never, false)
           .eq("employee_id", targetRow.id),
       ]);
 

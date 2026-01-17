@@ -68,6 +68,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       supabase
         .from("employee_sales")
         .select("id, employee_id, invoice_number, amount, created_at")
+        .eq("archived" as never, false)
         .order("created_at", { ascending: false }),
       supabase
         .from("commission_rates")
@@ -76,6 +77,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
       supabase
         .from("sales_orders")
         .select("id, owner_id, invoice_number, subtotal, discount, total, profit_total, created_at")
+        .eq("archived" as never, false)
         .order("created_at", { ascending: false })
         .limit(50),
     ]);

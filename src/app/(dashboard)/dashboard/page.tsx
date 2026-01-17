@@ -27,6 +27,7 @@ const DashboardPage = async () => {
     supabase
       .from("sales_orders")
       .select("id, owner_id, invoice_number, subtotal, total, profit_total, created_at")
+      .eq("archived" as never, false)
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -38,6 +39,7 @@ const DashboardPage = async () => {
     supabase
       .from("employee_sales")
       .select("id, employee_id, amount, created_at")
+      .eq("archived" as never, false)
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false }),
     supabase

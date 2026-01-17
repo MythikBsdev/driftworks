@@ -99,6 +99,9 @@ create table if not exists public.sales_orders (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+alter table if exists public.sales_orders
+  add column if not exists archived boolean not null default false;
+
 create table if not exists public.sales_order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.sales_orders(id) on delete cascade,
@@ -133,6 +136,9 @@ create table if not exists public.employee_sales (
   notes text,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table if exists public.employee_sales
+  add column if not exists archived boolean not null default false;
 
 create table if not exists public.discord_purchases (
   id uuid primary key default gen_random_uuid(),
