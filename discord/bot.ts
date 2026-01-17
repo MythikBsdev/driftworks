@@ -8,8 +8,8 @@ import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const DEFAULT_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const DEFAULT_SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CART_PREVIEW_IMAGE = process.env.DISCORD_CART_IMAGE;
 const CURRENCY_CODE = process.env.DISCORD_CURRENCY ?? "USD";
 const DEFAULT_BRAND_SLUG =
@@ -36,21 +36,57 @@ const resolveBrandSlug = (guildId?: string | null) => {
   return DEFAULT_BRAND_SLUG;
 };
 
+type SupabaseCredentials = { url: string; key: string };
+
+const SUPABASE_GUILD_MAP = (() => {
+  // Format: guildId|supabaseUrl|serviceRoleKey, separated by commas.
+  const raw = process.env.DISCORD_SUPABASE_GUILD_MAP;
+  if (!raw) return new Map<string, SupabaseCredentials>();
+
+  return new Map(
+    raw
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const [guildId, url, key] = entry.split("|").map((part) => part.trim());
+        return [guildId, { url, key }];
+      }),
+  );
+})();
+
+const supabaseClientCache = new Map<string, SupabaseClient>();
+
+const getSupabaseClient = (guildId?: string | null): SupabaseClient => {
+  const creds =
+    (guildId && SUPABASE_GUILD_MAP.get(guildId)) ||
+    (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_SERVICE_ROLE_KEY
+      ? { url: DEFAULT_SUPABASE_URL, key: DEFAULT_SUPABASE_SERVICE_ROLE_KEY }
+      : null);
+
+  if (!creds) {
+    throw new Error("Supabase credentials are missing. Provide defaults or DISCORD_SUPABASE_GUILD_MAP.");
+  }
+
+  const cacheKey = `${creds.url}::${creds.key}`;
+  const cached = supabaseClientCache.get(cacheKey);
+  if (cached) return cached;
+
+  // Use a loosely typed client here to avoid build-time type mismatches if the generated Supabase types lag schema changes.
+  const client = createClient(creds.url, creds.key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  }) as SupabaseClient;
+
+  supabaseClientCache.set(cacheKey, client);
+  return client;
+};
+
 if (!DISCORD_BOT_TOKEN) {
   throw new Error("DISCORD_BOT_TOKEN is required to start the bot.");
 }
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.");
-}
-
-// Use a loosely typed client here to avoid build-time type mismatches if the generated Supabase types lag schema changes.
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-}) as SupabaseClient;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
@@ -73,12 +109,13 @@ client.on("messageCreate", async (message) => {
   const parsedAmount = parseFloat((amountRaw ?? "").replace(/[$,]/g, ""));
 
   if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-    await message.reply("Usage: `!buy 100` — provide a positive number to record a purchase.");
+    await message.reply("Usage: `!buy 100` – provide a positive number to record a purchase.");
     return;
   }
 
   const amount = Number(parsedAmount.toFixed(2));
   const brandSlug = resolveBrandSlug(message.guildId);
+  const supabase = getSupabaseClient(message.guildId);
 
   const { error: insertError } = await supabase.from("discord_purchases").insert({
     guild_id: message.guildId,

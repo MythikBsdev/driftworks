@@ -28,6 +28,7 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `DISCORD_BRAND_SLUG` for the `!buy` bot to tag purchases to the correct brand (defaults to `NEXT_PUBLIC_BRAND`)
    - `DISCORD_BRAND_GUILD_IDS` optional, comma-separated guild IDs for this brand to filter parts data if brand scoping column is absent
    - `DISCORD_BRAND_GUILD_MAP` optional mapping for a shared bot: comma-separated `guildId:brand_slug` pairs so each guild routes to its brand (e.g. `123456789012345678:lscustoms,987654321098765432:bennys`)
+   - `DISCORD_SUPABASE_GUILD_MAP` optional mapping to route a shared bot to different Supabase projects per guild; format `guildId|supabaseUrl|serviceRoleKey` entries separated by commas
    - `DISCORD_CART_IMAGE` optional thumbnail URL for the bot embed (optional)
    - `DISCORD_CURRENCY` currency code for the bot totals (defaults to `USD`)
 3. **Provision Supabase**
