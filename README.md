@@ -1,6 +1,6 @@
 # Multi-brand Workshop Dashboard
 
-A cinematic Supabase + Next.js dashboard for automotive teams. The project now ships with three ready-made identities (Driftworks, Los Santos Customs, and Synline Auto) and a scalable brand system so you can spin up additional client portals by editing a single config file.
+A cinematic Supabase + Next.js dashboard for automotive teams. The project now ships with four ready-made identities (Driftworks, Los Santos Customs, Synline Auto, and Big Tuna) and a scalable brand system so you can spin up additional client portals by editing a single config file.
 
 ## Tech Stack
 - Next.js 15 (App Router) + React 19
@@ -22,8 +22,8 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` *(needed for server actions that write to Supabase)*
    - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000`)
-   - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `lscustoms` for Los Santos Customs or `synlineauto` for Synline Auto)
-   - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_LSCUSTOMS` / `DISCORD_WEBHOOK_SYNLINELAUTO` for brand-specific sale alerts (optional)
+   - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `lscustoms` for Los Santos Customs, `synlineauto` for Synline Auto, or `bigtuna` for Big Tuna)
+   - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_LSCUSTOMS` / `DISCORD_WEBHOOK_SYNLINELAUTO` / `DISCORD_WEBHOOK_BIGTUNA` for brand-specific sale alerts (optional)
    - `DISCORD_BOT_TOKEN` for the `!buy` Discord bot (optional)
    - `DISCORD_CART_IMAGE` optional thumbnail URL for the bot embed (optional)
    - `DISCORD_CURRENCY` currency code for the bot totals (defaults to `USD`)
@@ -65,7 +65,7 @@ Re-run the script safely; it drops/recreates policies.
 1. Push to GitHub (or your VCS).
 2. Create a Vercel project pointing at this folder.
 3. Add the env vars from `.env.example` in the Vercel dashboard (including `NEXT_PUBLIC_BRAND`).
-4. Configure Supabase auth redirects for your production domain (e.g. `https://lscustomsmechanic.com/login`).
+4. Configure Supabase auth redirects for your production domain (e.g. `https://bigtunamechanic.com/login`).
 
 Vercel runs `npm run build` automatically.
 

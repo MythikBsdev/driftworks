@@ -6,6 +6,7 @@ const brandIcon =
     driftworks: "/driftworks.png",
     lscustoms: "/lscustoms.png",
     synlineauto: "/synlineauto.png",
+    bigtuna: "/bigtuna.png",
   }[brandSlug] ?? "/favicon.ico";
 
 const nextConfig: NextConfig = {

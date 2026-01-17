@@ -46,6 +46,52 @@ export type BrandDefinition = {
 };
 
 const BRANDS = {
+  bigtuna: {
+    slug: "bigtuna",
+    name: "Big Tuna Operations Hub",
+    shortName: "Big Tuna",
+    initials: "BT",
+    siteUrl: "https://bigtunamechanic.com",
+    domains: ["bigtunamechanic.com", "bigtuna"],
+    palette: {
+      primary: "#32d1ff",
+      accent: "#67e4ff",
+      highlight: "#a8f4ff",
+      slate: "#050a14",
+      card: "#0a1324",
+      outline: "#11243b",
+      surface: "rgba(7, 15, 30, 0.78)",
+      surfaceStrong: "rgba(4, 10, 20, 0.92)",
+      textMuted: "rgba(207, 233, 255, 0.72)",
+      glow: "rgba(50, 209, 255, 0.42)",
+    },
+    copy: {
+      heroTitle: "Big Tuna Service Dashboard",
+      heroDescription:
+        "Run Big Tuna service tickets, invoices, and client loyalty from a neon ocean-inspired control room powered by Supabase.",
+      loginSubtitle: "Sign in to access the Big Tuna mechanic portal",
+      footerCredit: "Big Tuna Mechanics",
+      navSubtitle: "Service Command",
+      clientPlaceholder: "Big Tuna Bay",
+    },
+    assets: {
+      logo: "/bigtuna.png",
+      favicon: "/bigtuna.png",
+    },
+    metadata: {
+      title: "Big Tuna Operations Hub",
+      description:
+        "Manage Big Tuna service, invoices, and client loyalty with a neon-blue dashboard backed by Supabase.",
+      icons: {
+        icon: "/bigtuna.png",
+        shortcut: "/bigtuna.png",
+        apple: "/bigtuna.png",
+      },
+    },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_BIGTUNA,
+    },
+  },
   driftworks: {
     slug: "driftworks",
     name: "Driftworks Invoice Dashboard",

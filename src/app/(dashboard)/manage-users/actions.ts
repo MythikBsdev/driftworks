@@ -8,7 +8,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { canManageUsers, hasOwnerLikeAccess } from "@/config/brand-overrides";
+import { canManageUsers } from "@/config/brand-overrides";
 
 const createUserSchema = z.object({
   username: z

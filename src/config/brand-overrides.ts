@@ -1,6 +1,7 @@
 import { brand } from "@/config/brands";
 
 export const isLscustoms = brand.slug === "lscustoms";
+const isBigtuna = brand.slug === "bigtuna";
 const isSynlineauto = brand.slug === "synlineauto";
 
 const roleAliases: Record<string, string> = {
@@ -60,7 +61,7 @@ const toTitleCase = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-export const brandCurrency = isLscustoms || isSynlineauto ? "USD" : "GBP";
+export const brandCurrency = isLscustoms || isSynlineauto || isBigtuna ? "USD" : "GBP";
 
 export const roleLabelsMap = roleOptions.reduce<Record<string, string>>(
   (acc, option) => {
@@ -103,9 +104,7 @@ export const formatCategoryLabel = (category?: string | null) => {
   return match?.label ?? category;
 };
 
-const activeColorVar = isLscustoms
-  ? "--color-brand-accent"
-  : "--color-brand-primary";
+const activeColorVar = isLscustoms ? "--color-brand-accent" : "--color-brand-primary";
 
 export const tabHighlight = {
   borderColor: `rgb(var(${activeColorVar}) / 0.6)`,
