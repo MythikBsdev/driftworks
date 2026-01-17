@@ -6,7 +6,7 @@ import {
   formatCategoryLabel,
   inventoryCategories,
   hasManagerLikeAccess,
-  commissionUsesProfit,
+  showProfitFields,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -21,7 +21,7 @@ import {
 
 const categories = inventoryCategories;
 const defaultCategory = categories[0]?.value ?? "Normal";
-const showProfit = commissionUsesProfit;
+const showProfit = showProfitFields;
 
 const InventoryPage = async () => {
   const session = await getSession();

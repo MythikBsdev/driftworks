@@ -64,7 +64,8 @@ const toTitleCase = (value: string) =>
 
 const usesUsd = isLscustoms || isSynlineauto || isBigtuna || isBennys;
 export const brandCurrency = usesUsd ? "USD" : "GBP";
-export const commissionUsesProfit = isBigtuna || isBennys;
+export const commissionUsesProfit = isBigtuna;
+export const showProfitFields = isBigtuna || isBennys;
 
 export const roleLabelsMap = roleOptions.reduce<Record<string, string>>(
   (acc, option) => {
