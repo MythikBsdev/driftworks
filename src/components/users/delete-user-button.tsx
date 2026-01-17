@@ -90,7 +90,7 @@ export const DeleteUserButton = ({ userId, disabled }: DeleteUserButtonProps) =>
 
             {state.status === "error" ? (
               <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs text-red-200">
-                {(state as any).message ?? "Unable to delete user."}
+                {state.message ?? "Unable to delete user."}
               </p>
             ) : null}
 

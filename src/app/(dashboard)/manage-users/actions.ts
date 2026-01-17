@@ -114,7 +114,7 @@ const updateRoleSchema = z.object({
   role: createUserSchema.shape.role,
 });
 
-export const updateUserRole = async (formData: FormData) => {
+export const updateUserRole = async (formData: FormData): Promise<void> => {
   const session = await getSession();
   const canManage = session && canManageUsers(session.user.role);
 
@@ -279,7 +279,10 @@ const deleteUserSchema = z.object({
   reason: z.string().min(3, "Reason is required"),
 });
 
-export const deleteUserAccount = async (formData: FormData): Promise<DeleteUserState> => {
+export const deleteUserAccount = async (
+  _prev: DeleteUserState,
+  formData: FormData,
+): Promise<DeleteUserState> => {
   const session = await getSession();
   const canManage = session && canManageUsers(session.user.role);
 
@@ -317,7 +320,7 @@ export const deleteUserAccount = async (formData: FormData): Promise<DeleteUserS
     target as Database["public"]["Tables"]["app_users"]["Row"] | null;
 
   if (!targetRow) {
-    return;
+    return { status: "error", message: "User not found" };
   }
 
   if (targetRow.role === "owner") {
@@ -326,7 +329,7 @@ export const deleteUserAccount = async (formData: FormData): Promise<DeleteUserS
       .select("id", { count: "exact", head: true })
       .eq("role", "owner");
     if ((count ?? 0) <= 1) {
-      return;
+      return { status: "error", message: "Cannot delete the last owner." };
     }
   }
 
