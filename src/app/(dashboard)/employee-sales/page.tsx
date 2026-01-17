@@ -1,9 +1,10 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { addEmployeeSale } from "./actions";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { brandCurrency } from "@/config/brand-overrides";
 
 const EmployeeSalesPage = async () => {
   const session = await getSession();
@@ -53,7 +54,7 @@ const EmployeeSalesPage = async () => {
             className="muted-label"
             htmlFor="amount"
           >
-            Amount (£)
+            Amount ({brandCurrency})
           </label>
           <input
             id="amount"

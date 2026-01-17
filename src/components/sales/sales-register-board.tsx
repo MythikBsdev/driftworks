@@ -22,6 +22,7 @@ type InventoryItem = {
   category: string;
   price: number;
   profit: number;
+  commission_rate_override: number | null;
 };
 
 type Discount = {
@@ -79,7 +80,14 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
     null,
   );
   const [cart, setCart] = useState<
-    Array<{ itemId: string; name: string; price: number; profit: number; quantity: number }>
+    Array<{
+      itemId: string;
+      name: string;
+      price: number;
+      profit: number;
+      commissionRateOverride: number | null;
+      quantity: number;
+    }>
   >([]);
 
   const [state, formAction] = useFormState(completeSale, initialState);
@@ -202,6 +210,7 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
           name: item.name,
           price: item.price,
           profit: item.profit ?? 0,
+          commissionRateOverride: item.commission_rate_override ?? null,
           quantity: 1,
         },
       ];
@@ -261,6 +270,11 @@ const SalesRegisterBoard = ({ items, discounts }: SalesRegisterBoardProps) => {
                 <span className="text-sm text-white/70">
                   {formatter.format(item.price)}
                 </span>
+                {item.commission_rate_override != null ? (
+                  <span className="text-[11px] text-amber-200/80">
+                    Fixed commission {(item.commission_rate_override * 100).toFixed(1)}%
+                  </span>
+                ) : null}
               </button>
             ))
           ) : (

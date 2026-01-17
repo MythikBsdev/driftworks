@@ -15,6 +15,7 @@ const cartItemSchema = z.object({
   name: z.string(),
   price: z.number(),
   profit: z.number().nonnegative().default(0),
+  commissionRateOverride: z.number().min(0).max(1).nullable().optional(),
   quantity: z.number().min(1),
 });
 
@@ -261,6 +262,7 @@ export const completeSale = async (
         profit_total: roundCurrency(
           Math.max((item.profit ?? 0) * item.quantity * discountMultiplier, 0),
         ),
+        commission_rate_override: item.commissionRateOverride ?? null,
       })) as never,
     );
 

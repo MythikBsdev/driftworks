@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
-import { brandCurrency, isBigtuna } from "@/config/brand-overrides";
+import { brandCurrency, commissionUsesProfit } from "@/config/brand-overrides";
 
 const DashboardPage = async () => {
   const session = await getSession();
@@ -26,7 +26,7 @@ const DashboardPage = async () => {
   ] = await Promise.all([
     supabase
       .from("sales_orders")
-      .select("id, owner_id, invoice_number, total, profit_total, created_at")
+      .select("id, owner_id, invoice_number, subtotal, total, profit_total, created_at")
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -62,6 +62,28 @@ const DashboardPage = async () => {
   const team =
     (usersResult.data ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
 
+  let salesOrderItems: Database["public"]["Tables"]["sales_order_items"]["Row"][] = [];
+  const saleIds = sales.map((sale) => sale.id).filter(Boolean);
+  if (saleIds.length) {
+    const { data: saleItemRows } = await supabase
+      .from("sales_order_items")
+      .select("order_id, total, profit_total, commission_rate_override")
+      .in("order_id", saleIds);
+
+    salesOrderItems =
+      (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
+  }
+
+  const itemsByOrderId = new Map<
+    string,
+    Database["public"]["Tables"]["sales_order_items"]["Row"][]
+  >();
+  salesOrderItems.forEach((item) => {
+    const current = itemsByOrderId.get(item.order_id) ?? [];
+    current.push(item);
+    itemsByOrderId.set(item.order_id, current);
+  });
+
   const registerRevenue = sum(sales.map((sale) => sale.total ?? 0));
   const employeeRevenue = sum(employeeSales.map((entry) => entry.amount ?? 0));
   const totalRevenue = registerRevenue + employeeRevenue;
@@ -73,37 +95,66 @@ const DashboardPage = async () => {
     commissionMap.set(rate.role, rate.rate ?? 0);
   });
 
-  const registerTotals = new Map<string, number>();
+  const userRoleLookup = new Map(team.map((member) => [member.id, member.role ?? ""]));
+  const commissionBaseByUser = new Map<string, number>();
+  const commissionTotalByUser = new Map<string, number>();
+
+  const addBase = (userId: string, amount: number) => {
+    const current = commissionBaseByUser.get(userId) ?? 0;
+    commissionBaseByUser.set(userId, current + amount);
+  };
+
+  const addCommission = (userId: string, amount: number) => {
+    const current = commissionTotalByUser.get(userId) ?? 0;
+    commissionTotalByUser.set(userId, current + amount);
+  };
+
   sales.forEach((sale) => {
-    if (!sale.owner_id) {
+    const ownerId = sale.owner_id;
+    if (!ownerId) {
       return;
     }
-    const current = registerTotals.get(sale.owner_id) ?? 0;
-    const commissionable = isBigtuna ? sale.profit_total ?? 0 : sale.total ?? 0;
-    registerTotals.set(sale.owner_id, current + commissionable);
+
+    const role = userRoleLookup.get(ownerId) ?? "";
+    const roleRate = commissionMap.get(role) ?? 0;
+    const discountMultiplier =
+      sale.subtotal && sale.subtotal > 0
+        ? Math.max(Math.min((sale.total ?? 0) / sale.subtotal, 1), 0)
+        : 0;
+
+    const lineItems = itemsByOrderId.get(sale.id) ?? [];
+    if (lineItems.length) {
+      lineItems.forEach((item) => {
+        const base = commissionUsesProfit
+          ? item.profit_total ?? 0
+          : (item.total ?? 0) * discountMultiplier;
+        addBase(ownerId, base);
+        const appliedRate = item.commission_rate_override ?? roleRate;
+        addCommission(ownerId, base * appliedRate);
+      });
+      return;
+    }
+
+    const fallbackBase = commissionUsesProfit ? sale.profit_total ?? 0 : sale.total ?? 0;
+    addBase(ownerId, fallbackBase);
+    addCommission(ownerId, fallbackBase * roleRate);
   });
 
-  const employeeTotals = new Map<string, number>();
   employeeSales.forEach((entry) => {
     if (!entry.employee_id) {
       return;
     }
-    const current = employeeTotals.get(entry.employee_id) ?? 0;
-    employeeTotals.set(entry.employee_id, current + (entry.amount ?? 0));
+    const role = userRoleLookup.get(entry.employee_id) ?? "";
+    const roleRate = commissionMap.get(role) ?? 0;
+    const base = entry.amount ?? 0;
+    addBase(entry.employee_id, base);
+    addCommission(entry.employee_id, base * roleRate);
   });
 
-  const totalCommission = team.reduce((acc, member) => {
-    const commissionRate = commissionMap.get(member.role) ?? 0;
-    if (commissionRate === 0) {
-      return acc;
-    }
-    const commissionBaseForMember =
-      (registerTotals.get(member.id) ?? 0) + (employeeTotals.get(member.id) ?? 0);
-    if (commissionBaseForMember === 0) {
-      return acc;
-    }
-    return acc + commissionBaseForMember * commissionRate;
-  }, 0);
+  const totalCommission = team.reduce(
+    (acc, member) => acc + (commissionTotalByUser.get(member.id) ?? 0),
+    0,
+  );
 
   const latestSales = sales.slice(0, 6);
   const formatter = currencyFormatter(brandCurrency);

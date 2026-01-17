@@ -62,7 +62,9 @@ const toTitleCase = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-export const brandCurrency = isLscustoms || isSynlineauto || isBigtuna ? "USD" : "GBP";
+const usesUsd = isLscustoms || isSynlineauto || isBigtuna || isBennys;
+export const brandCurrency = usesUsd ? "USD" : "GBP";
+export const commissionUsesProfit = isBigtuna || isBennys;
 
 export const roleLabelsMap = roleOptions.reduce<Record<string, string>>(
   (acc, option) => {
