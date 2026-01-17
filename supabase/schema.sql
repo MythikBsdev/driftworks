@@ -117,6 +117,7 @@ create table if not exists public.discord_purchases (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+drop function if exists public.discord_purchases_total(text, text);
 create or replace function public.discord_purchases_total(p_guild_id text default null, p_channel_id text default null, p_brand_slug text default null)
 returns numeric
 language sql
