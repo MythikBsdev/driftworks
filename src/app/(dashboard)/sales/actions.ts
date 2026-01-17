@@ -223,6 +223,7 @@ export type PayUserState =
 export const payUser = async (_prev: PayUserState, formData: FormData): Promise<PayUserState> => {
   const session = await getSession();
   if (!session || !hasOwnerLikeAccess(session.user.role)) {
+    console.warn("[payout] Blocked: insufficient permissions", { userId: session?.user.id });
     return { status: "error", message: "You do not have permission to pay users." };
   }
 
@@ -232,6 +233,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
   });
 
   if (!parsed.success) {
+    console.warn("[payout] Validation failed", parsed.error.issues);
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid payout" };
   }
 
@@ -245,14 +247,17 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
   const targetRow = targetUser as Database["public"]["Tables"]["app_users"]["Row"] | null;
 
   if (userError || !targetRow) {
+    console.error("[payout] User lookup failed", userError);
     return { status: "error", message: "User not found" };
   }
 
   if (!DISCORD_BOT_TOKEN) {
+    console.error("[payout] Missing DISCORD_BOT_TOKEN");
     return { status: "error", message: "Discord bot token is not configured" };
   }
 
   if (!targetRow.pay_channel_id) {
+    console.warn("[payout] No pay channel linked", { targetId: targetRow.id });
     return { status: "error", message: "No Discord payslip channel linked for this user." };
   }
 
@@ -370,7 +375,12 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
   );
 
   if (!response.ok) {
-    console.error("[payout] Failed to send payslip", await response.text());
+    const errorText = await response.text();
+    console.error("[payout] Failed to send payslip", {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText,
+    });
     return { status: "error", message: "Failed to send payslip to Discord." };
   }
 
