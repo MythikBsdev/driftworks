@@ -103,7 +103,52 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   const content = message.content.trim();
-  if (!content.toLowerCase().startsWith("!buy")) return;
+  const normalized = content.toLowerCase();
+
+  if (normalized.startsWith("!setup")) {
+    const [, usernameRaw] = content.split(/\s+/, 2);
+    const username = usernameRaw?.trim();
+    if (!username) {
+      await message.reply("Usage: `!setup <username>`");
+      return;
+    }
+
+    const supabase = getSupabaseClient(message.guildId);
+    const { data: userRow, error: fetchError } = await supabase
+      .from("app_users")
+      .select("id, username")
+      .ilike("username", username)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[discord-bot] Failed to fetch user for setup", fetchError);
+      await message.reply("Something went wrong linking this channel. Try again.");
+      return;
+    }
+
+    if (!userRow) {
+      await message.reply("No matching user was found for that username.");
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("app_users")
+      .update({ pay_channel_id: message.channelId } as never)
+      .eq("id", userRow.id);
+
+    if (updateError) {
+      console.error("[discord-bot] Failed to save pay channel", updateError);
+      await message.reply("I couldn't save that channel. Try again later.");
+      return;
+    }
+
+    await message.reply(
+      `Linked channel <#${message.channelId}> to user **${userRow.username}** for payslips.`,
+    );
+    return;
+  }
+
+  if (!normalized.startsWith("!buy")) return;
 
   const [, amountRaw] = content.split(/\s+/);
   const parsedAmount = parseFloat((amountRaw ?? "").replace(/[$,]/g, ""));

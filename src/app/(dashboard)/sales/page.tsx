@@ -7,12 +7,14 @@ import {
   formatRoleLabel,
   hasManagerLikeAccess,
   commissionUsesProfit,
+  isBennys,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
 import { deleteSale, resetAllSales, resetUserSales } from "./actions";
+import PayUserButton from "@/components/sales/pay-user-button";
 
 type SalesPageProps = {
   searchParams?: Promise<{
@@ -413,27 +415,38 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
                         {row.bankAccount ?? "-"}
                       </td>
                       <td className="px-4 py-3">
-                        {session.user.role === "owner" ? (
-                          <form action={resetUserSales} method="post">
-                            <input type="hidden" name="userId" value={row.id} />
+                        <div className="flex flex-wrap items-center gap-2">
+                          {isBennys ? (
+                            <PayUserButton
+                              userId={row.id}
+                              displayName={row.displayName}
+                              commissionTotal={row.commissionTotal}
+                              bankAccount={row.bankAccount}
+                              currency={brandCurrency}
+                            />
+                          ) : null}
+                          {session.user.role === "owner" ? (
+                            <form action={resetUserSales} method="post">
+                              <input type="hidden" name="userId" value={row.id} />
+                              <button
+                                type="submit"
+                                className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:border-white/30 hover:text-white"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                                Reset
+                              </button>
+                            </form>
+                          ) : (
                             <button
-                              type="submit"
-                              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:border-white/30 hover:text-white"
+                              type="button"
+                              disabled
+                              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
                             >
                               <RotateCcw className="h-3.5 w-3.5" />
                               Reset
                             </button>
-                          </form>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled
-                            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/60 transition hover:text-white disabled:cursor-not-allowed"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                            Reset
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -504,7 +517,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
           </div>
         ) : null}
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="mt-6 overflow-visible rounded-2xl border border-white/10 bg-white/5">
           <table className="w-full text-sm text-white/80">
             <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
