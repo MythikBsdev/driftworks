@@ -221,169 +221,177 @@ export type PayUserState =
   | { status: "error"; message: string };
 
 export const payUser = async (_prev: PayUserState, formData: FormData): Promise<PayUserState> => {
-  const session = await getSession();
-  if (!session || !hasOwnerLikeAccess(session.user.role)) {
-    console.warn("[payout] Blocked: insufficient permissions", { userId: session?.user.id });
-    return { status: "error", message: "You do not have permission to pay users." };
-  }
-
-  const parsed = payUserSchema.safeParse({
-    userId: formData.get("userId"),
-    bonus: formData.get("bonus"),
-  });
-
-  if (!parsed.success) {
-    console.warn("[payout] Validation failed", parsed.error.issues);
-    return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid payout" };
-  }
-
-  const supabase = createSupabaseServerActionClient();
-  const { data: targetUser, error: userError } = await supabase
-    .from("app_users")
-    .select("id, username, full_name, role, bank_account, pay_channel_id")
-    .eq("id", parsed.data.userId)
-    .maybeSingle();
-
-  const targetRow = targetUser as Database["public"]["Tables"]["app_users"]["Row"] | null;
-
-  if (userError || !targetRow) {
-    console.error("[payout] User lookup failed", userError);
-    return { status: "error", message: "User not found" };
-  }
-
-  if (!DISCORD_BOT_TOKEN) {
-    console.error("[payout] Missing DISCORD_BOT_TOKEN");
-    return { status: "error", message: "Discord bot token is not configured" };
-  }
-
-  if (!targetRow.pay_channel_id) {
-    console.warn("[payout] No pay channel linked", { targetId: targetRow.id });
-    return { status: "error", message: "No Discord payslip channel linked for this user." };
-  }
-
-  const [{ data: commissionRatesResult }, { data: salesOrdersResult }, { data: employeeSalesResult }] =
-    await Promise.all([
-      supabase.from("commission_rates").select("role, rate"),
-      supabase
-        .from("sales_orders")
-        .select("id, owner_id, subtotal, total, profit_total")
-        .eq("owner_id", targetRow.id),
-      supabase
-        .from("employee_sales")
-        .select("employee_id, amount")
-        .eq("employee_id", targetRow.id),
-    ]);
-
-  const commissionRates =
-    (commissionRatesResult ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
-  const salesOrders =
-    (salesOrdersResult ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
-  const employeeSales =
-    (employeeSalesResult ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
-
-  const commissionMap = new Map<string, number>();
-  commissionRates.forEach((rate) => commissionMap.set(rate.role, rate.rate ?? 0));
-  const roleRate = commissionMap.get(targetRow.role) ?? 0;
-
-  const saleIds = salesOrders.map((order) => order.id).filter(Boolean);
-  let salesOrderItems: Database["public"]["Tables"]["sales_order_items"]["Row"][] = [];
-  if (saleIds.length) {
-    const { data: saleItemRows } = await supabase
-      .from("sales_order_items")
-      .select("order_id, total, profit_total, commission_flat_override, quantity")
-      .in("order_id", saleIds);
-    salesOrderItems =
-      (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
-  }
-
-  const itemsByOrderId = new Map<
-    string,
-    Database["public"]["Tables"]["sales_order_items"]["Row"][]
-  >();
-  salesOrderItems.forEach((item) => {
-    const current = itemsByOrderId.get(item.order_id) ?? [];
-    current.push(item);
-    itemsByOrderId.set(item.order_id, current);
-  });
-
-  let commissionTotal = 0;
-
-  salesOrders.forEach((order) => {
-    const discountMultiplier =
-      order.subtotal && order.subtotal > 0
-        ? Math.max(Math.min((order.total ?? 0) / order.subtotal, 1), 0)
-        : 0;
-    const lineItems = itemsByOrderId.get(order.id) ?? [];
-    if (lineItems.length) {
-      lineItems.forEach((item) => {
-        const base = commissionUsesProfit
-          ? item.profit_total ?? 0
-          : (item.total ?? 0) * discountMultiplier;
-        const appliedFlat = item.commission_flat_override;
-        if (appliedFlat != null) {
-          commissionTotal += appliedFlat * (item.quantity ?? 1) * discountMultiplier;
-        } else {
-          commissionTotal += base * roleRate;
-        }
-      });
-      return;
+  try {
+    const session = await getSession();
+    if (!session || !hasOwnerLikeAccess(session.user.role)) {
+      console.warn("[payout] Blocked: insufficient permissions", { userId: session?.user.id });
+      return { status: "error", message: "You do not have permission to pay users." };
     }
-    const fallbackBase = commissionUsesProfit ? order.profit_total ?? 0 : order.total ?? 0;
-    commissionTotal += fallbackBase * roleRate;
-  });
 
-  employeeSales.forEach((entry) => {
-    commissionTotal += (entry.amount ?? 0) * roleRate;
-  });
-
-  const bonus = Math.max(parsed.data.bonus ?? 0, 0);
-  const netTotal = commissionTotal + bonus;
-
-  const formatter = currencyFormatter(brandCurrency);
-
-  const embed = {
-    title: "Pay Slip",
-    color: 0x22c55e,
-    fields: [
-      { name: "Employee", value: targetRow.full_name ?? targetRow.username, inline: true },
-      { name: "Commission", value: formatter.format(commissionTotal), inline: true },
-      { name: "Bonus", value: formatter.format(bonus), inline: true },
-      { name: "Net Total", value: formatter.format(netTotal), inline: true },
-      {
-        name: "Bank Account",
-        value: targetRow.bank_account ? `**${targetRow.bank_account}**` : "Not provided",
-        inline: true,
-      },
-    ],
-    footer: { text: "Issued via Benny's portal" },
-    timestamp: new Date().toISOString(),
-  };
-
-  const response = await fetch(
-    `https://discord.com/api/v10/channels/${targetRow.pay_channel_id}/messages`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
-      },
-      body: JSON.stringify({
-        embeds: [embed],
-        allowed_mentions: { parse: [] },
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[payout] Failed to send payslip", {
-      status: response.status,
-      statusText: response.statusText,
-      body: errorText,
+    const parsed = payUserSchema.safeParse({
+      userId: formData.get("userId"),
+      bonus: formData.get("bonus"),
     });
-    return { status: "error", message: "Failed to send payslip to Discord." };
-  }
 
-  revalidatePath("/sales");
-  return { status: "success", message: "Payslip sent to Discord." };
+    if (!parsed.success) {
+      console.warn("[payout] Validation failed", parsed.error.issues);
+      return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid payout" };
+    }
+
+    const supabase = createSupabaseServerActionClient();
+    const { data: targetUser, error: userError } = await supabase
+      .from("app_users")
+      .select("id, username, full_name, role, bank_account, pay_channel_id")
+      .eq("id", parsed.data.userId)
+      .maybeSingle();
+
+    const targetRow = targetUser as Database["public"]["Tables"]["app_users"]["Row"] | null;
+
+    if (userError || !targetRow) {
+      console.error("[payout] User lookup failed", userError);
+      return { status: "error", message: "User not found" };
+    }
+
+    if (!DISCORD_BOT_TOKEN) {
+      console.error("[payout] Missing DISCORD_BOT_TOKEN");
+      return { status: "error", message: "Discord bot token is not configured" };
+    }
+
+    if (!targetRow.pay_channel_id) {
+      console.warn("[payout] No pay channel linked", { targetId: targetRow.id });
+      return { status: "error", message: "No Discord payslip channel linked for this user." };
+    }
+
+    const [{ data: commissionRatesResult }, { data: salesOrdersResult }, { data: employeeSalesResult }] =
+      await Promise.all([
+        supabase.from("commission_rates").select("role, rate"),
+        supabase
+          .from("sales_orders")
+          .select("id, owner_id, subtotal, total, profit_total")
+          .eq("owner_id", targetRow.id),
+        supabase
+          .from("employee_sales")
+          .select("employee_id, amount")
+          .eq("employee_id", targetRow.id),
+      ]);
+
+    const commissionRates =
+      (commissionRatesResult ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
+    const salesOrders =
+      (salesOrdersResult ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
+    const employeeSales =
+      (employeeSalesResult ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
+
+    const commissionMap = new Map<string, number>();
+    commissionRates.forEach((rate) => commissionMap.set(rate.role, rate.rate ?? 0));
+    const roleRate = commissionMap.get(targetRow.role) ?? 0;
+
+    const saleIds = salesOrders.map((order) => order.id).filter(Boolean);
+    let salesOrderItems: Database["public"]["Tables"]["sales_order_items"]["Row"][] = [];
+    if (saleIds.length) {
+      const { data: saleItemRows } = await supabase
+        .from("sales_order_items")
+        .select("order_id, total, profit_total, commission_flat_override, quantity")
+        .in("order_id", saleIds);
+      salesOrderItems =
+        (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
+    }
+
+    const itemsByOrderId = new Map<
+      string,
+      Database["public"]["Tables"]["sales_order_items"]["Row"][]
+    >();
+    salesOrderItems.forEach((item) => {
+      const current = itemsByOrderId.get(item.order_id) ?? [];
+      current.push(item);
+      itemsByOrderId.set(item.order_id, current);
+    });
+
+    let commissionTotal = 0;
+
+    salesOrders.forEach((order) => {
+      const discountMultiplier =
+        order.subtotal && order.subtotal > 0
+          ? Math.max(Math.min((order.total ?? 0) / order.subtotal, 1), 0)
+          : 0;
+      const lineItems = itemsByOrderId.get(order.id) ?? [];
+      if (lineItems.length) {
+        lineItems.forEach((item) => {
+          const base = commissionUsesProfit
+            ? item.profit_total ?? 0
+            : (item.total ?? 0) * discountMultiplier;
+          const appliedFlat = item.commission_flat_override;
+          if (appliedFlat != null) {
+            commissionTotal += appliedFlat * (item.quantity ?? 1) * discountMultiplier;
+          } else {
+            commissionTotal += base * roleRate;
+          }
+        });
+        return;
+      }
+      const fallbackBase = commissionUsesProfit ? order.profit_total ?? 0 : order.total ?? 0;
+      commissionTotal += fallbackBase * roleRate;
+    });
+
+    employeeSales.forEach((entry) => {
+      commissionTotal += (entry.amount ?? 0) * roleRate;
+    });
+
+    const bonus = Math.max(parsed.data.bonus ?? 0, 0);
+    const netTotal = commissionTotal + bonus;
+
+    const formatter = currencyFormatter(brandCurrency);
+
+    const embed = {
+      title: "Pay Slip",
+      color: 0x22c55e,
+      fields: [
+        { name: "Employee", value: targetRow.full_name ?? targetRow.username, inline: true },
+        { name: "Commission", value: formatter.format(commissionTotal), inline: true },
+        { name: "Bonus", value: formatter.format(bonus), inline: true },
+        { name: "Net Total", value: formatter.format(netTotal), inline: true },
+        {
+          name: "Bank Account",
+          value: targetRow.bank_account ? `**${targetRow.bank_account}**` : "Not provided",
+          inline: true,
+        },
+      ],
+      footer: { text: "Issued via Benny's portal" },
+      timestamp: new Date().toISOString(),
+    };
+
+    const response = await fetch(
+      `https://discord.com/api/v10/channels/${targetRow.pay_channel_id}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+        },
+        body: JSON.stringify({
+          embeds: [embed],
+          allowed_mentions: { parse: [] },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[payout] Failed to send payslip", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      return {
+        status: "error",
+        message: `Discord error (${response.status}): ${response.statusText}`,
+      };
+    }
+
+    revalidatePath("/sales");
+    return { status: "success", message: "Payslip sent to Discord." };
+  } catch (error) {
+    console.error("[payout] Unexpected error", error);
+    return { status: "error", message: "Unexpected error sending payslip." };
+  }
 };
