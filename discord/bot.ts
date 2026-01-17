@@ -4,7 +4,7 @@ import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
 loadEnv();
 
-import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
+import { Client, EmbedBuilder, Events, GatewayIntentBits } from "discord.js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -95,7 +95,7 @@ const client = new Client({
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: CURRENCY_CODE }).format(value);
 
-client.once("ready", () => {
+client.once(Events.ClientReady, () => {
   console.log(`[discord-bot] Logged in as ${client.user?.tag ?? "unknown user"}`);
 });
 
