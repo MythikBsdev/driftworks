@@ -93,7 +93,15 @@ const removeUserSales = async (
 
 const payUserSchema = z.object({
   userId: z.string().uuid(),
-  bonus: z.coerce.number().optional().default(0),
+  bonus: z.preprocess(
+    (value) => {
+      if (value === undefined || value === null) return 0;
+      const raw = value.toString().trim();
+      if (!raw.length) return 0;
+      return Number(raw);
+    },
+    z.number().nonnegative("Bonus must be zero or greater"),
+  ),
 });
 
 export const resetAllSales = async () => {

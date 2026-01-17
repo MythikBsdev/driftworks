@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 import { payUser, type PayUserState } from "@/app/(dashboard)/sales/actions";
@@ -37,15 +37,30 @@ export const PayUserButton = ({
   bankAccount,
   currency,
 }: PayUserButtonProps) => {
+  const [open, setOpen] = useState(false);
   const [state, formAction] = useFormState(payUser, initialState);
   const formatter = useMemo(() => currencyFormatter(currency), [currency]);
 
+  useEffect(() => {
+    if (state.status === "error" || state.status === "success") {
+      setOpen(true);
+    }
+  }, [state.status]);
+
   return (
-    <details className="relative">
+    <details
+      className="relative"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
       <summary
         className={cn(
           "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 hover:text-white [&::-webkit-details-marker]:hidden",
         )}
+        onClick={(event) => {
+          event.preventDefault();
+          setOpen((current) => !current);
+        }}
       >
         Pay
       </summary>
