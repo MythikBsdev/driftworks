@@ -215,7 +215,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     0,
   );
 
-  const commissionBaseLabel = commissionUsesProfit ? "Total Profit" : "Total Sales";
+  const commissionBaseLabel = "Total Sales";
   const csvRows = [
     ["Name", "Role", commissionBaseLabel, "Commission %", "Commission", "Bank Account"],
     ...summaryRows.map((row) => [
