@@ -1,13 +1,13 @@
 import { revalidatePath } from "next/cache";
 import ClearAllButton from "@/components/parts/clear-all-button";
 import PartsList from "@/components/parts/parts-list";
+import { brand } from "@/config/brands";
+import { brandCurrency } from "@/config/brand-overrides";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter, sum } from "@/lib/utils";
 
 type DiscordPurchase = Database["public"]["Tables"]["discord_purchases"]["Row"];
-
-const CURRENCY = "USD";
 
 const PartsPage = async () => {
   const supabase = createSupabaseServerClient();
@@ -15,6 +15,7 @@ const PartsPage = async () => {
   const { data, error } = await supabase
     .from("discord_purchases")
     .select("id, amount, user_id, guild_id, channel_id, message_id, created_at")
+    .eq("brand_slug", brand.slug)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -35,7 +36,7 @@ const PartsPage = async () => {
     .reduce((acc, purchase) => acc + normalizeAmount(purchase.amount), 0);
   const allTimeTotal = sum(purchases.map((purchase) => normalizeAmount(purchase.amount)));
 
-  const formatter = currencyFormatter(CURRENCY);
+  const formatter = currencyFormatter(brandCurrency);
 
   const deletePurchase = async (formData: FormData) => {
     "use server";
@@ -84,7 +85,11 @@ const PartsPage = async () => {
             <ClearAllButton />
           ) : null}
         </div>
-        <PartsList purchases={purchases} formatterCurrency={CURRENCY} deleteAction={deletePurchase} />
+        <PartsList
+          purchases={purchases}
+          formatterCurrency={brandCurrency}
+          deleteAction={deletePurchase}
+        />
       </div>
     </div>
   );

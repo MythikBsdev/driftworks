@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { brand } from "@/config/brands";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -8,7 +9,7 @@ export async function POST() {
   const { error } = await supabase
     .from("discord_purchases")
     .delete()
-    .not("id", "is", null);
+    .eq("brand_slug", brand.slug);
   if (error) {
     console.error("[parts] Failed to clear purchases", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

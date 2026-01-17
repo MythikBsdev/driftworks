@@ -12,6 +12,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CART_PREVIEW_IMAGE = process.env.DISCORD_CART_IMAGE;
 const CURRENCY_CODE = process.env.DISCORD_CURRENCY ?? "USD";
+const BRAND_SLUG = process.env.DISCORD_BRAND_SLUG ?? process.env.NEXT_PUBLIC_BRAND ?? "driftworks";
 
 if (!DISCORD_BOT_TOKEN) {
   throw new Error("DISCORD_BOT_TOKEN is required to start the bot.");
@@ -62,6 +63,7 @@ client.on("messageCreate", async (message) => {
     message_id: message.id,
     user_id: message.author.id,
     amount,
+    brand_slug: BRAND_SLUG,
   });
 
   if (insertError) {
@@ -73,6 +75,7 @@ client.on("messageCreate", async (message) => {
   const { data: totalRow, error: totalError } = await supabase.rpc("discord_purchases_total", {
     p_guild_id: message.guildId,
     p_channel_id: null,
+    p_brand_slug: BRAND_SLUG,
   });
 
   if (totalError) {

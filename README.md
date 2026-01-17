@@ -25,6 +25,7 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `bennys` for Benny's, `lscustoms` for Los Santos Customs, `synlineauto` for Synline Auto, or `bigtuna` for Big Tuna)
    - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_BENNYS` / `DISCORD_WEBHOOK_LSCUSTOMS` / `DISCORD_WEBHOOK_SYNLINELAUTO` / `DISCORD_WEBHOOK_BIGTUNA` for brand-specific sale alerts (optional)
    - `DISCORD_BOT_TOKEN` for the `!buy` Discord bot (optional)
+   - `DISCORD_BRAND_SLUG` for the `!buy` bot to tag purchases to the correct brand (defaults to `NEXT_PUBLIC_BRAND`)
    - `DISCORD_CART_IMAGE` optional thumbnail URL for the bot embed (optional)
    - `DISCORD_CURRENCY` currency code for the bot totals (defaults to `USD`)
 3. **Provision Supabase**

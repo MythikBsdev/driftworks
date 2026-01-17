@@ -113,17 +113,19 @@ create table if not exists public.discord_purchases (
   message_id text,
   user_id text not null,
   amount numeric not null check (amount >= 0),
+  brand_slug text not null default 'driftworks',
   created_at timestamptz not null default timezone('utc', now())
 );
 
-create or replace function public.discord_purchases_total(p_guild_id text default null, p_channel_id text default null)
+create or replace function public.discord_purchases_total(p_guild_id text default null, p_channel_id text default null, p_brand_slug text default null)
 returns numeric
 language sql
 as $$
   select coalesce(sum(amount), 0)
   from public.discord_purchases
   where (p_guild_id is null or guild_id = p_guild_id)
-    and (p_channel_id is null or channel_id = p_channel_id);
+    and (p_channel_id is null or channel_id = p_channel_id)
+    and (p_brand_slug is null or brand_slug = p_brand_slug);
 $$;
 
 create table if not exists public.clients (

@@ -235,35 +235,38 @@ export type Database = {
           created_at?: string;
         };
       };
-      discord_purchases: {
-        Row: {
-          id: string;
-          guild_id: string | null;
-          channel_id: string | null;
-          message_id: string | null;
-          user_id: string;
-          amount: number;
-          created_at: string;
+        discord_purchases: {
+          Row: {
+            id: string;
+            guild_id: string | null;
+            channel_id: string | null;
+            message_id: string | null;
+            user_id: string;
+            amount: number;
+            brand_slug: string;
+            created_at: string;
+          };
+          Insert: {
+            id?: string;
+            guild_id?: string | null;
+            channel_id?: string | null;
+            message_id?: string | null;
+            user_id: string;
+            amount?: number;
+            brand_slug?: string;
+            created_at?: string;
+          };
+          Update: {
+            id?: string;
+            guild_id?: string | null;
+            channel_id?: string | null;
+            message_id?: string | null;
+            user_id?: string;
+            amount?: number;
+            brand_slug?: string;
+            created_at?: string;
+          };
         };
-        Insert: {
-          id?: string;
-          guild_id?: string | null;
-          channel_id?: string | null;
-          message_id?: string | null;
-          user_id: string;
-          amount?: number;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          guild_id?: string | null;
-          channel_id?: string | null;
-          message_id?: string | null;
-          user_id?: string;
-          amount?: number;
-          created_at?: string;
-        };
-      };
       clients: {
         Row: {
           id: string;
