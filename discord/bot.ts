@@ -12,7 +12,29 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CART_PREVIEW_IMAGE = process.env.DISCORD_CART_IMAGE;
 const CURRENCY_CODE = process.env.DISCORD_CURRENCY ?? "USD";
-const BRAND_SLUG = process.env.DISCORD_BRAND_SLUG ?? process.env.NEXT_PUBLIC_BRAND ?? "driftworks";
+const DEFAULT_BRAND_SLUG =
+  process.env.DISCORD_BRAND_SLUG ?? process.env.NEXT_PUBLIC_BRAND ?? "driftworks";
+const BRAND_GUILD_MAP = (() => {
+  const raw = process.env.DISCORD_BRAND_GUILD_MAP;
+  if (!raw) return new Map<string, string>();
+  return new Map(
+    raw
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const [guildId, slug] = entry.split(":").map((part) => part.trim());
+        return [guildId, slug ?? DEFAULT_BRAND_SLUG];
+      }),
+  );
+})();
+
+const resolveBrandSlug = (guildId?: string | null) => {
+  if (guildId && BRAND_GUILD_MAP.has(guildId)) {
+    return BRAND_GUILD_MAP.get(guildId) ?? DEFAULT_BRAND_SLUG;
+  }
+  return DEFAULT_BRAND_SLUG;
+};
 
 if (!DISCORD_BOT_TOKEN) {
   throw new Error("DISCORD_BOT_TOKEN is required to start the bot.");
@@ -56,6 +78,7 @@ client.on("messageCreate", async (message) => {
   }
 
   const amount = Number(parsedAmount.toFixed(2));
+  const brandSlug = resolveBrandSlug(message.guildId);
 
   const { error: insertError } = await supabase.from("discord_purchases").insert({
     guild_id: message.guildId,
@@ -63,7 +86,7 @@ client.on("messageCreate", async (message) => {
     message_id: message.id,
     user_id: message.author.id,
     amount,
-    brand_slug: BRAND_SLUG,
+    brand_slug: brandSlug,
   });
 
   if (insertError) {
@@ -75,7 +98,7 @@ client.on("messageCreate", async (message) => {
   const { data: totalRow, error: totalError } = await supabase.rpc("discord_purchases_total", {
     p_guild_id: message.guildId,
     p_channel_id: null,
-    p_brand_slug: BRAND_SLUG,
+    p_brand_slug: brandSlug,
   });
 
   if (totalError) {
