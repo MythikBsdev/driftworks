@@ -8,7 +8,25 @@ import { hashPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { canManageUsers } from "@/config/brand-overrides";
+import { canManageUsers, roleOptions, defaultRoleValue } from "@/config/brand-overrides";
+
+const fallbackRoleValues = [
+  "owner",
+  "manager",
+  "shop_foreman",
+  "master_tech",
+  "mechanic",
+  "apprentice",
+] as const;
+
+const brandRoleValues = roleOptions.map(({ value }) => value);
+const allowedRoleValues = (
+  brandRoleValues.length ? brandRoleValues : [...fallbackRoleValues]
+) as [string, ...string[]];
+const normalizedDefaultRole =
+  allowedRoleValues.includes(defaultRoleValue) && defaultRoleValue
+    ? defaultRoleValue
+    : allowedRoleValues[allowedRoleValues.length - 1];
 
 const createUserSchema = z.object({
   username: z
@@ -28,16 +46,7 @@ const createUserSchema = z.object({
     .max(500, "Notes must be 500 characters or fewer")
     .optional()
     .or(z.literal("")),
-  role: z
-    .enum([
-      "owner",
-      "manager",
-      "shop_foreman",
-      "master_tech",
-      "mechanic",
-      "apprentice",
-    ])
-    .default("apprentice"),
+  role: z.enum(allowedRoleValues).default(normalizedDefaultRole),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 

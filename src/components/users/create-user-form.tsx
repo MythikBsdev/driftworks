@@ -7,7 +7,7 @@ import {
   createUserAccount,
   type CreateUserState,
 } from "@/app/(dashboard)/manage-users/actions";
-import { roleOptions } from "@/config/brand-overrides";
+import { roleOptions, defaultRoleValue } from "@/config/brand-overrides";
 
 const initialState: CreateUserState = { status: "idle" };
 
@@ -123,7 +123,7 @@ const CreateUserForm = () => {
         <select
           id="role"
           name="role"
-          defaultValue="apprentice"
+          defaultValue={defaultRoleValue}
           className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
         >
           {roleOptions.map((option) => (

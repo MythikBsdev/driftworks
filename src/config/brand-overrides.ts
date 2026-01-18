@@ -102,6 +102,8 @@ const bennysRoleOptions = [
 ];
 
 export const roleOptions = isBennys ? bennysRoleOptions : defaultRoleOptions;
+export const defaultRoleValue =
+  roleOptions[roleOptions.length - 1]?.value ?? roleOptions[0]?.value ?? "apprentice";
 
 const toTitleCase = (value: string) =>
   value
