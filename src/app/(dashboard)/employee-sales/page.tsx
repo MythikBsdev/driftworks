@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { brandCurrency } from "@/config/brand-overrides";
-import EmployeeSaleForm from "@/components/employee-sales/employee-sale-form";
+import EmployeeSaleBoard from "@/components/employee-sales/employee-sale-board";
 
 const EmployeeSalesPage = async () => {
   const session = await getSession();
@@ -20,13 +19,19 @@ const EmployeeSalesPage = async () => {
     .order("username", { ascending: true });
   const { data: catalogItemsRaw } = await supabase
     .from("inventory_items")
-    .select("id, name, price")
+    .select("id, name, category, price, profit, commission_flat_override")
+    .order("price", { ascending: false });
+  const { data: discountRows } = await supabase
+    .from("discounts")
+    .select("id, name, percentage")
     .order("name", { ascending: true });
 
   const employeeRecords =
     (employees ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
   const catalogItems =
     (catalogItemsRaw ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+  const discounts =
+    (discountRows ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
 
   return (
     <section className="glass-card">
@@ -34,10 +39,10 @@ const EmployeeSalesPage = async () => {
       <p className="text-sm text-white/60">
         Manually add a sale record associated with an employee.
       </p>
-      <EmployeeSaleForm
+      <EmployeeSaleBoard
         employees={employeeRecords}
         catalogItems={catalogItems}
-        currency={brandCurrency}
+        discounts={discounts}
       />
     </section>
   );

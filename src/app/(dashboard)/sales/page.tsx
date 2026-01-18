@@ -38,6 +38,18 @@ type SalesLogRow =
   | ({ type: "register" } & SalesLogRowBase)
   | ({ type: "employee" } & SalesLogRowBase);
 
+const parseEmployeeSaleProfit = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/profit_total\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getSession();
@@ -184,8 +196,10 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     const employeeId = entry.employee_id;
     const role = userRoleLookup.get(employeeId) ?? "";
     const roleRate = commissionMap.get(role) ?? 0;
-    const base = entry.amount ?? 0;
-    addSalesGross(employeeId, base);
+    const profitOverride = commissionUsesProfit ? parseEmployeeSaleProfit(entry.notes) : null;
+    const gross = entry.amount ?? 0;
+    const base = commissionUsesProfit ? profitOverride ?? gross : gross;
+    addSalesGross(employeeId, gross);
     addBase(employeeId, base);
     addCommission(employeeId, base * roleRate);
   });

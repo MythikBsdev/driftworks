@@ -107,6 +107,18 @@ type SalesOrderRow = Database["public"]["Tables"]["sales_orders"]["Row"];
 type SalesOrderItemRow = Database["public"]["Tables"]["sales_order_items"]["Row"];
 type EmployeeSalesRow = Database["public"]["Tables"]["employee_sales"]["Row"];
 
+const parseEmployeeSaleProfit = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/profit_total\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const computeTotals = (
   salesOrders: SalesOrderRow[],
   salesOrderItems: SalesOrderItemRow[],
@@ -151,7 +163,9 @@ const computeTotals = (
 
   employeeSales.forEach((entry) => {
     salesTotal += entry.amount ?? 0;
-    commissionTotal += (entry.amount ?? 0) * roleRate;
+    const profitOverride = useProfitBase ? parseEmployeeSaleProfit(entry.notes) : null;
+    const base = useProfitBase ? profitOverride ?? entry.amount ?? 0 : entry.amount ?? 0;
+    commissionTotal += base * roleRate;
   });
 
   return { salesTotal, commissionTotal };

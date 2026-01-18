@@ -7,24 +7,26 @@ import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
-const employeeSaleSchema = z
-  .object({
-    invoiceNumber: z.string().min(1, "Invoice number is required"),
-    amount: z.preprocess((value) => {
-      const asString = value?.toString().trim();
-      if (!asString?.length) {
-        return undefined;
-      }
-      return asString;
-    }, z.coerce.number().nonnegative("Amount must be zero or more").optional()),
-    employeeId: z.string().uuid("Select a valid employee"),
-    catalogItemIds: z.array(z.string().uuid("Select a valid catalogue item")).optional(),
-    notes: z.string().optional().or(z.literal("")),
-  })
-  .refine(
-    (data) => data.amount !== undefined || (data.catalogItemIds?.length ?? 0) > 0,
-    { message: "Enter an amount or select at least one catalogue item", path: ["amount"] },
-  );
+const cartItemSchema = z.object({
+  itemId: z.string().uuid(),
+  name: z.string(),
+  price: z.number(),
+  profit: z.number().nonnegative().default(0),
+  quantity: z.number().min(1),
+  commissionFlatOverride: z.number().nonnegative().nullable().optional(),
+});
+
+const employeeSaleSchema = z.object({
+  invoiceNumber: z.string().min(1, "Invoice number is required"),
+  employeeId: z.string().uuid("Select a valid employee"),
+  items: z.array(cartItemSchema).min(1, "Add at least one item"),
+  discountId: z.string().uuid().nullable(),
+  notes: z.string().optional().or(z.literal("")),
+});
+
+const roundCurrency = (amount: number) =>
+  Math.round((amount + Number.EPSILON) * 100) / 100;
+const profitNoteKey = "profit_total";
 
 export type EmployeeSaleFormState =
   | { status: "idle" }
@@ -41,10 +43,23 @@ export const addEmployeeSale = async (
   }
 
   const parsed = employeeSaleSchema.safeParse({
-    invoiceNumber: formData.get("invoiceNumber"),
-    amount: formData.get("amount"),
+    invoiceNumber: formData.get("invoiceNumber")?.toString().trim(),
     employeeId: formData.get("employeeId"),
-    catalogItemIds: formData.getAll("catalogItemIds"),
+    items: (() => {
+      try {
+        return JSON.parse(formData.get("items")?.toString() ?? "[]");
+      } catch {
+        return [];
+      }
+    })(),
+    discountId: (() => {
+      const raw = formData.get("discountId");
+      if (!raw) {
+        return null;
+      }
+      const value = raw.toString().trim();
+      return value.length ? value : null;
+    })(),
     notes: formData.get("notes"),
   });
 
@@ -57,38 +72,51 @@ export const addEmployeeSale = async (
 
   const supabase = createSupabaseServerActionClient();
 
-  let amount = parsed.data.amount ?? null;
-  let notes = parsed.data.notes?.toString().trim() ?? "";
+  const subtotal = roundCurrency(
+    parsed.data.items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+  );
+  const profitSubtotal = roundCurrency(
+    parsed.data.items.reduce((acc, item) => acc + (item.profit ?? 0) * item.quantity, 0),
+  );
 
-  if (parsed.data.catalogItemIds?.length) {
-    const requestedIds = Array.from(new Set(parsed.data.catalogItemIds));
-    const { data: catalogItems, error: catalogError } = await supabase
-      .from("inventory_items")
-      .select("id, name, price")
-      .in("id", requestedIds);
+  let discountAmount = 0;
+  if (parsed.data.discountId) {
+    const { data: discountRecord } = await supabase
+      .from("discounts")
+      .select("percentage")
+      .eq("id", parsed.data.discountId)
+      .maybeSingle();
 
-    if (catalogError) {
-      return { status: "error", message: "Unable to load catalogue items" };
+    const discountRow =
+      discountRecord as Database["public"]["Tables"]["discounts"]["Row"] | null;
+
+    if (!discountRow) {
+      return {
+        status: "error",
+        message: "Selected discount could not be found",
+      };
     }
 
-    const typedCatalog =
-      (catalogItems ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
-
-    if (!typedCatalog.length || typedCatalog.length !== requestedIds.length) {
-      return { status: "error", message: "Selected catalogue items could not be found" };
-    }
-
-    amount = typedCatalog.reduce((total, item) => total + (item.price ?? 0), 0);
-
-    if (!notes.length) {
-      const itemNames = typedCatalog.map((item) => item.name).join(", ");
-      notes = `Catalogue: ${itemNames}`;
-    }
+    discountAmount = roundCurrency(subtotal * (discountRow.percentage ?? 0));
   }
 
-  if (amount === null || Number.isNaN(amount)) {
-    return { status: "error", message: "Amount is required" };
+  const total = roundCurrency(Math.max(subtotal - discountAmount, 0));
+  const discountMultiplier = subtotal > 0 ? Math.max(total / subtotal, 0) : 0;
+  const profitTotal = roundCurrency(Math.max(profitSubtotal * discountMultiplier, 0));
+
+  const existingInvoice = await supabase
+    .from("employee_sales")
+    .select("id")
+    .eq("invoice_number", parsed.data.invoiceNumber)
+    .maybeSingle();
+
+  if (existingInvoice.data) {
+    return { status: "error", message: "Invoice number already exists" };
   }
+
+  const userNotes = parsed.data.notes?.toString().trim() ?? "";
+  const profitNote = `${profitNoteKey}=${profitTotal.toFixed(2)}`;
+  const combinedNotes = [profitNote, userNotes].filter(Boolean).join(" | ");
 
   const { error } = await supabase.from("employee_sales").insert(
     // Supabase type inference fails for this insert payload; cast to preserve runtime behaviour.
@@ -96,8 +124,8 @@ export const addEmployeeSale = async (
       owner_id: session.user.id,
       employee_id: parsed.data.employeeId,
       invoice_number: parsed.data.invoiceNumber,
-      amount,
-      notes: notes.length ? notes : null,
+      amount: total,
+      notes: combinedNotes.length ? combinedNotes : null,
     } as never,
   );
 
