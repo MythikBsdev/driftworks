@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
-import { hasManagerLikeAccess, hasOwnerLikeAccess } from "@/config/brand-overrides";
+import { canManageDiscounts, hasOwnerLikeAccess } from "@/config/brand-overrides";
 
 const discountSchema = z.object({
   name: z.string().min(1, "Discount name is required"),
@@ -25,7 +25,7 @@ export const createDiscount = async (
   formData: FormData,
 ): Promise<DiscountFormState> => {
   const session = await getSession();
-  if (!session || !hasManagerLikeAccess(session.user.role)) {
+  if (!session || !canManageDiscounts(session.user.role)) {
     return { status: "error", message: "You do not have permission" };
   }
 
@@ -65,7 +65,7 @@ export const createDiscount = async (
 
 export const deleteDiscount = async (formData: FormData) => {
   const session = await getSession();
-  if (!session || !hasManagerLikeAccess(session.user.role)) {
+  if (!session || !canManageDiscounts(session.user.role)) {
     return;
   }
 

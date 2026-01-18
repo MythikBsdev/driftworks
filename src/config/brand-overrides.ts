@@ -11,6 +11,11 @@ const roleAliases: Record<string, string> = {
   mastertech: "master_tech",
   mechanic: "mechanic",
   apprentice: "apprentice",
+  ops_manager: "operations_manager",
+  opsmanager: "operations_manager",
+  senior_manager: "senior_manager",
+  senior_mechanic: "senior_mechanic",
+  junior_mechanic: "junior_mechanic",
 };
 
 export const normalizeRole = (role?: string | null) => {
@@ -24,21 +29,50 @@ export const normalizeRole = (role?: string | null) => {
 
 export const hasOwnerLikeAccess = (role?: string | null) => {
   const normalizedRole = normalizeRole(role);
+  if (isBennys) {
+    return normalizedRole === "owner" || normalizedRole === "operations_manager";
+  }
   return normalizedRole === "owner" || (isLscustoms && normalizedRole === "shop_foreman");
 };
 
 export const hasManagerLikeAccess = (role?: string | null) => {
   const normalizedRole = normalizeRole(role);
+  if (isBennys) {
+    return (
+      normalizedRole === "manager" ||
+      normalizedRole === "senior_manager" ||
+      hasOwnerLikeAccess(normalizedRole)
+    );
+  }
   return normalizedRole === "manager" || hasOwnerLikeAccess(normalizedRole);
+};
+
+export const canManageDiscounts = (role?: string | null) => {
+  const normalizedRole = normalizeRole(role);
+  if (isBennys) {
+    return hasOwnerLikeAccess(normalizedRole);
+  }
+  return hasManagerLikeAccess(normalizedRole);
 };
 
 export const hasLsManagerOrOwnerAccess = (role?: string | null) => {
   const normalizedRole = normalizeRole(role);
+  if (isBennys) {
+    return hasOwnerLikeAccess(normalizedRole);
+  }
   return hasOwnerLikeAccess(normalizedRole) || (isLscustoms && normalizedRole === "manager");
 };
 
 export const canManageUsers = (role?: string | null) => {
   const normalizedRole = normalizeRole(role);
+  if (isBennys) {
+    return (
+      normalizedRole === "owner" ||
+      normalizedRole === "operations_manager" ||
+      normalizedRole === "senior_manager" ||
+      normalizedRole === "manager"
+    );
+  }
   return (
     normalizedRole === "owner" ||
     (isLscustoms && (normalizedRole === "manager" || normalizedRole === "shop_foreman"))
@@ -47,7 +81,7 @@ export const canManageUsers = (role?: string | null) => {
 
 export const apprenticeLabel = isLscustoms ? "Jr. Mech" : "Apprentice";
 
-export const roleOptions = [
+const defaultRoleOptions = [
   { value: "owner", label: "Owner" },
   { value: "manager", label: "Manager" },
   { value: "shop_foreman", label: "Shop Foreman" },
@@ -55,6 +89,19 @@ export const roleOptions = [
   { value: "mechanic", label: "Mechanic" },
   { value: "apprentice", label: apprenticeLabel },
 ];
+
+const bennysRoleOptions = [
+  { value: "owner", label: "Owner" },
+  { value: "operations_manager", label: "Operations Manager" },
+  { value: "senior_manager", label: "Senior Manager" },
+  { value: "manager", label: "Manager" },
+  { value: "shop_foreman", label: "Shop Foreman" },
+  { value: "senior_mechanic", label: "Senior Mechanic" },
+  { value: "mechanic", label: "Mechanic" },
+  { value: "junior_mechanic", label: "Junior Mechanic" },
+];
+
+export const roleOptions = isBennys ? bennysRoleOptions : defaultRoleOptions;
 
 const toTitleCase = (value: string) =>
   value

@@ -49,10 +49,14 @@ const TABS = [...baseTabs, ...(optionalTab ? [optionalTab] : []), ...tailTabs];
 const ownerTabs = TABS.map((tab) => tab.href);
 const managerTabs = ownerTabs;
 
+const bennysManagerRestrictions = ["/manage-commissions", "/manage-discounts"];
+const bennysManagerTabs = ownerTabs.filter((href) => !bennysManagerRestrictions.includes(href));
+const bennysLimitedTabs = ["/dashboard", "/sales-register"];
+
 const gateParts = (routes: string[]) =>
   isLscustoms || isBennys || isBigtuna ? routes.filter((href) => href !== "/parts") : routes;
 
-const ROLE_TAB_MAP: Record<string, string[]> = {
+const DEFAULT_ROLE_TAB_MAP: Record<string, string[]> = {
   owner: ownerTabs,
   manager: managerTabs,
   shop_foreman: gateParts(
@@ -77,6 +81,20 @@ const ROLE_TAB_MAP: Record<string, string[]> = {
   ),
 };
 
+const ROLE_TAB_MAP: Record<string, string[]> = isBennys
+  ? {
+      owner: ownerTabs,
+      operations_manager: ownerTabs,
+      senior_manager: bennysManagerTabs,
+      manager: bennysManagerTabs,
+      shop_foreman: bennysLimitedTabs,
+      senior_mechanic: bennysLimitedTabs,
+      mechanic: bennysLimitedTabs,
+      junior_mechanic: bennysLimitedTabs,
+      apprentice: bennysLimitedTabs,
+    }
+  : DEFAULT_ROLE_TAB_MAP;
+
 const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   const session = await getSession();
 
@@ -92,9 +110,11 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   const allowedRoutes = isOwnerLike
     ? ownerTabs
-    : isManagerLike
-      ? managerTabs
-      : ROLE_TAB_MAP[normalizedRole] ?? ROLE_TAB_MAP.apprentice;
+    : isBennys
+      ? ROLE_TAB_MAP[normalizedRole] ?? ROLE_TAB_MAP.apprentice
+      : isManagerLike
+        ? managerTabs
+        : ROLE_TAB_MAP[normalizedRole] ?? ROLE_TAB_MAP.apprentice;
   const visibleTabs = TABS.filter((tab) => allowedRoutes.includes(tab.href));
   const tabsToRender = visibleTabs.length ? visibleTabs : TABS;
 

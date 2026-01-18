@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createDiscount, deleteDiscount } from "./actions";
-import { hasManagerLikeAccess } from "@/config/brand-overrides";
+import { canManageDiscounts } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -13,7 +13,7 @@ const ManageDiscountsPage = async () => {
     redirect("/login");
   }
 
-  if (!hasManagerLikeAccess(session.user.role)) {
+  if (!canManageDiscounts(session.user.role)) {
     redirect("/dashboard");
   }
 
