@@ -50,6 +50,18 @@ const parseEmployeeSaleProfit = (notes?: string | null) => {
   return Number.isFinite(value) ? value : null;
 };
 
+const parseEmployeeSaleCommission = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/commission_total\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getSession();
@@ -197,11 +209,15 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     const role = userRoleLookup.get(employeeId) ?? "";
     const roleRate = commissionMap.get(role) ?? 0;
     const profitOverride = commissionUsesProfit ? parseEmployeeSaleProfit(entry.notes) : null;
+    const commissionOverride = parseEmployeeSaleCommission(entry.notes);
     const gross = entry.amount ?? 0;
     const base = commissionUsesProfit ? profitOverride ?? gross : gross;
     addSalesGross(employeeId, gross);
     addBase(employeeId, base);
-    addCommission(employeeId, base * roleRate);
+    addCommission(
+      employeeId,
+      commissionOverride != null ? commissionOverride : base * roleRate,
+    );
   });
 
   const formatter = currencyFormatter(brandCurrency);

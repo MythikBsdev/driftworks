@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { commissionUsesProfit } from "@/config/brand-overrides";
 
 const cartItemSchema = z.object({
   itemId: z.string().uuid(),
@@ -27,6 +28,8 @@ const employeeSaleSchema = z.object({
 const roundCurrency = (amount: number) =>
   Math.round((amount + Number.EPSILON) * 100) / 100;
 const profitNoteKey = "profit_total";
+const commissionNoteKey = "commission_total";
+const commissionBaseNoteKey = "commission_base";
 
 export type EmployeeSaleFormState =
   | { status: "idle" }
@@ -104,6 +107,50 @@ export const addEmployeeSale = async (
   const discountMultiplier = subtotal > 0 ? Math.max(total / subtotal, 0) : 0;
   const profitTotal = roundCurrency(Math.max(profitSubtotal * discountMultiplier, 0));
 
+  const { data: employeeRecord } = await supabase
+    .from("app_users")
+    .select("role")
+    .eq("id", parsed.data.employeeId)
+    .maybeSingle();
+
+  const employeeRow =
+    employeeRecord as Database["public"]["Tables"]["app_users"]["Row"] | null;
+
+  const { data: commissionRates } = await supabase
+    .from("commission_rates")
+    .select("role, rate");
+
+  const commissionMap = new Map<string, number>();
+  (commissionRates ?? []).forEach((entry) => {
+    commissionMap.set(entry.role, entry.rate ?? 0);
+  });
+
+  const roleRate = employeeRow ? commissionMap.get(employeeRow.role) ?? 0 : 0;
+  const useProfitBase = commissionUsesProfit;
+
+  const commissionBase = roundCurrency(
+    parsed.data.items.reduce((acc, item) => {
+      if (!useProfitBase) {
+        return acc + item.price * item.quantity * discountMultiplier;
+      }
+      return acc + (item.profit ?? 0) * item.quantity * discountMultiplier;
+    }, 0),
+  );
+
+  const commissionTotal = roundCurrency(
+    parsed.data.items.reduce((acc, item) => {
+      if (item.commissionFlatOverride != null) {
+        return (
+          acc + item.commissionFlatOverride * item.quantity * discountMultiplier
+        );
+      }
+      const base = useProfitBase
+        ? (item.profit ?? 0) * item.quantity * discountMultiplier
+        : item.price * item.quantity * discountMultiplier;
+      return acc + base * roleRate;
+    }, 0),
+  );
+
   const existingInvoice = await supabase
     .from("employee_sales")
     .select("id")
@@ -115,8 +162,12 @@ export const addEmployeeSale = async (
   }
 
   const userNotes = parsed.data.notes?.toString().trim() ?? "";
-  const profitNote = `${profitNoteKey}=${profitTotal.toFixed(2)}`;
-  const combinedNotes = [profitNote, userNotes].filter(Boolean).join(" | ");
+  const metadata = [
+    `${profitNoteKey}=${profitTotal.toFixed(2)}`,
+    `${commissionNoteKey}=${commissionTotal.toFixed(2)}`,
+    `${commissionBaseNoteKey}=${commissionBase.toFixed(2)}`,
+  ];
+  const combinedNotes = [...metadata, userNotes].filter(Boolean).join(" | ");
 
   const { error } = await supabase.from("employee_sales").insert(
     // Supabase type inference fails for this insert payload; cast to preserve runtime behaviour.

@@ -119,6 +119,18 @@ const parseEmployeeSaleProfit = (notes?: string | null) => {
   return Number.isFinite(value) ? value : null;
 };
 
+const parseEmployeeSaleCommission = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/commission_total\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const computeTotals = (
   salesOrders: SalesOrderRow[],
   salesOrderItems: SalesOrderItemRow[],
@@ -163,6 +175,11 @@ const computeTotals = (
 
   employeeSales.forEach((entry) => {
     salesTotal += entry.amount ?? 0;
+    const commissionOverride = parseEmployeeSaleCommission(entry.notes);
+    if (commissionOverride != null) {
+      commissionTotal += commissionOverride;
+      return;
+    }
     const profitOverride = useProfitBase ? parseEmployeeSaleProfit(entry.notes) : null;
     const base = useProfitBase ? profitOverride ?? entry.amount ?? 0 : entry.amount ?? 0;
     commissionTotal += base * roleRate;
