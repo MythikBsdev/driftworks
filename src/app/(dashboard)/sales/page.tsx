@@ -103,7 +103,7 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
         .order("username", { ascending: true }),
       supabase
         .from("employee_sales")
-        .select("id, employee_id, invoice_number, amount, created_at")
+        .select("id, employee_id, invoice_number, amount, notes, created_at")
         .eq("archived" as never, false)
         .order("created_at", { ascending: false }),
       supabase

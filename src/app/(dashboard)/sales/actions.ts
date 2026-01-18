@@ -372,7 +372,7 @@ const computeUserTotalsForUser = async (
         .eq("owner_id", userId),
       supabase
         .from("employee_sales")
-        .select("employee_id, amount")
+        .select("employee_id, amount, notes")
         .eq("archived" as never, false)
         .eq("employee_id", userId),
     ]);
@@ -460,7 +460,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
           .eq("owner_id", targetRow.id),
         supabase
           .from("employee_sales")
-          .select("employee_id, amount")
+          .select("employee_id, amount, notes")
           .eq("archived" as never, false)
           .eq("employee_id", targetRow.id),
       ]);
