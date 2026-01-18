@@ -23,6 +23,11 @@ const createUserSchema = z.object({
     .max(120, "Name is too long")
     .optional()
     .or(z.literal("")),
+  notes: z
+    .string()
+    .max(500, "Notes must be 500 characters or fewer")
+    .optional()
+    .or(z.literal("")),
   role: z
     .enum([
       "owner",
@@ -63,6 +68,7 @@ export const createUserAccount = async (
   const parsed = createUserSchema.safeParse({
     username: formData.get("username")?.toString().trim(),
     fullName: formData.get("fullName")?.toString().trim(),
+    notes: formData.get("notes")?.toString(),
     role: formData.get("role")?.toString(),
     password: formData.get("password")?.toString() ?? "",
   });
@@ -96,6 +102,7 @@ export const createUserAccount = async (
         username: parsed.data.username,
         password_hash,
         full_name: parsed.data.fullName || null,
+        notes: parsed.data.notes?.trim()?.length ? parsed.data.notes.trim() : null,
         role: parsed.data.role,
       } as never,
     );
@@ -188,13 +195,12 @@ const updateUserAccountSchema = z
       .max(64, "Bank account is too long")
       .optional()
       .or(z.literal("")),
-  })
-  .refine(
-    (value) =>
-      (value.password && value.password.length >= 8) ||
-      (value.bankAccount && value.bankAccount.trim().length > 0),
-    { message: "Provide a new password or bank account number" },
-  );
+    notes: z
+      .string()
+      .max(500, "Notes must be 500 characters or fewer")
+      .optional()
+      .or(z.literal("")),
+  });
 
 export const resetUserPassword = async (formData: FormData) => {
   const session = await getSession();
@@ -241,13 +247,14 @@ export const updateUserAccount = async (formData: FormData) => {
     userId: formData.get("userId")?.toString(),
     password: formData.get("password")?.toString() ?? "",
     bankAccount: formData.get("bankAccount")?.toString() ?? "",
+    notes: formData.get("notes")?.toString() ?? "",
   });
 
   if (!parsed.success) {
     return;
   }
 
-  const updatePayload: Partial<Database["public"]["Tables"]["app_users"]["Update"]> = {};
+  const updatePayload: Record<string, unknown> = {};
 
   if (parsed.data.bankAccount !== undefined) {
     const trimmed = parsed.data.bankAccount.trim();
@@ -256,6 +263,11 @@ export const updateUserAccount = async (formData: FormData) => {
 
   if (parsed.data.password && parsed.data.password.length >= 8) {
     updatePayload.password_hash = await hashPassword(parsed.data.password);
+  }
+
+  if (parsed.data.notes !== undefined) {
+    const trimmedNotes = parsed.data.notes.trim();
+    updatePayload.notes = trimmedNotes.length ? trimmedNotes : null;
   }
 
   if (!Object.keys(updatePayload).length) {

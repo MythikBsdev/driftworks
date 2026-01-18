@@ -21,10 +21,14 @@ create table if not exists public.app_users (
   full_name text,
   bank_account text,
   pay_channel_id text,
+  notes text,
   role text not null default 'staff',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table if exists public.app_users
+  add column if not exists notes text;
 
 create table if not exists public.termination_logs (
   id uuid primary key default gen_random_uuid(),

@@ -134,6 +134,20 @@ const CreateUserForm = () => {
         </select>
       </div>
 
+      <div className="space-y-2">
+        <label className="muted-label" htmlFor="notes">
+          Notes (optional)
+        </label>
+        <textarea
+          id="notes"
+          name="notes"
+          rows={3}
+          placeholder="Add private notes for this user"
+          className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+        />
+        <p className="text-xs text-white/45">Visible only in the admin area.</p>
+      </div>
+
       {state.status === "error" ? (
         <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
           {state.message}

@@ -28,11 +28,13 @@ const ManageUsersPage = async () => {
   const supabase = createSupabaseServerClient();
   const { data: users } = await supabase
     .from("app_users")
-    .select("id, username, full_name, bank_account, role, created_at")
+    .select("id, username, full_name, bank_account, role, created_at, notes")
     .order("username", { ascending: true });
 
   const userRows =
-    (users ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
+    (users ?? []) as (Database["public"]["Tables"]["app_users"]["Row"] & {
+      notes?: string | null;
+    })[];
 
   const canManage = canManageUsers(session.user.role);
 
@@ -89,6 +91,11 @@ const ManageUsersPage = async () => {
                           </p>
                           <p className="text-sm text-white/60">@{user.username}</p>
                           <p className="muted-label">Joined {joined}</p>
+                          {user.notes ? (
+                            <p className="text-xs text-white/60">
+                              Notes: <span className="text-white/80">{user.notes}</span>
+                            </p>
+                          ) : null}
                         </div>
                       </td>
                       <td className="px-4 py-3 align-middle">
@@ -155,6 +162,22 @@ const ManageUsersPage = async () => {
                                   />
                                   <p className="text-xs text-white/45">
                                     This value shows in sales summary for payouts.
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="muted-label" htmlFor={`notes-${user.id}`}>
+                                    Notes
+                                  </label>
+                                  <textarea
+                                    id={`notes-${user.id}`}
+                                    name="notes"
+                                    rows={3}
+                                    defaultValue={user.notes ?? ""}
+                                    placeholder="Add private notes for this user"
+                                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+                                  />
+                                  <p className="text-xs text-white/45">
+                                    Visible only in this admin view.
                                   </p>
                                 </div>
                                 <button type="submit" className="btn-primary w-full justify-center">
