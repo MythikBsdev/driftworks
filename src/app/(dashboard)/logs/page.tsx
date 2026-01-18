@@ -198,15 +198,22 @@ const LogsPage = async () => {
 
   if (!payoutLogs.error && payoutLogs.data) {
     payoutLogs.data.forEach((log) => {
-      const weekIndex = findWeekIndex(log.created_at);
+      const safeLog = log as {
+        user_id: string | null;
+        bonus: number | null;
+        salary: number | null;
+        commission_total: number | null;
+        created_at: string | null;
+      };
+      const weekIndex = findWeekIndex(safeLog.created_at);
       if (weekIndex === -1) return;
-      if (!log.user_id) return;
+      if (!safeLog.user_id) return;
       const target = payoutBuckets[weekIndex]!;
-      const current = target.get(log.user_id) ?? { bonus: 0, salary: 0, commission: 0 };
-      current.bonus += Number(log.bonus ?? 0);
-      current.salary += Number(log.salary ?? 0);
-      current.commission += Number(log.commission_total ?? 0);
-      target.set(log.user_id, current);
+      const current = target.get(safeLog.user_id) ?? { bonus: 0, salary: 0, commission: 0 };
+      current.bonus += Number(safeLog.bonus ?? 0);
+      current.salary += Number(safeLog.salary ?? 0);
+      current.commission += Number(safeLog.commission_total ?? 0);
+      target.set(safeLog.user_id, current);
     });
   }
 
