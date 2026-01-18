@@ -49,7 +49,7 @@ const removeUserSales = async (
   supabase: ReturnType<typeof createSupabaseServerActionClient>,
   userId: string,
 ) => {
-  const { data: orderRows, error: orderSelectError } = await supabase
+  const { error: orderSelectError } = await supabase
     .from("sales_orders")
     .select("id")
     .eq("archived" as never, false)
