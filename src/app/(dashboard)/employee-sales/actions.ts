@@ -18,19 +18,12 @@ const employeeSaleSchema = z
       return asString;
     }, z.coerce.number().nonnegative("Amount must be zero or more").optional()),
     employeeId: z.string().uuid("Select a valid employee"),
-    catalogItemId: z
-      .preprocess((value) => {
-        const asString = value?.toString().trim();
-        if (!asString?.length) {
-          return undefined;
-        }
-        return asString;
-      }, z.string().uuid("Select a valid catalogue item").optional()),
+    catalogItemIds: z.array(z.string().uuid("Select a valid catalogue item")).optional(),
     notes: z.string().optional().or(z.literal("")),
   })
   .refine(
-    (data) => data.amount !== undefined || data.catalogItemId,
-    { message: "Enter an amount or select a catalogue item", path: ["amount"] },
+    (data) => data.amount !== undefined || (data.catalogItemIds?.length ?? 0) > 0,
+    { message: "Enter an amount or select at least one catalogue item", path: ["amount"] },
   );
 
 export type EmployeeSaleFormState =
@@ -51,7 +44,7 @@ export const addEmployeeSale = async (
     invoiceNumber: formData.get("invoiceNumber"),
     amount: formData.get("amount"),
     employeeId: formData.get("employeeId"),
-    catalogItemId: formData.get("catalogItemId"),
+    catalogItemIds: formData.getAll("catalogItemIds"),
     notes: formData.get("notes"),
   });
 
@@ -67,23 +60,29 @@ export const addEmployeeSale = async (
   let amount = parsed.data.amount ?? null;
   let notes = parsed.data.notes?.toString().trim() ?? "";
 
-  if (parsed.data.catalogItemId) {
-    const { data: catalogItem } = await supabase
+  if (parsed.data.catalogItemIds?.length) {
+    const requestedIds = Array.from(new Set(parsed.data.catalogItemIds));
+    const { data: catalogItems, error: catalogError } = await supabase
       .from("inventory_items")
       .select("id, name, price")
-      .eq("id", parsed.data.catalogItemId)
-      .maybeSingle();
+      .in("id", requestedIds);
 
-    const catalogRow =
-      catalogItem as Database["public"]["Tables"]["inventory_items"]["Row"] | null;
-
-    if (!catalogRow) {
-      return { status: "error", message: "Selected catalogue item could not be found" };
+    if (catalogError) {
+      return { status: "error", message: "Unable to load catalogue items" };
     }
 
-    amount = catalogRow.price ?? 0;
+    const typedCatalog =
+      (catalogItems ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+
+    if (!typedCatalog.length || typedCatalog.length !== requestedIds.length) {
+      return { status: "error", message: "Selected catalogue items could not be found" };
+    }
+
+    amount = typedCatalog.reduce((total, item) => total + (item.price ?? 0), 0);
+
     if (!notes.length) {
-      notes = `Catalogue: ${catalogRow.name}`;
+      const itemNames = typedCatalog.map((item) => item.name).join(", ");
+      notes = `Catalogue: ${itemNames}`;
     }
   }
 

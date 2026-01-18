@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { addEmployeeSale } from "./actions";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { brandCurrency } from "@/config/brand-overrides";
-import { currencyFormatter } from "@/lib/utils";
+import EmployeeSaleForm from "@/components/employee-sales/employee-sale-form";
 
 const EmployeeSalesPage = async () => {
   const session = await getSession();
@@ -28,12 +27,6 @@ const EmployeeSalesPage = async () => {
     (employees ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
   const catalogItems =
     (catalogItemsRaw ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
-  const formatCurrency = currencyFormatter(brandCurrency);
-
-  const addSale = async (formData: FormData) => {
-    "use server";
-    await addEmployeeSale({ status: "idle" }, formData);
-  };
 
   return (
     <section className="glass-card">
@@ -41,120 +34,13 @@ const EmployeeSalesPage = async () => {
       <p className="text-sm text-white/60">
         Manually add a sale record associated with an employee.
       </p>
-      <form action={addSale} className="mt-6 space-y-4">
-        <div className="space-y-2">
-          <label
-            className="muted-label"
-            htmlFor="invoiceNumber"
-          >
-            Invoice Number
-          </label>
-          <input
-            id="invoiceNumber"
-            name="invoiceNumber"
-            required
-            placeholder="e.g., #EMP001"
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-          />
-        </div>
-        <div className="space-y-2">
-          <label
-            className="muted-label"
-            htmlFor="amount"
-          >
-            Amount ({brandCurrency})
-          </label>
-          <input
-            id="amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="e.g., 150.00"
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-          />
-          <p className="text-xs text-white/45">
-            Select a catalogue item to auto-use its price, or enter a custom amount.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <label className="muted-label" htmlFor="catalogItemId">
-            Catalogue Item (optional)
-          </label>
-          <select
-            id="catalogItemId"
-            name="catalogItemId"
-            defaultValue=""
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-          >
-            <option value="" className="bg-[#101010]">
-              Select from catalogue
-            </option>
-            {catalogItems.map((item) => (
-              <option key={item.id} value={item.id} className="bg-[#101010]">
-                {item.name} — {formatCurrency.format(item.price ?? 0)}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-white/45">
-            Using a catalogue item sets the sale amount to the item price and notes the item.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <label
-            className="muted-label"
-            htmlFor="employeeId"
-          >
-            Employee
-          </label>
-          <select
-            id="employeeId"
-            name="employeeId"
-            required
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-          >
-            <option value="" disabled>
-              Select an employee
-            </option>
-            {employeeRecords.map((employee) => (
-              <option
-                key={employee.id}
-                value={employee.id}
-                className="bg-[#101010]"
-              >
-                {employee.full_name ?? employee.username}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label
-            className="muted-label"
-            htmlFor="notes"
-          >
-            Notes (optional)
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={3}
-            placeholder="Additional details..."
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500"
-        >
-          Add Sale
-        </button>
-      </form>
+      <EmployeeSaleForm
+        employees={employeeRecords}
+        catalogItems={catalogItems}
+        currency={brandCurrency}
+      />
     </section>
   );
 };
 
 export default EmployeeSalesPage;
-
-
-
-
