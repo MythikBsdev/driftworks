@@ -187,56 +187,87 @@ const LogsPage = async () => {
 
   return (
     <div className="space-y-8">
-      <section className="glass-card space-y-3">
-        <h2 className="text-xl font-semibold text-white">Weekly Logs</h2>
-        <p className="text-sm text-white/60">
-          Automatic weekly snapshots of sales and commission. Weeks start on Monday.
-        </p>
+      <section className="glass-card grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="muted-label">Weeks Tracked</p>
+          <p className="mt-2 text-2xl font-semibold text-white">{weeklySummaries.length}</p>
+          <p className="text-xs text-white/60">Rolling snapshots (Monday start).</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="muted-label">Unique Users</p>
+          <p className="mt-2 text-2xl font-semibold text-white">
+            {new Set(users.map((u) => u.id)).size}
+          </p>
+          <p className="text-xs text-white/60">Across all weeks shown.</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="muted-label">Termination Entries</p>
+          <p className="mt-2 text-2xl font-semibold text-white">{terminationLogs.length}</p>
+          <p className="text-xs text-white/60">Most recent 50.</p>
+        </div>
       </section>
 
-      <section className="space-y-6">
-        {weeklySummaries.map((week) => (
-          <div key={week.label} className="glass-card space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">{week.label}</h3>
-              <span className="text-xs uppercase tracking-[0.3em] text-white/50">
-                {week.rows.length} users
-              </span>
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-              <table className="w-full text-sm text-white/80">
-                <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">User</th>
-                    <th className="px-4 py-3 text-left font-medium">Role</th>
-                    <th className="px-4 py-3 text-left font-medium">Sales</th>
-                    <th className="px-4 py-3 text-left font-medium">Commission</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {week.rows.length ? (
-                    week.rows.map((row) => (
-                      <tr key={`${week.label}-${row.userId}`} className="border-t border-white/10">
-                        <td className="px-4 py-3 text-white">{row.displayName}</td>
-                        <td className="px-4 py-3 text-white/60">{formatRoleLabel(row.role)}</td>
-                        <td className="px-4 py-3 text-white/70">{formatter.format(row.sales)}</td>
-                        <td className="px-4 py-3 font-medium text-white">
-                          {formatter.format(row.commission)}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td className="px-4 py-6 text-center text-sm text-white/60" colSpan={4}>
-                        No sales recorded for this week.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Weekly Logs</h2>
+            <p className="text-sm text-white/60">
+              Expand a week to review sales and commission by user.
+            </p>
           </div>
-        ))}
+        </div>
+
+        <div className="space-y-3">
+          {weeklySummaries.map((week, index) => (
+            <details
+              key={week.label}
+              className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+              open={index === 0}
+            >
+              <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 text-white/80 transition hover:bg-white/10">
+                <div>
+                  <p className="text-sm font-semibold text-white">{week.label}</p>
+                  <p className="text-xs text-white/60">{week.rows.length} users</p>
+                </div>
+                <span className="text-xs uppercase tracking-[0.3em] text-white/50">Toggle</span>
+              </summary>
+              <div className="border-t border-white/10">
+                <div className="max-h-[360px] overflow-auto">
+                  <table className="w-full text-sm text-white/80">
+                    <thead className="sticky top-0 bg-black/40 text-xs uppercase tracking-[0.3em] text-white/50 backdrop-blur">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-medium">User</th>
+                        <th className="px-4 py-3 text-left font-medium">Role</th>
+                        <th className="px-4 py-3 text-left font-medium">Sales</th>
+                        <th className="px-4 py-3 text-left font-medium">Commission</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {week.rows.length ? (
+                        week.rows.map((row) => (
+                          <tr key={`${week.label}-${row.userId}`} className="border-t border-white/10">
+                            <td className="px-4 py-3 text-white">{row.displayName}</td>
+                            <td className="px-4 py-3 text-white/60">{formatRoleLabel(row.role)}</td>
+                            <td className="px-4 py-3 text-white/70">{formatter.format(row.sales)}</td>
+                            <td className="px-4 py-3 font-medium text-white">
+                              {formatter.format(row.commission)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="px-4 py-6 text-center text-sm text-white/60" colSpan={4}>
+                            No sales recorded for this week.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+          ))}
+        </div>
       </section>
 
       <section className="glass-card space-y-4">
@@ -265,9 +296,7 @@ const LogsPage = async () => {
                     <td className="px-4 py-3 text-white">{log.username}</td>
                     <td className="px-4 py-3 text-white/70">{log.reason}</td>
                     <td className="px-4 py-3 text-white/60">
-                      {log.created_at
-                        ? format(new Date(log.created_at), "dd/MM/yy HH:mm")
-                        : "-"}
+                      {log.created_at ? format(new Date(log.created_at), "dd/MM/yy HH:mm") : "-"}
                     </td>
                   </tr>
                 ))
