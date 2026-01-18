@@ -220,21 +220,32 @@ const LogsPage = async () => {
   const formatter = currencyFormatter(brandCurrency);
 
   const weeklySummaries = weekRanges.map((range, index) => {
-    const rows: WeeklyRow[] = Array.from(weekBuckets[index]!.entries()).map(([userId, data]) => {
+    const salesMap = weekBuckets[index]!;
+    const payoutMap = payoutBuckets[index]!;
+    const allUserIds = new Set<string>([
+      ...Array.from(salesMap.keys()),
+      ...Array.from(payoutMap.keys()),
+    ]);
+
+    const rows: WeeklyRow[] = Array.from(allUserIds).map((userId) => {
       const user = userLookup.get(userId);
-      const payout = payoutBuckets[index]!.get(userId) ?? { bonus: 0, salary: 0, commission: 0 };
+      const salesData = salesMap.get(userId) ?? { sales: 0, commission: 0 };
+      const payout = payoutMap.get(userId) ?? { bonus: 0, salary: 0, commission: 0 };
       const bonus = payout.bonus;
       const salary = payout.salary;
-      const commissionFromSales = data.commission;
+      const commissionFromSales = salesData.commission;
       const commissionFromPayouts = payout.commission;
-      const commissionTotal = commissionFromSales || commissionFromPayouts;
+      const commissionTotal =
+        commissionFromSales !== undefined && commissionFromSales !== null && commissionFromSales !== 0
+          ? commissionFromSales
+          : commissionFromPayouts;
       const net = commissionTotal + bonus + salary;
 
       return {
         userId,
         displayName: user?.full_name ?? user?.username ?? "Unknown user",
         role: user?.role ?? "Unknown",
-        sales: data.sales,
+        sales: salesData.sales,
         commission: commissionTotal,
         bonus,
         salary,
