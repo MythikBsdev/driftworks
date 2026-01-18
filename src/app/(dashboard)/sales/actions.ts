@@ -92,6 +92,15 @@ const payUserSchema = z.object({
     },
     z.number().nonnegative("Bonus must be zero or greater"),
   ),
+  salary: z.preprocess(
+    (value) => {
+      if (value === undefined || value === null) return 0;
+      const raw = value.toString().trim();
+      if (!raw.length) return 0;
+      return Number(raw);
+    },
+    z.number().nonnegative("Salary must be zero or greater"),
+  ),
 });
 
 type SalesOrderRow = Database["public"]["Tables"]["sales_orders"]["Row"];
@@ -365,6 +374,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
     const parsed = payUserSchema.safeParse({
       userId: formData.get("userId"),
       bonus: formData.get("bonus"),
+      salary: formData.get("salary"),
     });
 
     if (!parsed.success) {
@@ -474,7 +484,8 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
     });
 
     const bonus = Math.max(parsed.data.bonus ?? 0, 0);
-    const netTotal = commissionTotal + bonus;
+    const salary = Math.max(parsed.data.salary ?? 0, 0);
+    const netTotal = commissionTotal + bonus + salary;
 
     const formatter = currencyFormatter(brandCurrency);
 
@@ -485,6 +496,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
         { name: "Employee", value: targetRow.full_name ?? targetRow.username, inline: true },
         { name: "Commission", value: formatter.format(commissionTotal), inline: true },
         { name: "Bonus", value: formatter.format(bonus), inline: true },
+        { name: "Salary", value: formatter.format(salary), inline: true },
         { name: "Net Total", value: formatter.format(netTotal), inline: true },
         {
           name: "Bank Account",

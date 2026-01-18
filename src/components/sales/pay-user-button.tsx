@@ -99,8 +99,23 @@ export const PayUserButton = ({
                 placeholder="0.00"
                 className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="muted-label" htmlFor={`salary-${userId}`}>
+                Salary (optional)
+              </label>
+              <input
+                id={`salary-${userId}`}
+                name="salary"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40"
+              />
               <p className="text-xs text-white/50">
-                Net total = commission + bonus. Sent to the linked payslip channel.
+                Net total = commission + salary + bonus. Sent to the linked payslip channel.
               </p>
             </div>
 
