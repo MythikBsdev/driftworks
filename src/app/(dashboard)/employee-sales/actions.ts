@@ -121,7 +121,9 @@ export const addEmployeeSale = async (
     .select("role, rate");
 
   const commissionMap = new Map<string, number>();
-  (commissionRates ?? []).forEach((entry) => {
+  const typedCommissionRates =
+    (commissionRates ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
+  typedCommissionRates.forEach((entry) => {
     commissionMap.set(entry.role, entry.rate ?? 0);
   });
 
