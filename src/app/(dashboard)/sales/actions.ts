@@ -443,45 +443,13 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
         (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
     }
 
-    const itemsByOrderId = new Map<
-      string,
-      Database["public"]["Tables"]["sales_order_items"]["Row"][]
-    >();
-    salesOrderItems.forEach((item) => {
-      const current = itemsByOrderId.get(item.order_id) ?? [];
-      current.push(item);
-      itemsByOrderId.set(item.order_id, current);
-    });
-
-    let commissionTotal = 0;
-
-    salesOrders.forEach((order) => {
-      const discountMultiplier =
-        order.subtotal && order.subtotal > 0
-          ? Math.max(Math.min((order.total ?? 0) / order.subtotal, 1), 0)
-          : 0;
-      const lineItems = itemsByOrderId.get(order.id) ?? [];
-      if (lineItems.length) {
-        lineItems.forEach((item) => {
-          const base = commissionUsesProfit
-            ? item.profit_total ?? 0
-            : (item.total ?? 0) * discountMultiplier;
-          const appliedFlat = item.commission_flat_override;
-          if (appliedFlat != null) {
-            commissionTotal += appliedFlat * (item.quantity ?? 1) * discountMultiplier;
-          } else {
-            commissionTotal += base * roleRate;
-          }
-        });
-        return;
-      }
-      const fallbackBase = commissionUsesProfit ? order.profit_total ?? 0 : order.total ?? 0;
-      commissionTotal += fallbackBase * roleRate;
-    });
-
-    employeeSales.forEach((entry) => {
-      commissionTotal += (entry.amount ?? 0) * roleRate;
-    });
+    const { salesTotal, commissionTotal } = computeTotals(
+      salesOrders,
+      salesOrderItems as Database["public"]["Tables"]["sales_order_items"]["Row"][],
+      employeeSales,
+      roleRate,
+      commissionUsesProfit,
+    );
 
     const bonus = Math.max(parsed.data.bonus ?? 0, 0);
     const salary = Math.max(parsed.data.salary ?? 0, 0);
@@ -494,6 +462,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
       color: 0x22c55e,
       fields: [
         { name: "Employee", value: targetRow.full_name ?? targetRow.username, inline: true },
+        { name: "Sales", value: formatter.format(salesTotal), inline: true },
         { name: "Commission", value: formatter.format(commissionTotal), inline: true },
         { name: "Bonus", value: formatter.format(bonus), inline: true },
         { name: "Salary", value: formatter.format(salary), inline: true },
@@ -523,9 +492,9 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
       },
   );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[payout] Failed to send payslip", {
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[payout] Failed to send payslip", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
@@ -536,7 +505,20 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
     };
   }
 
-    // Reset this user's commission history after paying out.
+    // Reset this user's commission history after paying out and log the payout.
+    const { error: payoutLogError } = await supabase.from("payout_logs").insert({
+      user_id: targetRow.id,
+      username: targetRow.username,
+      sales_total: salesTotal,
+      commission_total: commissionTotal,
+      bonus,
+      salary,
+      action: "pay",
+    } as never);
+    if (payoutLogError) {
+      console.error("[payout] Failed to log payout", payoutLogError);
+    }
+
     const resetSuccess = await removeUserSales(supabase, targetRow.id);
     if (!resetSuccess) {
       console.error("[payout] Failed to reset commissions after payout", { userId: targetRow.id });

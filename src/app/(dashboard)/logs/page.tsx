@@ -13,6 +13,9 @@ type WeeklyRow = {
   role: string;
   sales: number;
   commission: number;
+  bonus: number;
+  salary: number;
+  net: number;
 };
 
 const LogsPage = async () => {
@@ -120,6 +123,7 @@ const LogsPage = async () => {
   });
 
   const weekBuckets = weekRanges.map(() => new Map<string, { sales: number; commission: number }>());
+  const payoutBuckets = weekRanges.map(() => new Map<string, { bonus: number; salary: number; commission: number }>()) ;
 
   const findWeekIndex = (dateString?: string | null) => {
     if (!dateString) return -1;
@@ -186,17 +190,48 @@ const LogsPage = async () => {
     targetMap.set(entry.employee_id, current);
   });
 
+  // Aggregate payout logs for bonus/salary/commission
+  const payoutLogs = await supabase
+    .from("payout_logs")
+    .select("user_id, bonus, salary, commission_total, created_at")
+    .gte("created_at", earliestStart.toISOString());
+
+  if (!payoutLogs.error && payoutLogs.data) {
+    payoutLogs.data.forEach((log) => {
+      const weekIndex = findWeekIndex(log.created_at);
+      if (weekIndex === -1) return;
+      if (!log.user_id) return;
+      const target = payoutBuckets[weekIndex]!;
+      const current = target.get(log.user_id) ?? { bonus: 0, salary: 0, commission: 0 };
+      current.bonus += Number(log.bonus ?? 0);
+      current.salary += Number(log.salary ?? 0);
+      current.commission += Number(log.commission_total ?? 0);
+      target.set(log.user_id, current);
+    });
+  }
+
   const formatter = currencyFormatter(brandCurrency);
 
   const weeklySummaries = weekRanges.map((range, index) => {
     const rows: WeeklyRow[] = Array.from(weekBuckets[index]!.entries()).map(([userId, data]) => {
       const user = userLookup.get(userId);
+      const payout = payoutBuckets[index]!.get(userId) ?? { bonus: 0, salary: 0, commission: 0 };
+      const bonus = payout.bonus;
+      const salary = payout.salary;
+      const commissionFromSales = data.commission;
+      const commissionFromPayouts = payout.commission;
+      const commissionTotal = commissionFromSales || commissionFromPayouts;
+      const net = commissionTotal + bonus + salary;
+
       return {
         userId,
         displayName: user?.full_name ?? user?.username ?? "Unknown user",
         role: user?.role ?? "Unknown",
         sales: data.sales,
-        commission: data.commission,
+        commission: commissionTotal,
+        bonus,
+        salary,
+        net,
       };
     });
 
@@ -261,6 +296,9 @@ const LogsPage = async () => {
                         <th className="px-4 py-3 text-left font-medium">Role</th>
                         <th className="px-4 py-3 text-left font-medium">Sales</th>
                         <th className="px-4 py-3 text-left font-medium">Commission</th>
+                        <th className="px-4 py-3 text-left font-medium">Bonus</th>
+                        <th className="px-4 py-3 text-left font-medium">Salary</th>
+                        <th className="px-4 py-3 text-left font-medium">Net Outgoing</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -273,11 +311,20 @@ const LogsPage = async () => {
                             <td className="px-4 py-3 font-medium text-white">
                               {formatter.format(row.commission)}
                             </td>
+                            <td className="px-4 py-3 text-white/70">
+                              {formatter.format(row.bonus)}
+                            </td>
+                            <td className="px-4 py-3 text-white/70">
+                              {formatter.format(row.salary)}
+                            </td>
+                            <td className="px-4 py-3 font-semibold text-white">
+                              {formatter.format(row.net)}
+                            </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td className="px-4 py-6 text-center text-sm text-white/60" colSpan={4}>
+                          <td className="px-4 py-6 text-center text-sm text-white/60" colSpan={7}>
                             No sales recorded for this week.
                           </td>
                         </tr>

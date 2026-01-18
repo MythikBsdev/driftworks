@@ -46,6 +46,7 @@ create table if not exists public.payout_logs (
   sales_total numeric not null default 0,
   commission_total numeric not null default 0,
   bonus numeric not null default 0,
+  salary numeric not null default 0,
   action text not null default 'pay',
   created_at timestamptz not null default timezone('utc', now())
 );
