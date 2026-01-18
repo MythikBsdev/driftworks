@@ -1,13 +1,11 @@
 import { redirect } from "next/navigation";
-import { endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
+import { addWeeks, endOfWeek, format, startOfWeek } from "date-fns";
 
 import { brandCurrency, commissionUsesProfit, formatRoleLabel, isBennys } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { currencyFormatter } from "@/lib/utils";
-
-const WEEKS_TO_SHOW = 6;
 
 type WeeklyRow = {
   userId: string;
@@ -29,13 +27,20 @@ const LogsPage = async () => {
   const supabase = createSupabaseServerClient();
 
   const now = new Date();
+  const anchorStart = new Date(Date.UTC(2026, 0, 12, 0, 0, 0));
   const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekRanges = Array.from({ length: WEEKS_TO_SHOW }).map((_, index) => {
-    const start = subWeeks(thisWeekStart, index);
-    const end = endOfWeek(start, { weekStartsOn: 1 });
-    return { start, end };
-  });
-  const earliestStart = weekRanges[weekRanges.length - 1]?.start ?? thisWeekStart;
+  const weekRanges: { start: Date; end: Date }[] = [];
+  for (
+    let cursor = anchorStart;
+    cursor <= thisWeekStart;
+    cursor = addWeeks(cursor, 1)
+  ) {
+    weekRanges.push({
+      start: cursor,
+      end: endOfWeek(cursor, { weekStartsOn: 1 }),
+    });
+  }
+  const earliestStart = anchorStart;
 
   const [
     { data: usersResult },
