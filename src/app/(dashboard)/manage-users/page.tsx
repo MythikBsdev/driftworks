@@ -92,9 +92,9 @@ const ManageUsersPage = async () => {
                           <p className="text-sm text-white/60">@{user.username}</p>
                           <p className="muted-label">Joined {joined}</p>
                           {user.notes ? (
-                            <div className="text-xs text-white/60">
-                              <p className="font-semibold text-white/70">Notes</p>
-                              <p className="whitespace-pre-wrap break-words text-white/80">
+                            <div className="mt-2 space-y-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+                              <p className="font-semibold text-white/80">Notes</p>
+                              <p className="whitespace-pre-wrap break-all text-white/80">
                                 {user.notes}
                               </p>
                             </div>
