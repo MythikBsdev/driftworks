@@ -56,6 +56,7 @@ create table if not exists public.parts_clear_logs (
   guild_scope text,
   triggered_by_id uuid references public.app_users(id) on delete set null,
   triggered_by_username text,
+  cleared_amount numeric not null default 0,
   created_at timestamptz not null default timezone('utc', now())
 );
 

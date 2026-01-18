@@ -28,6 +28,34 @@ export async function POST() {
     return query;
   };
 
+  const buildSum = async (filterByBrand: boolean) => {
+    let query = supabase.from("discord_purchases").select("amount");
+    if (guildIds.length) {
+      query = query.in("guild_id", guildIds);
+    }
+    if (filterByBrand) {
+      query = query.eq("brand_slug", brand.slug);
+    }
+    return query;
+  };
+
+  let clearedAmount = 0;
+  const { data: sumRows, error: sumError } = await buildSum(true);
+  if (sumError && sumError.code === "42703") {
+    const { data: fallbackRows, error: fallbackError } = await buildSum(false);
+    if (!fallbackError && fallbackRows) {
+      clearedAmount = (fallbackRows as { amount: number | null }[]).reduce(
+        (acc, row) => acc + Number(row.amount ?? 0),
+        0,
+      );
+    }
+  } else if (!sumError && sumRows) {
+    clearedAmount = (sumRows as { amount: number | null }[]).reduce(
+      (acc, row) => acc + Number(row.amount ?? 0),
+      0,
+    );
+  }
+
   let { error } = await buildDelete(true);
 
   if (error && error.code === "42703") {
@@ -45,6 +73,7 @@ export async function POST() {
     guild_scope: guildIds.join(",") || null,
     triggered_by_id: session?.user.id ?? null,
     triggered_by_username: session?.user.username ?? null,
+    cleared_amount: clearedAmount,
   };
   const { error: logError } = await supabase.from("parts_clear_logs").insert(logPayload as never);
   if (logError) {

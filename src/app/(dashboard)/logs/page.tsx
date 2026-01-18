@@ -67,7 +67,7 @@ const LogsPage = async () => {
       .limit(50),
     supabase
       .from("parts_clear_logs")
-      .select("id, brand_slug, guild_scope, triggered_by_username, created_at")
+      .select("id, brand_slug, guild_scope, triggered_by_username, cleared_amount, created_at")
       .eq("brand_slug", "bennys")
       .order("created_at", { ascending: false })
       .limit(50),
@@ -89,6 +89,7 @@ const LogsPage = async () => {
       brand_slug: string | null;
       guild_scope: string | null;
       triggered_by_username: string | null;
+      cleared_amount: number | null;
       created_at: string | null;
     }[];
 
@@ -305,6 +306,7 @@ const LogsPage = async () => {
             <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Cleared By</th>
+                <th className="px-4 py-3 text-left font-medium">Amount Cleared</th>
                 <th className="px-4 py-3 text-left font-medium">Guild Scope</th>
                 <th className="px-4 py-3 text-left font-medium">Date</th>
               </tr>
@@ -315,6 +317,9 @@ const LogsPage = async () => {
                   <tr key={entry.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">
                       {entry.triggered_by_username ?? "Unknown"}
+                    </td>
+                    <td className="px-4 py-3 text-white/70">
+                      {formatter.format(entry.cleared_amount ?? 0)}
                     </td>
                     <td className="px-4 py-3 text-white/70">
                       {entry.guild_scope ?? "All"}
