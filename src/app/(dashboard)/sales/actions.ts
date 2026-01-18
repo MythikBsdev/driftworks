@@ -60,12 +60,6 @@ const removeUserSales = async (
     return false;
   }
 
-  const typedOrders =
-    (orderRows ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
-  const orderIds = typedOrders
-    .map((order) => order.id)
-    .filter((id): id is string => Boolean(id));
-
   const { error: salesOrdersError } = await supabase
     .from("sales_orders")
     .update({ archived: true } as never)
