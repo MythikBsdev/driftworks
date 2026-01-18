@@ -50,6 +50,15 @@ create table if not exists public.payout_logs (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.parts_clear_logs (
+  id uuid primary key default gen_random_uuid(),
+  brand_slug text not null default 'driftworks',
+  guild_scope text,
+  triggered_by_id uuid references public.app_users(id) on delete set null,
+  triggered_by_username text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.user_sessions (
   token uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.app_users(id) on delete cascade,
@@ -278,6 +287,7 @@ comment on table public.sales_orders is 'Completed sales register orders';
 comment on table public.sales_order_items is 'Line items associated with sales orders';
 comment on table public.employee_sales is 'Sales recorded against individual employees';
 comment on table public.discord_purchases is 'Purchases recorded from Discord !buy command';
+comment on table public.parts_clear_logs is 'Audit trail of parts clears per brand';
 comment on table public.clients is 'Client records managed by a Driftworks account';
 comment on table public.invoices is 'Invoices issued to clients';
 comment on table public.invoice_items is 'Invoice line items';

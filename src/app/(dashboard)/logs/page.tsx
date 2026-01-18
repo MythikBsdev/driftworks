@@ -48,6 +48,7 @@ const LogsPage = async () => {
     { data: salesOrdersResult },
     { data: employeeSalesResult },
     { data: terminationLogsResult },
+    { data: partsClearLogsResult },
   ] = await Promise.all([
     supabase.from("app_users").select("id, username, full_name, role").order("username", { ascending: true }),
     supabase.from("commission_rates").select("role, rate"),
@@ -64,6 +65,12 @@ const LogsPage = async () => {
       .select("id, username, reason, created_at")
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase
+      .from("parts_clear_logs")
+      .select("id, brand_slug, guild_scope, triggered_by_username, created_at")
+      .eq("brand_slug", "bennys")
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
 
   const users =
@@ -76,6 +83,14 @@ const LogsPage = async () => {
     (employeeSalesResult ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
   const terminationLogs =
     (terminationLogsResult ?? []) as Database["public"]["Tables"]["termination_logs"]["Row"][];
+  const partsClearLogs =
+    (partsClearLogsResult ?? []) as {
+      id: string;
+      brand_slug: string | null;
+      guild_scope: string | null;
+      triggered_by_username: string | null;
+      created_at: string | null;
+    }[];
 
   const roleRateMap = new Map<string, number>();
   commissionRates.forEach((rate) => roleRateMap.set(rate.role, rate.rate ?? 0));
@@ -272,6 +287,54 @@ const LogsPage = async () => {
               </div>
             </details>
           ))}
+        </div>
+      </section>
+
+      <section className="glass-card space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">Parts Clears</h3>
+            <p className="text-sm text-white/60">Audit trail when Discord parts purchases are cleared.</p>
+          </div>
+          <span className="text-xs uppercase tracking-[0.3em] text-white/50">
+            {partsClearLogs.length} entries
+          </span>
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <table className="w-full text-sm text-white/80">
+            <thead className="bg-white/10 text-xs uppercase tracking-[0.3em] text-white/50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium">Cleared By</th>
+                <th className="px-4 py-3 text-left font-medium">Guild Scope</th>
+                <th className="px-4 py-3 text-left font-medium">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {partsClearLogs.length ? (
+                partsClearLogs.map((entry) => (
+                  <tr key={entry.id} className="border-t border-white/10">
+                    <td className="px-4 py-3 text-white">
+                      {entry.triggered_by_username ?? "Unknown"}
+                    </td>
+                    <td className="px-4 py-3 text-white/70">
+                      {entry.guild_scope ?? "All"}
+                    </td>
+                    <td className="px-4 py-3 text-white/60">
+                      {entry.created_at
+                        ? format(new Date(entry.created_at), "dd/MM/yy HH:mm")
+                        : "-"}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-4 py-6 text-center text-sm text-white/60" colSpan={3}>
+                    No parts clears logged yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
 
