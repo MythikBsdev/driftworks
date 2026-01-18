@@ -278,3 +278,5 @@ comment on table public.clients is 'Client records managed by a Driftworks accou
 comment on table public.invoices is 'Invoices issued to clients';
 comment on table public.invoice_items is 'Invoice line items';
 comment on table public.loyalty_accounts is 'Loyalty stamp balances per customer CID';
+
+-- test
