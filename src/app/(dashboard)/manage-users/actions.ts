@@ -41,6 +41,11 @@ const createUserSchema = z.object({
     .max(120, "Name is too long")
     .optional()
     .or(z.literal("")),
+  bankAccount: z
+    .string()
+    .max(64, "Bank account is too long")
+    .optional()
+    .or(z.literal("")),
   notes: z
     .string()
     .max(500, "Notes must be 500 characters or fewer")
@@ -77,6 +82,7 @@ export const createUserAccount = async (
   const parsed = createUserSchema.safeParse({
     username: formData.get("username")?.toString().trim(),
     fullName: formData.get("fullName")?.toString().trim(),
+    bankAccount: formData.get("bankAccount")?.toString(),
     notes: formData.get("notes")?.toString(),
     role: formData.get("role")?.toString(),
     password: formData.get("password")?.toString() ?? "",
@@ -111,6 +117,9 @@ export const createUserAccount = async (
         username: parsed.data.username,
         password_hash,
         full_name: parsed.data.fullName || null,
+        bank_account: parsed.data.bankAccount?.trim()?.length
+          ? parsed.data.bankAccount.trim()
+          : null,
         notes: parsed.data.notes?.trim()?.length ? parsed.data.notes.trim() : null,
         role: parsed.data.role,
       } as never,

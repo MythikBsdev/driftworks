@@ -7,7 +7,7 @@ import {
   createUserAccount,
   type CreateUserState,
 } from "@/app/(dashboard)/manage-users/actions";
-import { roleOptions, defaultRoleValue } from "@/config/brand-overrides";
+import { roleOptions, defaultRoleValue, isBennys } from "@/config/brand-overrides";
 
 const initialState: CreateUserState = { status: "idle" };
 
@@ -112,6 +112,24 @@ const CreateUserForm = () => {
           </button>
         </div>
       </div>
+
+      {isBennys ? (
+        <div className="space-y-2">
+          <label className="muted-label" htmlFor="bankAccount">
+            Bank Account #
+          </label>
+          <input
+            id="bankAccount"
+            name="bankAccount"
+            placeholder="Enter payout account"
+            maxLength={64}
+            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/40"
+          />
+          <p className="text-xs text-white/45">
+            Used for payroll reports; leave blank if not applicable.
+          </p>
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <label
