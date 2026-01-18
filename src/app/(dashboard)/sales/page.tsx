@@ -62,6 +62,18 @@ const parseEmployeeSaleCommission = (notes?: string | null) => {
   return Number.isFinite(value) ? value : null;
 };
 
+const parseEmployeeSaleCommissionBase = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/commission_base\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const SalesPage = async ({ searchParams }: SalesPageProps) => {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getSession();
@@ -211,7 +223,8 @@ const SalesPage = async ({ searchParams }: SalesPageProps) => {
     const profitOverride = commissionUsesProfit ? parseEmployeeSaleProfit(entry.notes) : null;
     const commissionOverride = parseEmployeeSaleCommission(entry.notes);
     const gross = entry.amount ?? 0;
-    const base = commissionUsesProfit ? profitOverride ?? gross : gross;
+    const baseOverride = parseEmployeeSaleCommissionBase(entry.notes);
+    const base = baseOverride ?? (commissionUsesProfit ? profitOverride ?? gross : gross);
     addSalesGross(employeeId, gross);
     addBase(employeeId, base);
     addCommission(

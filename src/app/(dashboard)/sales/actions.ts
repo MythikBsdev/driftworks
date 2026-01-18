@@ -131,6 +131,18 @@ const parseEmployeeSaleCommission = (notes?: string | null) => {
   return Number.isFinite(value) ? value : null;
 };
 
+const parseEmployeeSaleCommissionBase = (notes?: string | null) => {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/commission_base\s*=\s*(-?\d+(?:\.\d+)?)/i);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+};
+
 const computeTotals = (
   salesOrders: SalesOrderRow[],
   salesOrderItems: SalesOrderItemRow[],
@@ -180,8 +192,9 @@ const computeTotals = (
       commissionTotal += commissionOverride;
       return;
     }
+    const baseOverride = parseEmployeeSaleCommissionBase(entry.notes);
     const profitOverride = useProfitBase ? parseEmployeeSaleProfit(entry.notes) : null;
-    const base = useProfitBase ? profitOverride ?? entry.amount ?? 0 : entry.amount ?? 0;
+    const base = baseOverride ?? (useProfitBase ? profitOverride ?? entry.amount ?? 0 : entry.amount ?? 0);
     commissionTotal += base * roleRate;
   });
 
