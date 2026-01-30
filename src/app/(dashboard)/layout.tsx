@@ -10,6 +10,7 @@ import {
   isBennys,
   isLscustoms,
   isBigtuna,
+  isMosleys,
   normalizeRole,
 } from "@/config/brand-overrides";
 import { signOut } from "@/app/(dashboard)/actions";
@@ -18,7 +19,7 @@ import { getSession } from "@/lib/auth/session";
 
 const isSynlineauto = brand.slug === "synlineauto";
 const partsEnabled = isLscustoms || isBennys || isBigtuna;
-const loyaltyEnabled = !partsEnabled && !isSynlineauto;
+const loyaltyEnabled = !partsEnabled && !isSynlineauto && !isMosleys;
 const brandSpecificTab = partsEnabled ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
 
 const baseTabs = [

@@ -1,6 +1,7 @@
 ﻿import { redirect } from "next/navigation";
 
 import SalesRegisterBoard from "@/components/sales/sales-register-board";
+import { isMosleys } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -26,10 +27,13 @@ const SalesRegisterPage = async () => {
 
   const inventoryItems =
     (items ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+  const visibleItems = isMosleys
+    ? inventoryItems.filter((item) => (item.category ?? "").toLowerCase() !== "leo")
+    : inventoryItems;
   const discounts =
     (discountRows ?? []) as Database["public"]["Tables"]["discounts"]["Row"][];
 
-  return <SalesRegisterBoard items={inventoryItems} discounts={discounts} />;
+  return <SalesRegisterBoard items={visibleItems} discounts={discounts} />;
 };
 
 export default SalesRegisterPage;

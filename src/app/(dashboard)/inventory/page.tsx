@@ -8,6 +8,7 @@ import {
   hasManagerLikeAccess,
   hasOwnerLikeAccess,
   isBennys,
+  isMosleys,
   showProfitFields,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
@@ -50,6 +51,11 @@ const InventoryPage = async () => {
 
   const inventoryItems =
     (inventory ?? []) as Database["public"]["Tables"]["inventory_items"]["Row"][];
+  const visibleInventoryItems = isMosleys
+    ? inventoryItems.filter(
+        (item) => (item.category ?? "").toLowerCase() !== "leo",
+      )
+    : inventoryItems;
 
   const formatter = currencyFormatter(brandCurrency);
 
@@ -202,8 +208,8 @@ const InventoryPage = async () => {
               </tr>
             </thead>
             <tbody>
-              {inventoryItems.length ? (
-                inventoryItems.map((item) => (
+              {visibleInventoryItems.length ? (
+                visibleInventoryItems.map((item) => (
                   <tr key={item.id} className="border-t border-white/10">
                     <td className="px-4 py-3 text-white">{item.name}</td>
                     <td className="px-4 py-3 text-white/60">

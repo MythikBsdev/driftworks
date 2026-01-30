@@ -4,7 +4,7 @@ export const isLscustoms = brand.slug === "lscustoms";
 export const isBennys = brand.slug === "bennys";
 export const isBigtuna = brand.slug === "bigtuna";
 const isSynlineauto = brand.slug === "synlineauto";
-const isMosleys = brand.slug === "mosleys";
+export const isMosleys = brand.slug === "mosleys";
 
 const roleAliases: Record<string, string> = {
   shopforeman: "shop_foreman",
@@ -138,11 +138,16 @@ export type InventoryCategoryOption = { value: string; label: string };
 
 export const inventoryCategories: InventoryCategoryOption[] = isLscustoms
   ? [{ value: "Normal", label: "Normal" }]
-  : [
-      { value: "Normal", label: "Normal" },
-      { value: "Employee", label: "Employee" },
-      { value: "LEO", label: "LEO" },
-    ];
+  : isMosleys
+    ? [
+        { value: "Normal", label: "Normal" },
+        { value: "Employee", label: "Employee" },
+      ]
+    : [
+        { value: "Normal", label: "Normal" },
+        { value: "Employee", label: "Employee" },
+        { value: "LEO", label: "LEO" },
+      ];
 
 export const inventoryFilters: InventoryCategoryOption[] = isLscustoms
   ? [...inventoryCategories]
