@@ -202,6 +202,19 @@ const computeTotals = (
   return { salesTotal, commissionTotal };
 };
 
+const handlePayoutLogError = (
+  context: string,
+  error?: { code?: string; message?: string } | null,
+) => {
+  if (!error) {
+    return;
+  }
+  if (error.code === "PGRST205") {
+    return;
+  }
+  console.error(context, error);
+};
+
 export const resetAllSales = async () => {
   const session = await getSession();
   const canManage = session && hasLsManagerOrOwnerAccess(session.user.role);
@@ -239,9 +252,7 @@ export const resetAllSales = async () => {
       bonus: 0,
       action: "reset",
     } as never);
-    if (logError) {
-      console.error("Failed to log payout during resetAll", logError);
-    }
+    handlePayoutLogError("Failed to log payout during resetAll", logError);
 
     const success = await removeUserSales(supabase, user.id);
     if (!success) {
@@ -291,9 +302,7 @@ export const resetUserSales = async (formData: FormData) => {
       bonus: 0,
       action: "reset",
     } as never);
-    if (logError) {
-      console.error("Failed to log payout during resetUser", logError);
-    }
+    handlePayoutLogError("Failed to log payout during resetUser", logError);
   }
 
   const success = await removeUserSales(supabase, userId);
@@ -560,9 +569,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
       salary,
       action: "pay",
     } as never);
-    if (payoutLogError) {
-      console.error("[payout] Failed to log payout", payoutLogError);
-    }
+    handlePayoutLogError("[payout] Failed to log payout", payoutLogError);
 
     let resetSuccess = true;
     if (!isBennys) {
