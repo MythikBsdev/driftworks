@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { addWeeks, endOfWeek, format, startOfWeek } from "date-fns";
 
-import { brandCurrency, commissionUsesProfit, formatRoleLabel, isBennys } from "@/config/brand-overrides";
+import { brandCurrency, formatRoleLabel, isBennys } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -47,21 +47,15 @@ const LogsPage = async () => {
 
   const [
     { data: usersResult },
-    { data: commissionRatesResult },
-    { data: salesOrdersResult },
-    { data: employeeSalesResult },
+    { data: payoutLogsResult, error: payoutLogsError },
     { data: terminationLogsResult },
     { data: partsClearLogsResult },
   ] = await Promise.all([
     supabase.from("app_users").select("id, username, full_name, role").order("username", { ascending: true }),
-    supabase.from("commission_rates").select("role, rate"),
     supabase
-      .from("sales_orders")
-      .select("id, owner_id, subtotal, total, profit_total, created_at")
-      .gte("created_at", earliestStart.toISOString()),
-    supabase
-      .from("employee_sales")
-      .select("employee_id, amount, created_at")
+      .from("payout_logs")
+      .select("user_id, sales_total, commission_total, bonus, salary, created_at, action")
+      .eq("action", "reset")
       .gte("created_at", earliestStart.toISOString()),
     supabase
       .from("termination_logs")
@@ -78,12 +72,18 @@ const LogsPage = async () => {
 
   const users =
     (usersResult ?? []) as Database["public"]["Tables"]["app_users"]["Row"][];
-  const commissionRates =
-    (commissionRatesResult ?? []) as Database["public"]["Tables"]["commission_rates"]["Row"][];
-  const salesOrders =
-    (salesOrdersResult ?? []) as Database["public"]["Tables"]["sales_orders"]["Row"][];
-  const employeeSales =
-    (employeeSalesResult ?? []) as Database["public"]["Tables"]["employee_sales"]["Row"][];
+  const payoutLogs =
+    payoutLogsError
+      ? []
+      : (payoutLogsResult ?? []) as {
+          user_id: string | null;
+          sales_total: number | null;
+          commission_total: number | null;
+          bonus: number | null;
+          salary: number | null;
+          created_at: string | null;
+          action: string | null;
+        }[];
   const terminationLogs =
     (terminationLogsResult ?? []) as Database["public"]["Tables"]["termination_logs"]["Row"][];
   const partsClearLogs =
@@ -96,34 +96,11 @@ const LogsPage = async () => {
       created_at: string | null;
     }[];
 
-  const roleRateMap = new Map<string, number>();
-  commissionRates.forEach((rate) => roleRateMap.set(rate.role, rate.rate ?? 0));
-
   const userLookup = new Map(users.map((user) => [user.id, user]));
 
-  const saleIds = salesOrders.map((sale) => sale.id).filter(Boolean);
-  let salesOrderItems: Database["public"]["Tables"]["sales_order_items"]["Row"][] = [];
-  if (saleIds.length) {
-    const { data: saleItemRows } = await supabase
-      .from("sales_order_items")
-      .select("order_id, total, profit_total, commission_flat_override, quantity")
-      .in("order_id", saleIds);
-    salesOrderItems =
-      (saleItemRows ?? []) as Database["public"]["Tables"]["sales_order_items"]["Row"][];
-  }
-
-  const itemsByOrderId = new Map<
-    string,
-    Database["public"]["Tables"]["sales_order_items"]["Row"][]
-  >();
-  salesOrderItems.forEach((item) => {
-    const current = itemsByOrderId.get(item.order_id) ?? [];
-    current.push(item);
-    itemsByOrderId.set(item.order_id, current);
-  });
-
-  const weekBuckets = weekRanges.map(() => new Map<string, { sales: number; commission: number }>());
-  const payoutBuckets = weekRanges.map(() => new Map<string, { bonus: number; salary: number; commission: number }>()) ;
+  const weekBuckets = weekRanges.map(
+    () => new Map<string, { sales: number; commission: number; bonus: number; salary: number }>(),
+  );
 
   const findWeekIndex = (dateString?: string | null) => {
     if (!dateString) return -1;
@@ -131,114 +108,32 @@ const LogsPage = async () => {
     return weekRanges.findIndex(({ start, end }) => date >= start && date <= end);
   };
 
-  salesOrders.forEach((order) => {
-    const weekIndex = findWeekIndex(order.created_at);
+  payoutLogs.forEach((log) => {
+    const weekIndex = findWeekIndex(log.created_at);
     if (weekIndex === -1) return;
-
-    const discountMultiplier =
-      order.subtotal && order.subtotal > 0
-        ? Math.max(Math.min((order.total ?? 0) / order.subtotal, 1), 0)
-        : 0;
-    const lineItems = itemsByOrderId.get(order.id) ?? [];
-    const targetMap = weekBuckets[weekIndex]!;
-
-    const addForUser = (userId: string, salesAmount: number, commissionAmount: number) => {
-      const current = targetMap.get(userId) ?? { sales: 0, commission: 0 };
-      current.sales += salesAmount;
-      current.commission += commissionAmount;
-      targetMap.set(userId, current);
-    };
-
-    if (!order.owner_id) {
-      return;
-    }
-    const roleRate = roleRateMap.get(userLookup.get(order.owner_id)?.role ?? "") ?? 0;
-
-    addForUser(order.owner_id, order.total ?? 0, 0);
-
-    if (lineItems.length) {
-      lineItems.forEach((item) => {
-        const base = commissionUsesProfit
-          ? item.profit_total ?? 0
-          : (item.total ?? 0) * discountMultiplier;
-        const appliedFlat = item.commission_flat_override;
-        if (appliedFlat != null) {
-          addForUser(
-            order.owner_id!,
-            0,
-            appliedFlat * (item.quantity ?? 1) * discountMultiplier,
-          );
-        } else {
-          addForUser(order.owner_id!, 0, base * roleRate);
-        }
-      });
-    } else {
-      const fallbackBase = commissionUsesProfit ? order.profit_total ?? 0 : order.total ?? 0;
-      addForUser(order.owner_id, 0, fallbackBase * roleRate);
-    }
+    if (!log.user_id) return;
+    const target = weekBuckets[weekIndex]!;
+    const current = target.get(log.user_id) ?? { sales: 0, commission: 0, bonus: 0, salary: 0 };
+    current.sales += Number(log.sales_total ?? 0);
+    current.commission += Number(log.commission_total ?? 0);
+    current.bonus += Number(log.bonus ?? 0);
+    current.salary += Number(log.salary ?? 0);
+    target.set(log.user_id, current);
   });
-
-  employeeSales.forEach((entry) => {
-    const weekIndex = findWeekIndex(entry.created_at);
-    if (weekIndex === -1) return;
-    const targetMap = weekBuckets[weekIndex]!;
-    const roleRate = roleRateMap.get(userLookup.get(entry.employee_id)?.role ?? "") ?? 0;
-
-    const current = targetMap.get(entry.employee_id) ?? { sales: 0, commission: 0 };
-    current.sales += entry.amount ?? 0;
-    current.commission += (entry.amount ?? 0) * roleRate;
-    targetMap.set(entry.employee_id, current);
-  });
-
-  // Aggregate payout logs for bonus/salary/commission
-  const payoutLogs = await supabase
-    .from("payout_logs")
-    .select("user_id, bonus, salary, commission_total, created_at")
-    .gte("created_at", earliestStart.toISOString());
-
-  if (!payoutLogs.error && payoutLogs.data) {
-    payoutLogs.data.forEach((log) => {
-      const safeLog = log as {
-        user_id: string | null;
-        bonus: number | null;
-        salary: number | null;
-        commission_total: number | null;
-        created_at: string | null;
-      };
-      const weekIndex = findWeekIndex(safeLog.created_at);
-      if (weekIndex === -1) return;
-      if (!safeLog.user_id) return;
-      const target = payoutBuckets[weekIndex]!;
-      const current = target.get(safeLog.user_id) ?? { bonus: 0, salary: 0, commission: 0 };
-      current.bonus += Number(safeLog.bonus ?? 0);
-      current.salary += Number(safeLog.salary ?? 0);
-      current.commission += Number(safeLog.commission_total ?? 0);
-      target.set(safeLog.user_id, current);
-    });
-  }
 
   const formatter = currencyFormatter(brandCurrency);
 
   const weeklySummaries = weekRanges.map((range, index) => {
     const salesMap = weekBuckets[index]!;
-    const payoutMap = payoutBuckets[index]!;
-    const allUserIds = new Set<string>([
-      ...Array.from(salesMap.keys()),
-      ...Array.from(payoutMap.keys()),
-    ]);
+    const allUserIds = new Set<string>(Array.from(salesMap.keys()));
 
     const rows: WeeklyRow[] = Array.from(allUserIds).map((userId) => {
       const user = userLookup.get(userId);
-      const salesData = salesMap.get(userId) ?? { sales: 0, commission: 0 };
-      const payout = payoutMap.get(userId) ?? { bonus: 0, salary: 0, commission: 0 };
-      const bonus = payout.bonus;
-      const salary = payout.salary;
-      const commissionFromSales = salesData.commission;
-      const commissionFromPayouts = payout.commission;
-      const commissionTotal =
-        commissionFromSales !== undefined && commissionFromSales !== null && commissionFromSales !== 0
-          ? commissionFromSales
-          : commissionFromPayouts;
+      const salesData =
+        salesMap.get(userId) ?? { sales: 0, commission: 0, bonus: 0, salary: 0 };
+      const bonus = salesData.bonus;
+      const salary = salesData.salary;
+      const commissionTotal = salesData.commission;
       const net = commissionTotal + bonus + salary;
 
       return {
@@ -286,7 +181,7 @@ const LogsPage = async () => {
           <div>
             <h2 className="text-xl font-semibold text-white">Weekly Logs</h2>
             <p className="text-sm text-white/60">
-              Expand a week to review sales and commission by user.
+              Expand a week to review reset totals by user.
             </p>
           </div>
         </div>
