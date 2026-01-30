@@ -6,6 +6,8 @@ import {
   formatCategoryLabel,
   inventoryCategories,
   hasManagerLikeAccess,
+  hasOwnerLikeAccess,
+  isBennys,
   showProfitFields,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
@@ -30,7 +32,11 @@ const InventoryPage = async () => {
     redirect("/login");
   }
 
-  if (!hasManagerLikeAccess(session.user.role)) {
+  const hasCatalogueAccess = isBennys
+    ? hasOwnerLikeAccess(session.user.role)
+    : hasManagerLikeAccess(session.user.role);
+
+  if (!hasCatalogueAccess) {
     redirect("/dashboard");
   }
 
