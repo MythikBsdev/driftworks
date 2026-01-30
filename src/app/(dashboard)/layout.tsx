@@ -18,8 +18,8 @@ import DashboardTabs from "@/components/layout/dashboard-tabs";
 import { getSession } from "@/lib/auth/session";
 
 const isSynlineauto = brand.slug === "synlineauto";
-const partsEnabled = isLscustoms || isBennys || isBigtuna;
-const loyaltyEnabled = !partsEnabled && !isSynlineauto && !isMosleys;
+const partsEnabled = isLscustoms || isBennys || isBigtuna || isMosleys;
+const loyaltyEnabled = !partsEnabled && !isSynlineauto;
 const brandSpecificTab = partsEnabled ? "/parts" : loyaltyEnabled ? "/loyalty" : null;
 
 const baseTabs = [
@@ -55,7 +55,9 @@ const bennysManagerTabs = ownerTabs.filter((href) => !bennysManagerRestrictions.
 const bennysLimitedTabs = ["/dashboard", "/sales-register"];
 
 const gateParts = (routes: string[]) =>
-  isLscustoms || isBennys || isBigtuna ? routes.filter((href) => href !== "/parts") : routes;
+  isLscustoms || isBennys || isBigtuna || isMosleys
+    ? routes.filter((href) => href !== "/parts")
+    : routes;
 
 const DEFAULT_ROLE_TAB_MAP: Record<string, string[]> = {
   owner: ownerTabs,
