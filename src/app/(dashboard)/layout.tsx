@@ -128,6 +128,13 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
+      {isMosleys ? (
+        <div
+          className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center"
+          style={{ backgroundImage: "url('/mosleys.jpg')", opacity: 0.08 }}
+          aria-hidden
+        />
+      ) : null}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_85%_5%,rgba(255,255,255,0.05),transparent),radial-gradient(75%_75%_at_10%_90%,rgba(255,255,255,0.04),transparent)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-12 pt-10 sm:px-10">
         <header className="glass-panel px-6 py-6 sm:px-8">

@@ -28,12 +28,24 @@ export const metadata: Metadata = {
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
   const cssVars = buildBrandCssVars(brand) as CSSProperties;
+  const isMosleys = brand.slug === "mosleys";
 
   return (
     <html lang="en" className="bg-[#050505]" data-brand={brand.slug}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-[#050505] text-white antialiased`}
-        style={cssVars}
+        style={{
+          ...cssVars,
+          ...(isMosleys
+            ? {
+                backgroundImage:
+                  "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88)), url('/mosleys.jpg')",
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }
+            : null),
+        }}
       >
         {children}
       </body>
