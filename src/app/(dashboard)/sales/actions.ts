@@ -559,17 +559,19 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
     };
   }
 
-    // Log the payout; only reset sales totals for brands that require it.
-    const { error: payoutLogError } = await supabase.from("payout_logs").insert({
-      user_id: targetRow.id,
-      username: targetRow.username,
-      sales_total: salesTotal,
-      commission_total: commissionTotal,
-      bonus,
-      salary,
-      action: "pay",
-    } as never);
-    handlePayoutLogError("[payout] Failed to log payout", payoutLogError);
+    if (!isBennys) {
+      // Log the payout; only reset sales totals for brands that require it.
+      const { error: payoutLogError } = await supabase.from("payout_logs").insert({
+        user_id: targetRow.id,
+        username: targetRow.username,
+        sales_total: salesTotal,
+        commission_total: commissionTotal,
+        bonus,
+        salary,
+        action: "pay",
+      } as never);
+      handlePayoutLogError("[payout] Failed to log payout", payoutLogError);
+    }
 
     let resetSuccess = true;
     if (!isBennys) {
