@@ -230,6 +230,52 @@ const BRANDS = {
       sales: process.env.DISCORD_WEBHOOK_LSCUSTOMS,
     },
   },
+  mosleys: {
+    slug: "mosleys",
+    name: "Mosleys Dashboard",
+    shortName: "Mosleys",
+    initials: "MM",
+    siteUrl: "https://www.mosleysmechanic.com",
+    domains: ["mosleysmechanic.com", "www.mosleysmechanic.com", "mosleys"],
+    palette: {
+      primary: "#34d399",
+      accent: "#6ee7b7",
+      highlight: "#facc15",
+      slate: "#0a0f0a",
+      card: "#0f1510",
+      outline: "#1f2a22",
+      surface: "rgba(9, 13, 10, 0.72)",
+      surfaceStrong: "rgba(6, 10, 7, 0.9)",
+      textMuted: "rgba(209, 250, 229, 0.65)",
+      glow: "rgba(52, 211, 153, 0.4)",
+    },
+    copy: {
+      heroTitle: "Mosleys Dashboard",
+      heroDescription:
+        "Manage Mosleys service, invoices, and client care with a bold, emerald-tinted dashboard powered by Supabase.",
+      loginSubtitle: "Sign in to access the Mosleys dashboard",
+      footerCredit: "Mosleys",
+      navSubtitle: "Service Command",
+      clientPlaceholder: "Mosleys Garage",
+    },
+    assets: {
+      logo: "/mosleys.png",
+      favicon: "/mosleys.png",
+    },
+    metadata: {
+      title: "Mosleys Dashboard",
+      description:
+        "Manage Mosleys service, invoices, and client care with a Supabase-backed dashboard.",
+      icons: {
+        icon: "/mosleys.png",
+        shortcut: "/mosleys.png",
+        apple: "/mosleys.png",
+      },
+    },
+    webhooks: {
+      sales: process.env.DISCORD_WEBHOOK_MOSLEYS,
+    },
+  },
   synlineauto: {
     slug: "synlineauto",
     name: "Synline Auto Operations Hub",

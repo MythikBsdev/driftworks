@@ -1,6 +1,6 @@
 # Multi-brand Workshop Dashboard
 
-A cinematic Supabase + Next.js dashboard for automotive teams. The project now ships with five ready-made identities (Driftworks, Benny's, Los Santos Customs, Synline Auto, and Big Tuna) and a scalable brand system so you can spin up additional client portals by editing a single config file.
+A cinematic Supabase + Next.js dashboard for automotive teams. The project now ships with six ready-made identities (Driftworks, Benny's, Los Santos Customs, Synline Auto, Big Tuna, and Mosleys) and a scalable brand system so you can spin up additional client portals by editing a single config file.
 
 ## Tech Stack
 - Next.js 15 (App Router) + React 19
@@ -22,8 +22,8 @@ A cinematic Supabase + Next.js dashboard for automotive teams. The project now s
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` *(needed for server actions that write to Supabase)*
    - `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000`)
-   - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `bennys` for Benny's, `lscustoms` for Los Santos Customs, `synlineauto` for Synline Auto, or `bigtuna` for Big Tuna)
-   - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_BENNYS` / `DISCORD_WEBHOOK_LSCUSTOMS` / `DISCORD_WEBHOOK_SYNLINELAUTO` / `DISCORD_WEBHOOK_BIGTUNA` for brand-specific sale alerts (optional)
+   - `NEXT_PUBLIC_BRAND` (defaults to `driftworks`, set to `bennys` for Benny's, `lscustoms` for Los Santos Customs, `synlineauto` for Synline Auto, `bigtuna` for Big Tuna, or `mosleys` for Mosleys)
+   - `DISCORD_WEBHOOK_DRIFTWORKS` / `DISCORD_WEBHOOK_BENNYS` / `DISCORD_WEBHOOK_LSCUSTOMS` / `DISCORD_WEBHOOK_SYNLINELAUTO` / `DISCORD_WEBHOOK_BIGTUNA` / `DISCORD_WEBHOOK_MOSLEYS` for brand-specific sale alerts (optional)
    - `DISCORD_BOT_TOKEN` for the `!buy` Discord bot (optional)
    - `DISCORD_BRAND_SLUG` for the `!buy` bot to tag purchases to the correct brand (defaults to `NEXT_PUBLIC_BRAND`)
    - `DISCORD_BRAND_GUILD_IDS` optional, comma-separated guild IDs for this brand to filter parts data if brand scoping column is absent
@@ -89,4 +89,4 @@ supabase/schema.sql       # Database + RLS definition
 - Middleware guards every dashboard route and bounces anonymous users to `/login`.
 - Successful auth redirects back to `redirectTo` or `/dashboard`.
 
-Enjoy building for Driftworks, Benny's, Los Santos Customs, Synline Auto, Big Tuna, or your next client drop!
+Enjoy building for Driftworks, Benny's, Los Santos Customs, Synline Auto, Big Tuna, Mosleys, or your next client drop!

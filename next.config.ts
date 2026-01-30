@@ -8,6 +8,7 @@ const brandIcon =
     lscustoms: "/lscustoms.png",
     synlineauto: "/synlineauto.png",
     bigtuna: "/bigtuna.png",
+    mosleys: "/mosleys.png",
   }[brandSlug] ?? "/favicon.ico";
 
 const nextConfig: NextConfig = {

@@ -4,6 +4,7 @@ export const isLscustoms = brand.slug === "lscustoms";
 export const isBennys = brand.slug === "bennys";
 export const isBigtuna = brand.slug === "bigtuna";
 const isSynlineauto = brand.slug === "synlineauto";
+const isMosleys = brand.slug === "mosleys";
 
 const roleAliases: Record<string, string> = {
   shopforeman: "shop_foreman",
@@ -111,7 +112,7 @@ const toTitleCase = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-const usesUsd = isLscustoms || isSynlineauto || isBigtuna || isBennys;
+const usesUsd = isLscustoms || isSynlineauto || isBigtuna || isBennys || isMosleys;
 export const brandCurrency = usesUsd ? "USD" : "GBP";
 export const commissionUsesProfit = isBigtuna || isBennys;
 export const showProfitFields = isBigtuna || isBennys;
