@@ -9,6 +9,7 @@ import {
   hasLsManagerOrOwnerAccess,
   hasManagerLikeAccess,
   hasOwnerLikeAccess,
+  isBennys,
 } from "@/config/brand-overrides";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerActionClient } from "@/lib/supabase/server";
@@ -549,7 +550,7 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
     };
   }
 
-    // Reset this user's commission history after paying out and log the payout.
+    // Log the payout; only reset sales totals for brands that require it.
     const { error: payoutLogError } = await supabase.from("payout_logs").insert({
       user_id: targetRow.id,
       username: targetRow.username,
@@ -563,18 +564,23 @@ export const payUser = async (_prev: PayUserState, formData: FormData): Promise<
       console.error("[payout] Failed to log payout", payoutLogError);
     }
 
-    const resetSuccess = await removeUserSales(supabase, targetRow.id);
-    if (!resetSuccess) {
-      console.error("[payout] Failed to reset commissions after payout", { userId: targetRow.id });
+    let resetSuccess = true;
+    if (!isBennys) {
+      resetSuccess = await removeUserSales(supabase, targetRow.id);
+      if (!resetSuccess) {
+        console.error("[payout] Failed to reset commissions after payout", { userId: targetRow.id });
+      }
     }
 
     revalidatePath("/sales");
     revalidatePath("/sales-register");
     return {
       status: "success",
-      message: resetSuccess
-        ? "Payslip sent and commission reset."
-        : "Payslip sent. Could not reset commission; please reset manually.",
+      message: isBennys
+        ? "Payslip sent. Sales totals retained."
+        : resetSuccess
+          ? "Payslip sent and commission reset."
+          : "Payslip sent. Could not reset commission; please reset manually.",
     };
   } catch (error) {
     console.error("[payout] Unexpected error", error);
