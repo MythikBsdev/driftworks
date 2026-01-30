@@ -39,7 +39,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
           ...(isMosleys
             ? {
                 backgroundImage:
-                  "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88)), url('/mosleys.jpg')",
+                  "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88)), url('/mosleys.png')",
                 backgroundSize: "cover",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center",

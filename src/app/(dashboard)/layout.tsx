@@ -131,7 +131,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
       {isMosleys ? (
         <div
           className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: "url('/mosleys.jpg')", opacity: 0.08 }}
+          style={{ backgroundImage: "url('/mosleys.png')", opacity: 0.08 }}
           aria-hidden
         />
       ) : null}
